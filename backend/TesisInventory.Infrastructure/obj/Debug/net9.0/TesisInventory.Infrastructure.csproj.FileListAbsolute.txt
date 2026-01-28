@@ -17,3 +17,4 @@ C:\xampp\htdocs\xampp\tesis-inventory\backend\TesisInventory.Infrastructure\obj\
 C:\xampp\htdocs\xampp\tesis-inventory\backend\TesisInventory.Infrastructure\obj\Debug\net9.0\TesisInventory.Infrastructure.pdb
 C:\xampp\htdocs\xampp\tesis-inventory\backend\TesisInventory.Infrastructure\obj\Debug\net9.0\TesisInventory.Infrastructure.genruntimeconfig.cache
 C:\xampp\htdocs\xampp\tesis-inventory\backend\TesisInventory.Infrastructure\obj\Debug\net9.0\ref\TesisInventory.Infrastructure.dll
+C:\xampp\htdocs\xampp\tesis-inventory\backend\TesisInventory.Infrastructure\obj\Debug\net9.0\TesisInventory.Infrastructure.sourcelink.json

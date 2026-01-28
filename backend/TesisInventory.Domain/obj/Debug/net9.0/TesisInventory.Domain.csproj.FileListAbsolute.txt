@@ -9,3 +9,4 @@ C:\xampp\htdocs\xampp\tesis-inventory\backend\TesisInventory.Domain\obj\Debug\ne
 C:\xampp\htdocs\xampp\tesis-inventory\backend\TesisInventory.Domain\obj\Debug\net9.0\refint\TesisInventory.Domain.dll
 C:\xampp\htdocs\xampp\tesis-inventory\backend\TesisInventory.Domain\obj\Debug\net9.0\TesisInventory.Domain.pdb
 C:\xampp\htdocs\xampp\tesis-inventory\backend\TesisInventory.Domain\obj\Debug\net9.0\ref\TesisInventory.Domain.dll
+C:\xampp\htdocs\xampp\tesis-inventory\backend\TesisInventory.Domain\obj\Debug\net9.0\TesisInventory.Domain.sourcelink.json

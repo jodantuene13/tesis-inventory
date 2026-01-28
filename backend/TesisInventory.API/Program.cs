@@ -1,6 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using TesisInventory.Application.Interfaces;
+using TesisInventory.Application.Services;
+using TesisInventory.Domain.Interfaces;
 using TesisInventory.Infrastructure.Persistence;
+using TesisInventory.Infrastructure.Repositories;
 using TesisInventory.Infrastructure.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -18,7 +21,12 @@ builder.Services.AddDbContext<InventoryDbContext>(options =>
 
 // Dependency Injection
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IRoleRepository, RoleRepository>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IUsersService, UsersService>();
+builder.Services.AddScoped<IRolesService, RolesService>();
+builder.Services.AddScoped<ISedeRepository, SedeRepository>();
+builder.Services.AddScoped<ISedesService, SedesService>();
 
 // CORS Config (for Angular)
 builder.Services.AddCors(options =>
@@ -30,6 +38,24 @@ builder.Services.AddCors(options =>
 });
 
 var app = builder.Build();
+
+// Seed Data
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        var context = services.GetRequiredService<TesisInventory.Infrastructure.Persistence.InventoryDbContext>();
+        // Ensure database is created/migrated before seeding
+        // context.Database.Migrate(); // Optional: if using migrations exclusively
+        TesisInventory.Infrastructure.Data.DbInitializer.Initialize(context);
+    }
+    catch (Exception ex)
+    {
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "An error occurred creating or seeding the DB.");
+    }
+}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

@@ -11,6 +11,7 @@ namespace TesisInventory.Infrastructure.Persistence
 
         public DbSet<Usuario> Usuario { get; set; } // Singular naming as per DB refactor
         public DbSet<Rol> Rol { get; set; }
+        public DbSet<Sede> Sede { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -44,6 +45,16 @@ namespace TesisInventory.Infrastructure.Persistence
                 .HasOne(u => u.Rol)
                 .WithMany(r => r.Usuarios)
                 .HasForeignKey(u => u.IdRol);
+
+            modelBuilder.Entity<Usuario>()
+                .HasOne(u => u.Sede)
+                .WithMany() // Assuming one-to-many but Sede doesn't have Usuarios collection yet, which is fine
+                .HasForeignKey(u => u.IdSede);
+
+            modelBuilder.Entity<Sede>().ToTable("Sede");
+            modelBuilder.Entity<Sede>().HasKey(s => s.IdSede);
+            modelBuilder.Entity<Sede>().Property(s => s.IdSede).HasColumnName("idSede");
+            modelBuilder.Entity<Sede>().Property(s => s.NombreSede).HasColumnName("nombreSede");
         }
     }
 }

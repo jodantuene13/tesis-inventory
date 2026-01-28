@@ -1,0 +1,52 @@
+<div class="admin-wrapper">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="logo-area">
+            <h2>Inventario</h2>
+        </div>
+        <nav class="sidebar-nav">
+            <ul>
+                <li>
+                    <a routerLink="/home" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
+                        <i class="icon-home"></i> Inicio
+                    </a>
+                </li>
+
+                <!-- Configuration Module -->
+                <li class="nav-item-group">
+                    <a (click)="toggleConfigMenu()" [class.active]="isConfigMenuOpen" class="nav-group-toggle">
+                        <i class="icon-settings"></i> Configuración
+                        <span class="arrow" [class.rotated]="isConfigMenuOpen">▼</span>
+                    </a>
+                    <ul class="submenu" [class.open]="isConfigMenuOpen">
+                        <li>
+                            <a routerLink="/configuration/users" routerLinkActive="active">
+                                Usuarios
+                            </a>
+                        </li>
+                        <li>
+                            <a routerLink="/configuration/roles" routerLinkActive="active">
+                                Roles
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+        </nav>
+        <div class="sidebar-footer">
+            <button (click)="logout()" class="logout-btn">
+                Cerrar Sesión
+            </button>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <header class="top-bar">
+            <!-- Future: Breadcrumbs or User Profile snippet -->
+        </header>
+        <div class="content-area">
+            <router-outlet></router-outlet>
+        </div>
+    </main>
+</div>

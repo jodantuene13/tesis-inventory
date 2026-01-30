@@ -22,4 +22,5 @@ export interface UpdateUserDto {
     nombreUsuario: string;
     idRol: number;
     idSede: number;
+    estado: boolean;
 }

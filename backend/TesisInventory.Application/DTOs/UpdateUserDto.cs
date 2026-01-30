@@ -5,5 +5,6 @@ namespace TesisInventory.Application.DTOs
         public string NombreUsuario { get; set; } = string.Empty;
         public int IdRol { get; set; }
         public int IdSede { get; set; }
+        public bool Estado { get; set; }
     }
 }

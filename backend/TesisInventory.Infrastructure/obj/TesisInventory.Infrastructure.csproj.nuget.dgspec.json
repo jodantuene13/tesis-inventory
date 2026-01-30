@@ -1,7 +1,7 @@
 {
   "format": 1,
   "restore": {
-    "C:\\xampp\\htdocs\\xampp\\tesis-inventory\\backend\\TesisInventory.Infrastructure\\TesisInventory.Infrastructure.csproj": {}
+    "c:\\xampp\\htdocs\\xampp\\tesis-inventory\\backend\\TesisInventory.Infrastructure\\TesisInventory.Infrastructure.csproj": {}
   },
   "projects": {
     "C:\\xampp\\htdocs\\xampp\\tesis-inventory\\backend\\TesisInventory.Application\\TesisInventory.Application.csproj": {
@@ -138,14 +138,14 @@
         }
       }
     },
-    "C:\\xampp\\htdocs\\xampp\\tesis-inventory\\backend\\TesisInventory.Infrastructure\\TesisInventory.Infrastructure.csproj": {
+    "c:\\xampp\\htdocs\\xampp\\tesis-inventory\\backend\\TesisInventory.Infrastructure\\TesisInventory.Infrastructure.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\xampp\\htdocs\\xampp\\tesis-inventory\\backend\\TesisInventory.Infrastructure\\TesisInventory.Infrastructure.csproj",
+        "projectUniqueName": "c:\\xampp\\htdocs\\xampp\\tesis-inventory\\backend\\TesisInventory.Infrastructure\\TesisInventory.Infrastructure.csproj",
         "projectName": "TesisInventory.Infrastructure",
-        "projectPath": "C:\\xampp\\htdocs\\xampp\\tesis-inventory\\backend\\TesisInventory.Infrastructure\\TesisInventory.Infrastructure.csproj",
+        "projectPath": "c:\\xampp\\htdocs\\xampp\\tesis-inventory\\backend\\TesisInventory.Infrastructure\\TesisInventory.Infrastructure.csproj",
         "packagesPath": "C:\\Users\\jodan\\.nuget\\packages\\",
-        "outputPath": "C:\\xampp\\htdocs\\xampp\\tesis-inventory\\backend\\TesisInventory.Infrastructure\\obj\\",
+        "outputPath": "c:\\xampp\\htdocs\\xampp\\tesis-inventory\\backend\\TesisInventory.Infrastructure\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

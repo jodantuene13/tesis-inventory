@@ -68,7 +68,8 @@ export class UserFormComponent implements OnInit {
                 nombreUsuario: u.nombreUsuario,
                 email: u.email,
                 idRol: u.idRol,
-                idSede: u.idSede
+                idSede: u.idSede,
+                estado: u.estado
             };
         });
     }
@@ -78,7 +79,8 @@ export class UserFormComponent implements OnInit {
             const updateDto: UpdateUserDto = {
                 nombreUsuario: this.user.nombreUsuario,
                 idRol: this.user.idRol,
-                idSede: this.user.idSede
+                idSede: this.user.idSede,
+                estado: this.user.estado
             };
             this.userService.update(this.userId, updateDto).subscribe(() => {
                 this.router.navigate(['/configuration/users']);

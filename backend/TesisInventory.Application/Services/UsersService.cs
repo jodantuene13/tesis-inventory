@@ -62,6 +62,7 @@ namespace TesisInventory.Application.Services
             usuario.NombreUsuario = updateUserDto.NombreUsuario;
             usuario.IdRol = updateUserDto.IdRol;
             usuario.IdSede = updateUserDto.IdSede;
+            usuario.Estado = updateUserDto.Estado;
 
             await _userRepository.UpdateAsync(usuario);
             return MapToDto(usuario);

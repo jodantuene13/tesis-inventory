@@ -13,3 +13,4 @@ C:\xampp\htdocs\xampp\tesis-inventory\backend\TesisInventory.Application\obj\Deb
 C:\xampp\htdocs\xampp\tesis-inventory\backend\TesisInventory.Application\obj\Debug\net9.0\refint\TesisInventory.Application.dll
 C:\xampp\htdocs\xampp\tesis-inventory\backend\TesisInventory.Application\obj\Debug\net9.0\TesisInventory.Application.pdb
 C:\xampp\htdocs\xampp\tesis-inventory\backend\TesisInventory.Application\obj\Debug\net9.0\ref\TesisInventory.Application.dll
+C:\xampp\htdocs\xampp\tesis-inventory\backend\TesisInventory.Application\obj\Debug\net9.0\TesisInventory.Application.sourcelink.json

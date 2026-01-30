@@ -1,0 +1,68 @@
+<div class="container mx-auto p-4 max-w-lg">
+    <h2 class="text-2xl font-bold mb-4">{{ isEditMode ? 'Editar Usuario' : 'Registrar Nuevo Usuario' }}</h2>
+    <form (ngSubmit)="onSubmit()" #userForm="ngForm" class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
+
+        <div class="mb-4">
+            <label class="block text-gray-700 text-sm font-bold mb-2" for="nombreUsuario">
+                Nombre de Usuario
+            </label>
+            <input [(ngModel)]="user.nombreUsuario" name="nombreUsuario" id="nombreUsuario" type="text" required
+                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+        </div>
+
+        <div class="mb-4" *ngIf="!isEditMode">
+            <label class="block text-gray-700 text-sm font-bold mb-2" for="email">
+                Correo Institucional
+            </label>
+            <input [(ngModel)]="user.email" name="email" id="email" type="email" required
+                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+        </div>
+
+        <div class="mb-4" *ngIf="!isEditMode">
+            <label class="block text-gray-700 text-sm font-bold mb-2" for="password">
+                Contraseña
+            </label>
+            <input [(ngModel)]="user.password" name="password" id="password" type="password" required
+                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+        </div>
+
+        <div class="mb-4">
+            <label class="block text-gray-700 text-sm font-bold mb-2" for="rol">
+                Rol
+            </label>
+            <select [(ngModel)]="user.idRol" name="idRol" id="rol"
+                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                <option *ngFor="let role of roles" [value]="role.idRol">{{ role.nombreRol }}</option>
+            </select>
+        </div>
+
+        <div class="mb-6">
+            <label class="block text-gray-700 text-sm font-bold mb-2" for="sede">
+                Sede
+            </label>
+            <select [(ngModel)]="user.idSede" name="idSede" id="sede"
+                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                <option *ngFor="let sede of sedes" [value]="sede.idSede">{{ sede.nombreSede }}</option>
+            </select>
+        </div>
+
+        <div class="mb-4 flex items-center">
+            <input [(ngModel)]="user.estado" name="estado" id="estado" type="checkbox"
+                class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+            <label for="estado" class="ml-2 block text-gray-900 text-sm font-bold">
+                Usuario Activo
+            </label>
+        </div>
+
+        <div class="flex items-center justify-between">
+            <button type="submit" [disabled]="!userForm.form.valid"
+                class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                {{ isEditMode ? 'Guardar Cambios' : 'Registrar' }}
+            </button>
+            <a routerLink="/configuration/users"
+                class="inline-block align-baseline font-bold text-sm text-blue-500 hover:text-blue-800">
+                Cancelar
+            </a>
+        </div>
+    </form>
+</div>

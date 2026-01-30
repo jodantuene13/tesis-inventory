@@ -5,16 +5,16 @@ namespace TesisInventory.Domain.Entities
     public class Usuario
     {
         public int IdUsuario { get; set; }
-        public string NombreUsuario { get; set; }
-        public string Email { get; set; }
-        public string? GoogleId { get; set; } // Nullable in DB, can be null here
-        public string? Password { get; set; } // Nullable in DB
+        public string NombreUsuario { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+        public string? GoogleId { get; set; }
+        public string? Password { get; set; }
         public bool Estado { get; set; }
         public DateTime FechaRegistro { get; set; }
         public int IdRol { get; set; }
         public int IdSede { get; set; }
 
-        public Rol Rol { get; set; }
-        // public Sede Sede { get; set; } // Sede entity not created yet, uncomment when ready
+        public virtual Rol? Rol { get; set; }
+        public virtual Sede? Sede { get; set; }
     }
 }

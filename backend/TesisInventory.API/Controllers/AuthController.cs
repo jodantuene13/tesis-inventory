@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 using TesisInventory.Application.Interfaces;
+using TesisInventory.Domain.Interfaces;
 using TesisInventory.API.DTOs;
 
 namespace TesisInventory.API.Controllers
@@ -51,7 +52,7 @@ namespace TesisInventory.API.Controllers
                 // 6. Generar JWT
                 var jwt = await _authService.GenerateJwtTokenAsync(dbUser);
 
-                return Ok(new { token = jwt, user = new { dbUser.NombreUsuario, dbUser.Email, dbUser.IdRol } });
+                return Ok(new { token = jwt, user = new { dbUser.NombreUsuario, dbUser.Email, dbUser.IdRol, nombreRol = dbUser.Rol?.NombreRol } });
             }
             catch (System.Exception ex)
             {

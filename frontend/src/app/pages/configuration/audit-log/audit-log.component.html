@@ -1,0 +1,174 @@
+<div class="container mx-auto p-6">
+    <h1 class="text-3xl font-bold mb-6 text-gray-800">Historial de Modificaciones</h1>
+
+    <!-- Filters -->
+    <div class="bg-white p-4 rounded-lg shadow mb-6 flex flex-wrap gap-4 items-end">
+        <div>
+            <label class="block text-sm font-medium text-gray-700">Desde</label>
+            <input type="date" [(ngModel)]="fromDate" (change)="search()"
+                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border">
+        </div>
+        <div>
+            <label class="block text-sm font-medium text-gray-700">Hasta</label>
+            <input type="date" [(ngModel)]="toDate" (change)="search()"
+                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border">
+        </div>
+        <div>
+            <label class="block text-sm font-medium text-gray-700">Usuario Ejecutor</label>
+            <input type="text" [(ngModel)]="executorName" (keyup.enter)="search()" placeholder="Buscar por nombre..."
+                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border">
+        </div>
+        <div>
+            <label class="block text-sm font-medium text-gray-700">Acción</label>
+            <select [(ngModel)]="actionType" (change)="search()"
+                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border">
+                <option value="">Todas</option>
+                <option value="CREATE">Alta</option>
+                <option value="UPDATE">Modificación</option>
+                <option value="DELETE">Baja</option>
+                <option value="CHANGE_STATUS">Cambio de Estado</option>
+            </select>
+        </div>
+        <div>
+            <button (click)="search()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition">
+                Buscar
+            </button>
+            <button (click)="clearFilters()" class="ml-2 text-gray-600 hover:text-gray-800 transition">
+                Limpiar
+            </button>
+        </div>
+    </div>
+
+    <!-- Table -->
+    <div class="bg-white rounded-lg shadow overflow-hidden">
+        <table class="min-w-full leading-normal">
+            <thead>
+                <tr>
+                    <th
+                        class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                        Fecha/Hora</th>
+                    <th
+                        class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                        Acción</th>
+                    <th
+                        class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                        Ejecutor</th>
+                    <th
+                        class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                        Detalles</th>
+                    <th
+                        class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                        Descripción</th>
+                    <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100"></th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngFor="let log of logs" class="hover:bg-gray-50">
+                    <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">
+                        {{ log.timestamp | date:'short' }}
+                    </td>
+                    <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">
+                        <span
+                            [class]="'px-2 inline-flex text-xs leading-5 font-semibold rounded-full ' + getActionClass(log.action)">
+                            {{ log.action }}
+                        </span>
+                    </td>
+                    <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">
+                        <div class="font-bold">{{ log.executorName }}</div>
+                        <div class="text-xs text-gray-500">{{ log.executorEmail }}</div>
+                    </td>
+                    <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">
+                        <div class="text-xs">Rol: {{ log.executorRole }}</div>
+                        <div class="text-xs">Sede: {{ log.executorSede }}</div>
+                    </td>
+                    <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">
+                        {{ log.details }}
+                    </td>
+                    <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm text-right">
+                        <button *ngIf="log.targetUserSnapshot" (click)="openDiff(log)"
+                            class="text-blue-500 hover:text-blue-700 bg-blue-100 hover:bg-blue-200 p-2 rounded-full transition"
+                            title="Ver detalles del cambio">
+                            <!-- Magnifying Glass Icon -->
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                        </button>
+                        <span *ngIf="!log.targetUserSnapshot" class="text-xs text-gray-400">No Data</span>
+                    </td>
+                </tr>
+                <tr *ngIf="logs.length === 0">
+                    <td colspan="6"
+                        class="px-5 py-5 border-b border-gray-200 bg-white text-sm text-center text-gray-500">
+                        No se encontraron registros.
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Diff Modal -->
+    <div *ngIf="isModalOpen" class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog"
+        aria-modal="true">
+        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <!-- Background overlay -->
+            <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"
+                (click)="closeModal()"></div>
+
+            <!-- Modal panel -->
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+            <div
+                class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full">
+
+                <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                    <div class="sm:flex sm:items-start">
+                        <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                            <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4" id="modal-title">
+                                Detalles del Cambio
+                            </h3>
+
+                            <div class="grid grid-cols-2 gap-4">
+                                <!-- Previous State -->
+                                <div class="bg-red-50 p-4 rounded border border-red-200">
+                                    <h4 class="font-bold text-red-800 mb-2 border-b border-red-200 pb-1">Estado Anterior
+                                    </h4>
+                                    <div *ngIf="!diffOld" class="text-gray-500 italic">No disponible (Creación o sin
+                                        datos)</div>
+                                    <ul *ngIf="diffOld" class="text-sm">
+                                        <li *ngFor="let key of getObjectKeys(diffOld)"
+                                            class="grid grid-cols-3 gap-2 py-1 border-b border-red-100 last:border-0">
+                                            <span class="font-semibold text-gray-600 col-span-1">{{ key }}:</span>
+                                            <span class="text-gray-800 col-span-2">{{ diffOld[key] }}</span>
+                                        </li>
+                                    </ul>
+                                </div>
+
+                                <!-- New State -->
+                                <div class="bg-green-50 p-4 rounded border border-green-200">
+                                    <h4 class="font-bold text-green-800 mb-2 border-b border-green-200 pb-1">Nuevo
+                                        Estado</h4>
+                                    <div *ngIf="!diffNew" class="text-gray-500 italic">No disponible (Eliminación)</div>
+                                    <ul *ngIf="diffNew" class="text-sm">
+                                        <li *ngFor="let key of getObjectKeys(diffNew)"
+                                            class="grid grid-cols-3 gap-2 py-1 border-b border-green-100 last:border-0">
+                                            <span class="font-semibold text-gray-600 col-span-1">{{ key }}:</span>
+                                            <span class="text-gray-800 col-span-2">{{ diffNew[key] }}</span>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                    <button type="button" (click)="closeModal()"
+                        class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm">
+                        Cerrar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

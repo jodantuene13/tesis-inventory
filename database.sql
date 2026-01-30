@@ -156,17 +156,23 @@ CREATE TABLE IF NOT EXISTS Informe (
 -- 5. Tablas de Auditoría
 -- =============================================
 
-CREATE TABLE IF NOT EXISTS HistorialModificacionUsuario (
-    idHistorial INT AUTO_INCREMENT PRIMARY KEY,
-    idUsuarioModificado INT NOT NULL,
-    campoModificado VARCHAR(50),
-    valorAnterior VARCHAR(255),
-    valorNuevo VARCHAR(255),
-    fecha DATETIME DEFAULT CURRENT_TIMESTAMP,
-    idUsuarioResponsable INT NOT NULL,
-    FOREIGN KEY (idUsuarioModificado) REFERENCES Usuario(idUsuario),
-    FOREIGN KEY (idUsuarioResponsable) REFERENCES Usuario(idUsuario)
+CREATE TABLE IF NOT EXISTS AuditLog (
+    Id INT AUTO_INCREMENT PRIMARY KEY,
+    EntityId INT NOT NULL,
+    EntityType VARCHAR(50) DEFAULT 'Usuario',
+    Action VARCHAR(50) NOT NULL,
+    Timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+    Details TEXT,
+    ExecutorId INT,
+    ExecutorName VARCHAR(100),
+    ExecutorEmail VARCHAR(100),
+    ExecutorRole VARCHAR(50),
+    ExecutorSede VARCHAR(50),
+    TargetUserSnapshot TEXT
 );
+
+-- Deprecated/Unused legacy table (kept for reference if needed, or remove)
+-- CREATE TABLE IF NOT EXISTS HistorialModificacionUsuario ...
 
 CREATE TABLE IF NOT EXISTS HistorialTransferencia (
     idHistorialTransferencia INT AUTO_INCREMENT PRIMARY KEY,

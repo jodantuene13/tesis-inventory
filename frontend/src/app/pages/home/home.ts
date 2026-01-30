@@ -19,7 +19,7 @@ import { User } from '../../models/user';
           <h3>Información del Usuario</h3>
           <p><strong>Usuario:</strong> {{ user.nombreUsuario }}</p>
           <p><strong>Email:</strong> {{ user.email }}</p>
-          <p><strong>Rol ID:</strong> {{ user.idRol }}</p>
+          <p><strong>Rol:</strong> {{ user.nombreRol || user.idRol }}</p>
         </div>
       </main>
     </div>

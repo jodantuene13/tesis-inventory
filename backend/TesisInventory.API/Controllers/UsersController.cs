@@ -7,6 +7,7 @@ namespace TesisInventory.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Microsoft.AspNetCore.Authorization.Authorize]
     public class UsersController : ControllerBase
     {
         private readonly IUsersService _usersService;

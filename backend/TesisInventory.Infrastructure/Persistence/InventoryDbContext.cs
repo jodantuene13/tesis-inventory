@@ -12,6 +12,7 @@ namespace TesisInventory.Infrastructure.Persistence
         public DbSet<Usuario> Usuario { get; set; } // Singular naming as per DB refactor
         public DbSet<Rol> Rol { get; set; }
         public DbSet<Sede> Sede { get; set; }
+        public DbSet<AuditLog> AuditLogs { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -55,6 +56,10 @@ namespace TesisInventory.Infrastructure.Persistence
             modelBuilder.Entity<Sede>().HasKey(s => s.IdSede);
             modelBuilder.Entity<Sede>().Property(s => s.IdSede).HasColumnName("idSede");
             modelBuilder.Entity<Sede>().Property(s => s.NombreSede).HasColumnName("nombreSede");
+
+            // Audit
+            modelBuilder.Entity<AuditLog>().ToTable("AuditLog");
+            modelBuilder.Entity<AuditLog>().HasKey(a => a.Id);
         }
     }
 }

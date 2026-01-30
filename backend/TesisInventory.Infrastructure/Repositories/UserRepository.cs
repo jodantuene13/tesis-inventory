@@ -21,6 +21,7 @@ namespace TesisInventory.Infrastructure.Repositories
         {
             return await _context.Usuario
                 .Include(u => u.Rol)
+                .Include(u => u.Sede)
                 .FirstOrDefaultAsync(u => u.IdUsuario == id);
         }
 
@@ -35,6 +36,7 @@ namespace TesisInventory.Infrastructure.Repositories
         {
             return await _context.Usuario
                 .Include(u => u.Rol)
+                .Include(u => u.Sede)
                 .ToListAsync();
         }
 

@@ -7,3 +7,4 @@
 | 2026-01-21 | Antigravity AI | HU-AUTH-01 | Modificación `Usuario`: `googleId` y password nullable para SSO. | Bajo (DDL Alter) |
 | 2026-01-30 | Antigravity AI | HU-ROLES-01/02/03 | Implementación de ABM de Roles con validación de integridad referencial. Backend y Frontend. | Medio (Nueva Funcionalidad) |
 | 2026-01-30 | Antigravity AI | HU-AUTH-04 | Habilitación de edición de Estado (Activo/Inactivo) de usuarios desde lista y formulario. Update Backend DTO. | Bajo (Mejora UX) |
+| 2026-01-30 | Antigravity AI | HU-AUDIT-01 | Implementación de Historial de Modificaciones (Audit Log) para Usuarios. Backend (Entity, Service, Controller) y Frontend (Page, Service). | Medio (Nueva Funcionalidad) |

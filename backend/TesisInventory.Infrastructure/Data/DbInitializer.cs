@@ -1,6 +1,7 @@
 using System.Linq;
 using TesisInventory.Domain.Entities;
 using TesisInventory.Infrastructure.Persistence;
+using Microsoft.EntityFrameworkCore;
 
 namespace TesisInventory.Infrastructure.Data
 {
@@ -9,6 +10,24 @@ namespace TesisInventory.Infrastructure.Data
         public static void Initialize(InventoryDbContext context)
         {
             context.Database.EnsureCreated();
+            
+            // Ensure AuditLog table exists (Fix for missing migration)
+            context.Database.ExecuteSqlRaw(@"
+                CREATE TABLE IF NOT EXISTS AuditLog (
+                    Id INT AUTO_INCREMENT PRIMARY KEY,
+                    EntityId INT NOT NULL,
+                    EntityType VARCHAR(50) DEFAULT 'Usuario',
+                    Action VARCHAR(50) NOT NULL,
+                    Timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    Details TEXT,
+                    ExecutorId INT,
+                    ExecutorName VARCHAR(100),
+                    ExecutorEmail VARCHAR(100),
+                    ExecutorRole VARCHAR(50),
+                    ExecutorSede VARCHAR(50),
+                    TargetUserSnapshot TEXT
+                );
+            ");
 
             // Seed Roles
             if (!context.Rol.Any())

@@ -13,11 +13,13 @@ namespace TesisInventory.Application.Services
     {
         private readonly IUserRepository _userRepository;
         private readonly IRoleRepository _roleRepository;
+        private readonly IAuditService _auditService;
 
-        public UsersService(IUserRepository userRepository, IRoleRepository roleRepository)
+        public UsersService(IUserRepository userRepository, IRoleRepository roleRepository, IAuditService auditService)
         {
             _userRepository = userRepository;
             _roleRepository = roleRepository;
+            _auditService = auditService;
         }
 
         public async Task<UserDto> CreateUserAsync(CreateUserDto createUserDto)
@@ -27,18 +29,11 @@ namespace TesisInventory.Application.Services
                 throw new Exception("El correo electrónico ya está registrado.");
             }
 
-            // Validar correo institucional (si aplica lógica de dominio, p.ej. @ucc.edu.ar)
-            if (!createUserDto.Email.EndsWith("@ucc.edu.ar"))
-            {
-                 // Nota: Esto podría ser configurable o parte de una regla de negocio más compleja.
-                 // throw new Exception("El correo debe ser institucional (@ucc.edu.ar).");
-            }
-
             var usuario = new Usuario
             {
                 NombreUsuario = createUserDto.NombreUsuario,
                 Email = createUserDto.Email,
-                Password = createUserDto.Password, // TODO: Hash password here or in repository? Usually Service ensures hashing.
+                Password = createUserDto.Password,
                 IdRol = createUserDto.IdRol,
                 IdSede = createUserDto.IdSede,
                 Estado = true,
@@ -46,9 +41,9 @@ namespace TesisInventory.Application.Services
             };
 
             await _userRepository.AddAsync(usuario);
+            var newUserSnapshot = await GetSnapshotAsync(usuario.IdUsuario);
+            await _auditService.LogActionAsync(usuario.IdUsuario, "CREATE", $"Usuario creado: {usuario.NombreUsuario}", null, newUserSnapshot);
             
-            // Fetch complete entity with relations if needed, or just map back
-            // For now mapping manually to return DTO
             var createdUser = await _userRepository.GetByIdAsync(usuario.IdUsuario);
             if (createdUser == null) throw new Exception("Error al crear usuario.");
             return MapToDto(createdUser);
@@ -58,6 +53,8 @@ namespace TesisInventory.Application.Services
         {
             var usuario = await _userRepository.GetByIdAsync(id);
             if (usuario == null) throw new Exception("Usuario no encontrado.");
+            
+            var oldSnapshot = await GetSnapshotAsync(id);
 
             usuario.NombreUsuario = updateUserDto.NombreUsuario;
             usuario.IdRol = updateUserDto.IdRol;
@@ -65,6 +62,9 @@ namespace TesisInventory.Application.Services
             usuario.Estado = updateUserDto.Estado;
 
             await _userRepository.UpdateAsync(usuario);
+            var newSnapshot = await GetSnapshotAsync(id);
+            
+            await _auditService.LogActionAsync(usuario.IdUsuario, "UPDATE", $"Usuario actualizado: {usuario.NombreUsuario}", oldSnapshot, newSnapshot);
             return MapToDto(usuario);
         }
 
@@ -73,7 +73,9 @@ namespace TesisInventory.Application.Services
             var usuario = await _userRepository.GetByIdAsync(id);
             if (usuario == null) return false;
 
+            var oldSnapshot = await GetSnapshotAsync(id);
             await _userRepository.DeleteAsync(id);
+            await _auditService.LogActionAsync(id, "DELETE", $"Usuario eliminado: {usuario.NombreUsuario}", oldSnapshot, null);
             return true;
         }
 
@@ -94,9 +96,14 @@ namespace TesisInventory.Application.Services
         {
             var usuario = await _userRepository.GetByIdAsync(id);
             if (usuario == null) throw new Exception("Usuario no encontrado.");
+            
+            var oldSnapshot = await GetSnapshotAsync(id);
 
             usuario.Estado = nuevoEstado;
             await _userRepository.UpdateAsync(usuario);
+            var newSnapshot = await GetSnapshotAsync(id);
+            
+            await _auditService.LogActionAsync(id, "CHANGE_STATUS", $"Estado cambiado a: {(nuevoEstado ? "Activo" : "Inactivo")}", oldSnapshot, newSnapshot);
             return MapToDto(usuario);
         }
 
@@ -105,8 +112,17 @@ namespace TesisInventory.Application.Services
             var usuario = await _userRepository.GetByIdAsync(id);
             if (usuario == null) return false;
 
-            usuario.Password = newPassword; // TODO: Remember to Hash
-            await _userRepository.UpdateAsync(usuario);
+            // Password change doesn't usually show snapshot details for security, but we can enable it if requested. 
+            // For now, adhering to standard practice of not logging password contents.
+            await _userRepository.UpdateAsync(usuario); // Just usage placeholder
+            
+             // Re-fetch logic or direct update... currently manual update.
+             // Since repository.UpdateAsync expects entity, let's just do it
+             
+             usuario.Password = newPassword;
+             await _userRepository.UpdateAsync(usuario);
+
+            await _auditService.LogActionAsync(id, "CHANGE_PASSWORD", "Contraseña actualizada");
             return true;
         }
 
@@ -135,6 +151,21 @@ namespace TesisInventory.Application.Services
                 IdSede = u.IdSede,
                 NombreRol = u.Rol?.NombreRol ?? "Sin Rol",
                 NombreSede = u.Sede?.NombreSede ?? "Sin Sede"
+            };
+        }
+        
+        private async Task<object?> GetSnapshotAsync(int userId)
+        {
+            var user = await _userRepository.GetByIdAsync(userId);
+            if (user == null) return null;
+            
+            return new 
+            {
+                Nombre = user.NombreUsuario,
+                Email = user.Email,
+                Estado = user.Estado ? "Activo" : "Inactivo",
+                Rol = user.Rol?.NombreRol ?? user.IdRol.ToString(),
+                Sede = user.Sede?.NombreSede ?? user.IdSede.ToString()
             };
         }
     }

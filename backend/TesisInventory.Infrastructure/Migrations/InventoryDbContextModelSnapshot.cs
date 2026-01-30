@@ -22,6 +22,60 @@ namespace TesisInventory.Infrastructure.Migrations
 
             MySqlModelBuilderExtensions.AutoIncrementColumns(modelBuilder);
 
+            modelBuilder.Entity("TesisInventory.Domain.Entities.AuditLog", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Action")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Details")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<int>("EntityId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("EntityType")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("ExecutorEmail")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<int?>("ExecutorId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ExecutorName")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("ExecutorRole")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("ExecutorSede")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("TargetUserSnapshot")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime>("Timestamp")
+                        .HasColumnType("datetime(6)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("AuditLog", (string)null);
+                });
+
             modelBuilder.Entity("TesisInventory.Domain.Entities.Rol", b =>
                 {
                     b.Property<int>("IdRol")
@@ -112,6 +166,8 @@ namespace TesisInventory.Infrastructure.Migrations
 
                     b.HasIndex("IdRol");
 
+                    b.HasIndex("IdSede");
+
                     b.ToTable("Usuario", (string)null);
                 });
 
@@ -123,7 +179,15 @@ namespace TesisInventory.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("TesisInventory.Domain.Entities.Sede", "Sede")
+                        .WithMany()
+                        .HasForeignKey("IdSede")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.Navigation("Rol");
+
+                    b.Navigation("Sede");
                 });
 
             modelBuilder.Entity("TesisInventory.Domain.Entities.Rol", b =>

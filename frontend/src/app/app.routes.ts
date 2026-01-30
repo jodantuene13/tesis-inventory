@@ -31,6 +31,7 @@ export const routes: Routes = [
                     { path: 'roles', component: RolesListComponent },
                     { path: 'roles/new', component: RoleFormComponent },
                     { path: 'roles/edit/:id', component: RoleFormComponent },
+                    { path: 'audit-log', loadComponent: () => import('./pages/configuration/audit-log/audit-log.component').then(m => m.AuditLogComponent) },
 
                     { path: '', redirectTo: 'users', pathMatch: 'full' }
                 ]

@@ -138,6 +138,12 @@ namespace TesisInventory.Application.Services
             return users.Select(MapToDto);
         }
 
+        public async Task<IEnumerable<UserDto>> SearchUsersAsync(string? searchTerm, int? roleId, int? sedeId, bool? status)
+        {
+            var users = await _userRepository.SearchUsersAsync(searchTerm, roleId, sedeId, status);
+            return users.Select(MapToDto);
+        }
+
         private UserDto MapToDto(Usuario u)
         {
             return new UserDto

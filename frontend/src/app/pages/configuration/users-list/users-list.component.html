@@ -1,10 +1,70 @@
 <div class="container mx-auto p-4">
-    <div class="flex justify-between items-center mb-4">
-        <h2 class="text-2xl font-bold">Gestión de Usuarios</h2>
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+        <h2 class="text-2xl font-bold text-gray-800">Gestión de Usuarios</h2>
         <a routerLink="/configuration/users/new"
-            class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-            Nuevo Usuario
+            class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded shadow transition">
+            <span class="flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd"
+                        d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
+                        clip-rule="evenodd" />
+                </svg>
+                Nuevo Usuario
+            </span>
         </a>
+    </div>
+
+    <!-- Filters -->
+    <div class="bg-white p-4 rounded-lg shadow mb-6 flex flex-wrap gap-4 items-end">
+        <div class="flex-1 min-w-[200px]">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Buscar</label>
+            <input type="text" [(ngModel)]="searchTerm" (keyup.enter)="search()" placeholder="Nombre o Email..."
+                class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm p-2 border">
+        </div>
+
+        <div class="w-full md:w-auto">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Rol</label>
+            <select [(ngModel)]="selectedRoleId" (change)="search()"
+                class="w-full md:w-48 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm p-2 border">
+                <option [ngValue]="null">Todos los Roles</option>
+                <option *ngFor="let role of roles" [ngValue]="role.idRol">{{ role.nombreRol }}</option>
+            </select>
+        </div>
+
+        <div class="w-full md:w-auto">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Sede</label>
+            <select [(ngModel)]="selectedSedeId" (change)="search()"
+                class="w-full md:w-48 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm p-2 border">
+                <option [ngValue]="null">Todas las Sedes</option>
+                <option *ngFor="let sede of sedes" [ngValue]="sede.idSede">{{ sede.nombreSede }}</option>
+            </select>
+        </div>
+
+        <div class="w-full md:w-auto">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Estado</label>
+            <select [(ngModel)]="selectedStatus" (change)="search()"
+                class="w-full md:w-32 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm p-2 border">
+                <option value="">Todos</option>
+                <option value="true">Activo</option>
+                <option value="false">Inactivo</option>
+            </select>
+        </div>
+
+        <div class="flex gap-2">
+            <button (click)="search()"
+                class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition flex items-center gap-1">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                Buscar
+            </button>
+            <button *ngIf="hasSearched" (click)="clearFilters()"
+                class="text-gray-600 hover:text-gray-800 px-3 py-2 rounded border border-gray-300 hover:bg-gray-50 transition">
+                Limpiar
+            </button>
+        </div>
     </div>
 
     <div class="overflow-x-auto">

@@ -18,10 +18,18 @@ namespace TesisInventory.API.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAll([FromQuery] string? search, [FromQuery] int? roleId, [FromQuery] int? sedeId, [FromQuery] bool? status)
         {
-            var users = await _usersService.GetAllUsersAsync();
-            return Ok(users);
+            if (string.IsNullOrEmpty(search) && !roleId.HasValue && !sedeId.HasValue && !status.HasValue)
+            {
+                var users = await _usersService.GetAllUsersAsync();
+                return Ok(users);
+            }
+            else
+            {
+                var users = await _usersService.SearchUsersAsync(search, roleId, sedeId, status);
+                return Ok(users);
+            }
         }
 
         [HttpGet("{id}")]

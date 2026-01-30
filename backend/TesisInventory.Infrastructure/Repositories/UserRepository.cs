@@ -82,5 +82,36 @@ namespace TesisInventory.Infrastructure.Repositories
                 .Where(u => u.IdSede == sedeId)
                 .ToListAsync();
         }
+
+        public async Task<IEnumerable<Usuario>> SearchUsersAsync(string? searchTerm, int? roleId, int? sedeId, bool? status)
+        {
+            var query = _context.Usuario
+                .Include(u => u.Rol)
+                .Include(u => u.Sede)
+                .AsQueryable();
+
+            if (!string.IsNullOrEmpty(searchTerm))
+            {
+                searchTerm = searchTerm.ToLower();
+                query = query.Where(u => u.NombreUsuario.ToLower().Contains(searchTerm) || u.Email.ToLower().Contains(searchTerm));
+            }
+
+            if (roleId.HasValue)
+            {
+                query = query.Where(u => u.IdRol == roleId.Value);
+            }
+
+            if (sedeId.HasValue)
+            {
+                query = query.Where(u => u.IdSede == sedeId.Value);
+            }
+
+            if (status.HasValue)
+            {
+                query = query.Where(u => u.Estado == status.Value);
+            }
+
+            return await query.ToListAsync();
+        }
     }
 }

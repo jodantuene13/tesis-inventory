@@ -15,5 +15,6 @@ namespace TesisInventory.Domain.Interfaces
         Task<bool> ExistsByEmailAsync(string email);
         Task<IEnumerable<Usuario>> GetByRoleAsync(int roleId);
         Task<IEnumerable<Usuario>> GetBySedeAsync(int sedeId);
+        Task<IEnumerable<Usuario>> SearchUsersAsync(string? searchTerm, int? roleId, int? sedeId, bool? status);
     }
 }

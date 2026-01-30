@@ -15,5 +15,6 @@ namespace TesisInventory.Application.Interfaces
         Task<bool> ChangePasswordAsync(int id, string newPassword);
         Task<IEnumerable<UserDto>> GetUsersByRoleAsync(int roleId);
         Task<IEnumerable<UserDto>> GetUsersBySedeAsync(int sedeId);
+        Task<IEnumerable<UserDto>> SearchUsersAsync(string? searchTerm, int? roleId, int? sedeId, bool? status);
     }
 }

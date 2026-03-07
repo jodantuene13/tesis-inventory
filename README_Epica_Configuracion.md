@@ -18,6 +18,7 @@ Esta épica resuelve la necesidad de administrar el control de acceso y la estru
 4.  Baja lógica de usuarios (Cambio de estado Activo/Inactivo).
 5.  Visualización dinámica de Roles y Sedes disponibles desde base de datos.
 6.  Eliminación física de usuarios (con confirmación).
+7.  ABM Remoto completo de Sedes (Alta, Baja, Modificación con validación estricta de eliminación frente a Usuarios activos).
 
 **Funcionalidades excluidas:**
 - Auto-registro de usuarios (solo el Admin invita/crea).

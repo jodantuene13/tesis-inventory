@@ -109,6 +109,10 @@ namespace TesisInventory.Infrastructure.Migrations
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("IdSede"));
 
+                    b.Property<string>("Direccion")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
                     b.Property<string>("NombreSede")
                         .IsRequired()
                         .HasColumnType("longtext")
@@ -162,11 +166,16 @@ namespace TesisInventory.Infrastructure.Migrations
                         .HasColumnType("longtext")
                         .HasColumnName("password");
 
+                    b.Property<int?>("SedeIdSede")
+                        .HasColumnType("int");
+
                     b.HasKey("IdUsuario");
 
                     b.HasIndex("IdRol");
 
                     b.HasIndex("IdSede");
+
+                    b.HasIndex("SedeIdSede");
 
                     b.ToTable("Usuario", (string)null);
                 });
@@ -185,12 +194,21 @@ namespace TesisInventory.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("TesisInventory.Domain.Entities.Sede", null)
+                        .WithMany("Usuarios")
+                        .HasForeignKey("SedeIdSede");
+
                     b.Navigation("Rol");
 
                     b.Navigation("Sede");
                 });
 
             modelBuilder.Entity("TesisInventory.Domain.Entities.Rol", b =>
+                {
+                    b.Navigation("Usuarios");
+                });
+
+            modelBuilder.Entity("TesisInventory.Domain.Entities.Sede", b =>
                 {
                     b.Navigation("Usuarios");
                 });

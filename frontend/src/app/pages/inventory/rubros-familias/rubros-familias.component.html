@@ -1,0 +1,158 @@
+<div class="split-view-container">
+    <div class="header-section">
+        <h1>Rubros y Familias</h1>
+        <p>Seleccione un rubro de la izquierda para ver y gestionar sus familias asociadas a la derecha.</p>
+    </div>
+
+    <div class="split-panels">
+        <!-- Panel Izquierdo: Rubros -->
+        <div class="panel left-panel">
+            <div class="panel-header">
+                <h2>Rubros</h2>
+                <button class="btn btn-primary" (click)="openCreateRubroModal()">+ Nuevo Rubro</button>
+            </div>
+
+            <div class="table-container">
+                <table class="inventory-table">
+                    <thead>
+                        <tr>
+                            <th>Código</th>
+                            <th>Nombre</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngIf="loadingRubros">
+                            <td colspan="4" class="text-center">Cargando rubros...</td>
+                        </tr>
+                        <tr *ngIf="!loadingRubros && rubros.length === 0">
+                            <td colspan="4" class="text-center">No hay rubros creados.</td>
+                        </tr>
+                        <tr *ngFor="let r of rubros" [class.selected-row]="r.idRubro === selectedRubroId"
+                            (click)="selectRubro(r.idRubro)">
+                            <td>{{ r.codigoRubro }}</td>
+                            <td>{{ r.nombre }}</td>
+                            <td>
+                                <span class="status-badge" [class.status-active]="r.activo"
+                                    [class.status-inactive]="!r.activo">
+                                    {{ r.activo ? 'Activo' : 'Inactivo' }}
+                                </span>
+                            </td>
+                            <td class="actions-cell">
+                                <button class="btn-icon" (click)="openEditRubroModal(r, $event)"
+                                    title="Editar">✏️</button>
+                                <button class="btn-icon" (click)="deleteRubro(r.idRubro, $event)"
+                                    title="Dar de baja">❌</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Panel Derecho: Familias -->
+        <div class="panel right-panel">
+            <div class="panel-header">
+                <h2>Familias</h2>
+                <button class="btn btn-primary" (click)="openCreateFamiliaModal()" [disabled]="!selectedRubroId">
+                    + Nueva Familia
+                </button>
+            </div>
+
+            <div class="table-container">
+                <div *ngIf="!selectedRubroId" class="no-selection-msg">
+                    <p>Seleccione o cree un rubro para ver sus familias.</p>
+                </div>
+
+                <table class="inventory-table" *ngIf="selectedRubroId">
+                    <thead>
+                        <tr>
+                            <th>Código</th>
+                            <th>Nombre</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngIf="loadingFamilias">
+                            <td colspan="4" class="text-center">Cargando familias...</td>
+                        </tr>
+                        <tr *ngIf="!loadingFamilias && familias.length === 0">
+                            <td colspan="4" class="text-center">No hay familias en este rubro.</td>
+                        </tr>
+                        <tr *ngFor="let f of familias">
+                            <td>{{ f.codigoFamilia }}</td>
+                            <td>{{ f.nombre }}</td>
+                            <td>
+                                <span class="status-badge" [class.status-active]="f.activo"
+                                    [class.status-inactive]="!f.activo">
+                                    {{ f.activo ? 'Activo' : 'Inactivo' }}
+                                </span>
+                            </td>
+                            <td class="actions-cell">
+                                <button class="btn-icon" (click)="openEditFamiliaModal(f)" title="Editar">✏️</button>
+                                <button class="btn-icon" (click)="deleteFamilia(f.idFamilia)"
+                                    title="Dar de baja">❌</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Rubro -->
+<div class="modal" *ngIf="showRubroModal">
+    <div class="modal-content">
+        <h2>{{ isEditRubro ? 'Modificar Rubro' : 'Nuevo Rubro' }}</h2>
+        <div class="error-banner" *ngIf="errorRubro">{{ errorRubro }}</div>
+        <div class="form-group">
+            <label>Código de Rubro</label>
+            <input type="text" [(ngModel)]="currentRubroForm.codigoRubro" class="form-control"
+                [disabled]="isEditRubro" />
+        </div>
+        <div class="form-group">
+            <label>Nombre</label>
+            <input type="text" [(ngModel)]="currentRubroForm.nombre" class="form-control" />
+        </div>
+        <div class="form-group checkbox-group">
+            <label>
+                <input type="checkbox" [(ngModel)]="currentRubroForm.activo" />
+                Activo
+            </label>
+        </div>
+        <div class="modal-actions">
+            <button class="btn btn-secondary" (click)="closeRubroModal()">Cancelar</button>
+            <button class="btn btn-primary" (click)="saveRubro()">Guardar</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Familia -->
+<div class="modal" *ngIf="showFamiliaModal">
+    <div class="modal-content">
+        <h2>{{ isEditFamilia ? 'Modificar Familia' : 'Nueva Familia' }}</h2>
+        <div class="error-banner" *ngIf="errorFamilia">{{ errorFamilia }}</div>
+        <div class="form-group">
+            <label>Código de Familia</label>
+            <input type="text" [(ngModel)]="currentFamiliaForm.codigoFamilia" class="form-control"
+                [disabled]="isEditFamilia" />
+        </div>
+        <div class="form-group">
+            <label>Nombre</label>
+            <input type="text" [(ngModel)]="currentFamiliaForm.nombre" class="form-control" />
+        </div>
+        <div class="form-group checkbox-group">
+            <label>
+                <input type="checkbox" [(ngModel)]="currentFamiliaForm.activo" />
+                Activo
+            </label>
+        </div>
+        <div class="modal-actions">
+            <button class="btn btn-secondary" (click)="closeFamiliaModal()">Cancelar</button>
+            <button class="btn btn-primary" (click)="saveFamilia()">Guardar</button>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,182 @@
+<div class="atributos-container">
+    <div class="header-section">
+        <h1>Mantenimiento de Atributos</h1>
+        <p>Defina los atributos dinámicos que luego se asocian a las familias de productos.</p>
+    </div>
+
+    <div class="panels-wrapper">
+        <!-- Panel Izquierdo: Maestros de Atributo -->
+        <div class="main-panel">
+            <div class="panel-header">
+                <h2>Todos los Atributos</h2>
+                <button class="btn btn-primary" (click)="openCreateModal()">+ Nuevo Atributo</button>
+            </div>
+
+            <div class="table-container">
+                <table class="inventory-table">
+                    <thead>
+                        <tr>
+                            <th>Código</th>
+                            <th>Nombre</th>
+                            <th>Tipo</th>
+                            <th>Unidad</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngIf="loadingAtributos">
+                            <td colspan="6" class="text-center">Cargando...</td>
+                        </tr>
+                        <tr *ngFor="let a of atributos"
+                            [class.selected-row]="a.idAtributo === selectedAtributo?.idAtributo"
+                            (click)="selectAtributo(a)">
+                            <td>{{ a.codigoAtributo }}</td>
+                            <td>{{ a.nombre }}</td>
+                            <td><span class="type-badge">{{ a.tipoDato }}</span></td>
+                            <td>{{ a.unidad || '-' }}</td>
+                            <td>
+                                <span class="status-badge" [class.status-active]="a.activo"
+                                    [class.status-inactive]="!a.activo">
+                                    {{ a.activo ? 'Activo' : 'Inactivo' }}
+                                </span>
+                            </td>
+                            <td class="actions-cell">
+                                <button class="btn-icon" (click)="openEditModal(a, $event)" title="Editar">✏️</button>
+                                <button class="btn-icon" (click)="deleteAtributo(a.idAtributo, $event)"
+                                    title="Dar de baja">❌</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Panel Derecho: Detalles (Opciones y Asignaciones) -->
+        <div class="side-panel" *ngIf="selectedAtributo">
+            <div class="panel-header highlight-header">
+                <h2>Detalle: {{ selectedAtributo.nombre }}</h2>
+            </div>
+            <div class="side-panel-content">
+
+                <!-- Si es lista -->
+                <div class="config-section" *ngIf="selectedAtributo.tipoDato === 'LIST'">
+                    <h3>Opciones de la Lista</h3>
+                    <div class="form-row">
+                        <input type="text" placeholder="Código (ej. RJ)" [(ngModel)]="nuevaOpcionForm.codigoOpcion"
+                            class="form-control sm" />
+                        <input type="text" placeholder="Valor (ej. Rojo)" [(ngModel)]="nuevaOpcionForm.valor"
+                            class="form-control" />
+                        <input type="number" placeholder="Orden" [(ngModel)]="nuevaOpcionForm.orden"
+                            class="form-control xs" />
+                        <button class="btn btn-primary sm" (click)="addOpcion()">+</button>
+                    </div>
+
+                    <ul class="options-list">
+                        <li *ngFor="let o of opciones">
+                            <span class="op-code">{{ o.codigoOpcion }}</span>
+                            <span class="op-val">{{ o.valor }}</span>
+                            <button class="btn-icon smtext" (click)="deleteOpcion(o.idAtributoOpcion)">❌</button>
+                        </li>
+                        <li *ngIf="opciones.length === 0" class="empty-list">No hay opciones cargadas.</li>
+                    </ul>
+                </div>
+
+                <!-- Asignar a Familia -->
+                <div class="config-section border-top">
+                    <h3>Configurar en Familia</h3>
+                    <p class="help-text">Seleccione dónde usar el atributo seleccionado actualmente.</p>
+
+                    <div class="form-group">
+                        <label>1. Rubro</label>
+                        <select class="form-control" [(ngModel)]="selectedRubroId" (change)="onRubroChange()">
+                            <option [ngValue]="null">Seleccione rubro...</option>
+                            <option *ngFor="let r of rubros" [ngValue]="r.idRubro">{{ r.nombre }}</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group" *ngIf="selectedRubroId">
+                        <label>2. Familia</label>
+                        <select class="form-control" [(ngModel)]="selectedFamiliaId" (change)="onFamiliaChange()">
+                            <option [ngValue]="null">Seleccione familia...</option>
+                            <option *ngFor="let f of familiasSelect" [ngValue]="f.idFamilia">{{ f.nombre }}</option>
+                        </select>
+                    </div>
+
+                    <div *ngIf="selectedFamiliaId" class="assignment-box">
+                        <h4>Vincular "{{ selectedAtributo.nombre }}" a "{{ selectedFamiliaNombre }}"</h4>
+                        <div class="form-row mt-2">
+                            <label class="check-label"><input type="checkbox" [(ngModel)]="configObligatorio" /> ¿Es
+                                Obligatorio?</label>
+                            <input type="number" class="form-control xs" placeholder="Orden" [(ngModel)]="configOrden"
+                                title="Orden de visualización" />
+                            <button class="btn btn-success sm" (click)="asignarAtributoAFamilia()">Vincular</button>
+                        </div>
+
+                        <!-- Lista de atributos ya en esta familia -->
+                        <h4 class="mt-4">Atributos en esta familia:</h4>
+                        <ul class="options-list">
+                            <li *ngFor="let fa of atributosDeFamilia">
+                                <span class="op-code" [class.req]="fa.obligatorio">{{ fa.nombreAtributo }}</span>
+                                <span class="op-val">{{ fa.tipoDatoAtributo }}</span>
+                                <button class="btn-icon smtext"
+                                    (click)="removerAtributoDeFamilia(fa.idAtributo)">Desvincular</button>
+                            </li>
+                            <li *ngIf="atributosDeFamilia.length === 0" class="empty-list">No tiene atributos.</li>
+                        </ul>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        <div class="side-panel empty-side-panel" *ngIf="!selectedAtributo">
+            <p>Seleccione un atributo para ver sus opciones y asignaciones.</p>
+        </div>
+    </div>
+</div>
+
+
+<!-- Modal Atributo -->
+<div class="modal" *ngIf="showAtributoModal">
+    <div class="modal-content">
+        <h2>{{ isEditAtributo ? 'Modificar Atributo' : 'Nuevo Atributo' }}</h2>
+
+        <div class="form-group">
+            <label>Código Interno</label>
+            <input type="text" [(ngModel)]="currentAtributoForm.codigoAtributo" class="form-control"
+                [disabled]="isEditAtributo" />
+        </div>
+        <div class="form-group">
+            <label>Nombre</label>
+            <input type="text" [(ngModel)]="currentAtributoForm.nombre" class="form-control" />
+        </div>
+        <div class="form-row g-15">
+            <div class="form-group flex-1">
+                <label>Tipo de Dato</label>
+                <select class="form-control" [(ngModel)]="currentAtributoForm.tipoDato" [disabled]="isEditAtributo">
+                    <option *ngFor="let t of tiposDatos" [value]="t">{{ t }}</option>
+                </select>
+            </div>
+            <div class="form-group flex-1">
+                <label>Unidad (Opcional)</label>
+                <input type="text" [(ngModel)]="currentAtributoForm.unidad" placeholder="ej. kg, cm"
+                    class="form-control" />
+            </div>
+        </div>
+        <div class="form-group">
+            <label>Descripción</label>
+            <textarea [(ngModel)]="currentAtributoForm.descripcion" class="form-control" rows="2"></textarea>
+        </div>
+        <div class="form-group checkbox-group">
+            <label>
+                <input type="checkbox" [(ngModel)]="currentAtributoForm.activo" />
+                Activo
+            </label>
+        </div>
+
+        <div class="modal-actions">
+            <button class="btn btn-secondary" (click)="closeAtributoModal()">Cancelar</button>
+            <button class="btn btn-primary" (click)="saveAtributo()">Guardar</button>
+        </div>
+    </div>
+</div>

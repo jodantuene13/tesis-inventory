@@ -1,0 +1,208 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using TesisInventory.Application.DTOs.Productos;
+using TesisInventory.Application.Interfaces;
+using TesisInventory.Domain.Entities;
+using TesisInventory.Domain.Interfaces;
+
+namespace TesisInventory.Application.Services
+{
+    public class ProductosService : IProductosService
+    {
+        private readonly IProductoRepository _productoRepository;
+        private readonly IFamiliaRepository _familiaRepository;
+        private readonly IAtributoRepository _atributoRepository;
+        private readonly IRubroRepository _rubroRepository;
+
+        public ProductosService(
+            IProductoRepository productoRepository,
+            IFamiliaRepository familiaRepository,
+            IAtributoRepository atributoRepository,
+            IRubroRepository rubroRepository)
+        {
+            _productoRepository = productoRepository;
+            _familiaRepository = familiaRepository;
+            _atributoRepository = atributoRepository;
+            _rubroRepository = rubroRepository;
+        }
+
+        public async Task<IEnumerable<ProductoDto>> GetAllProductosAsync(bool includeInactive = false)
+        {
+            var productos = await _productoRepository.GetAllProductosAsync(includeInactive);
+            return productos.Select(MapToDto);
+        }
+
+        public async Task<ProductoDto?> GetProductoByIdAsync(int id)
+        {
+            var p = await _productoRepository.GetProductoByIdAsync(id);
+            if (p == null) return null;
+            return MapToDto(p);
+        }
+
+        public async Task<ProductoDto> CreateProductoAsync(CreateProductoDto createDto)
+        {
+            var familia = await _familiaRepository.GetByIdAsync(createDto.IdFamilia);
+            if (familia == null || familia.IdRubro != createDto.IdRubro)
+                throw new InvalidOperationException("Familia o rubro inválido.");
+
+            // Validar Atributos Obligatorios
+            var atributosFamilia = await _atributoRepository.GetAtributosByFamiliaIdAsync(familia.IdFamilia);
+            var obligatorios = atributosFamilia.Where(fa => fa.Obligatorio).Select(fa => fa.IdAtributo).ToList();
+
+            var providedAttrsIds = createDto.Atributos.Select(a => a.IdAtributo).ToList();
+            var missing = obligatorios.Except(providedAttrsIds).ToList();
+            
+            if (missing.Any())
+                throw new InvalidOperationException($"Faltan atributos obligatorios para esta familia (Ids: {string.Join(", ", missing)}).");
+
+            // Auto-generación del SKU: RubroCodigo-FamiliaCodigo-Numero
+            var rubro = familia.Rubro ?? await _rubroRepository.GetByIdAsync(familia.IdRubro);
+            var codigoBase = $"{rubro!.CodigoRubro}-{familia.CodigoFamilia}-";
+
+            // Conseguir el correlativo actual para esta Familia
+            var getAllProd = await _productoRepository.GetAllProductosAsync(true);
+            var totalProductosEnFamilia = getAllProd.Count(p => p.IdFamilia == familia.IdFamilia);
+            
+            var nuevoSku = $"{codigoBase}{(totalProductosEnFamilia + 1).ToString().PadLeft(4, '0')}";
+
+            var producto = new Producto
+            {
+                IdFamilia = createDto.IdFamilia,
+                Sku = nuevoSku,
+                Nombre = createDto.Nombre,
+                UnidadMedida = createDto.UnidadMedida,
+                Activo = createDto.Activo,
+                FechaCreacion = DateTime.UtcNow,
+                FechaActualizacion = DateTime.UtcNow
+            };
+
+            await _productoRepository.AddProductoAsync(producto);
+
+            foreach (var attrDto in createDto.Atributos)
+            {
+                // Validación básica de que el atributo corresponde a la familia (opcional pero recomendada)
+                if (!atributosFamilia.Any(fa => fa.IdAtributo == attrDto.IdAtributo))
+                    continue; // Ignorar atributos no asociados
+
+                var pav = new ProductoAtributoValor
+                {
+                    IdProducto = producto.IdProducto,
+                    IdAtributo = attrDto.IdAtributo,
+                    ValorTexto = attrDto.ValorTexto,
+                    ValorNumero = attrDto.ValorNumero,
+                    ValorDecimal = attrDto.ValorDecimal,
+                    ValorBool = attrDto.ValorBool,
+                    ValorLista = attrDto.ValorLista,
+                    FechaActualizacion = DateTime.UtcNow
+                };
+                await _productoRepository.AddProductoAtributoValorAsync(pav);
+            }
+
+            return await GetProductoByIdAsync(producto.IdProducto) ?? throw new Exception("Error al obtener el producto creado.");
+        }
+
+        public async Task<ProductoDto> UpdateProductoAsync(int id, UpdateProductoDto updateDto)
+        {
+            var producto = await _productoRepository.GetProductoByIdAsync(id);
+            if (producto == null) throw new KeyNotFoundException("Producto no encontrado.");
+
+            producto.Nombre = updateDto.Nombre;
+            producto.UnidadMedida = updateDto.UnidadMedida;
+            producto.Activo = updateDto.Activo;
+            producto.FechaActualizacion = DateTime.UtcNow;
+
+            await _productoRepository.UpdateProductoAsync(producto);
+
+            var atributosExistentes = await _productoRepository.GetAtributosValorByProductoAsync(id);
+
+            // Actualizar o crear valores de atributos
+            foreach (var reqAttr in updateDto.Atributos)
+            {
+                var fa = await _atributoRepository.GetFamiliaAtributoAsync(producto.IdFamilia, reqAttr.IdAtributo);
+                if (fa == null) continue; // Si el atributo ya no es de la familia, lo saltamos (o podríamos lanzar error)
+
+                var existingVal = atributosExistentes.FirstOrDefault(pav => pav.IdAtributo == reqAttr.IdAtributo);
+                
+                if (existingVal != null)
+                {
+                    existingVal.ValorTexto = reqAttr.ValorTexto;
+                    existingVal.ValorNumero = reqAttr.ValorNumero;
+                    existingVal.ValorDecimal = reqAttr.ValorDecimal;
+                    existingVal.ValorBool = reqAttr.ValorBool;
+                    existingVal.ValorLista = reqAttr.ValorLista;
+                    existingVal.FechaActualizacion = DateTime.UtcNow;
+                    await _productoRepository.UpdateProductoAtributoValorAsync(existingVal);
+                }
+                else
+                {
+                    var newVal = new ProductoAtributoValor
+                    {
+                        IdProducto = id,
+                        IdAtributo = reqAttr.IdAtributo,
+                        ValorTexto = reqAttr.ValorTexto,
+                        ValorNumero = reqAttr.ValorNumero,
+                        ValorDecimal = reqAttr.ValorDecimal,
+                        ValorBool = reqAttr.ValorBool,
+                        ValorLista = reqAttr.ValorLista,
+                        FechaActualizacion = DateTime.UtcNow
+                    };
+                    await _productoRepository.AddProductoAtributoValorAsync(newVal);
+                }
+            }
+
+            // Validar si quitaron alguno obligatorio
+            var atributosFamilia = await _atributoRepository.GetAtributosByFamiliaIdAsync(producto.IdFamilia);
+            var obligatorios = atributosFamilia.Where(af => af.Obligatorio).Select(af => af.IdAtributo).ToList();
+            var guardados = updateDto.Atributos.Select(a => a.IdAtributo).ToList();
+            
+            var missing = obligatorios.Except(guardados).ToList();
+            if (missing.Any())
+                throw new InvalidOperationException("Faltan atributos obligatorios al actualizar.");
+
+            return await GetProductoByIdAsync(producto.IdProducto) ?? throw new Exception("Error post update");
+        }
+
+        public async Task DeleteProductoAsync(int id, string confirmacionNombre)
+        {
+            var producto = await _productoRepository.GetProductoByIdAsync(id);
+            if (producto == null) throw new KeyNotFoundException("Producto no encontrado.");
+
+            if (!producto.Nombre.Equals(confirmacionNombre, StringComparison.Ordinal))
+            {
+                throw new InvalidOperationException("El nombre de confirmación no coincide exactamente con el producto.");
+            }
+
+            await _productoRepository.DeleteProductoAsync(producto);
+        }
+
+        private ProductoDto MapToDto(Producto p)
+        {
+            return new ProductoDto
+            {
+                IdProducto = p.IdProducto,
+                IdFamilia = p.IdFamilia,
+                NombreFamilia = p.Familia?.Nombre ?? "",
+                Sku = p.Sku,
+                Nombre = p.Nombre,
+                UnidadMedida = p.UnidadMedida,
+                Activo = p.Activo,
+                FechaCreacion = p.FechaCreacion,
+                FechaActualizacion = p.FechaActualizacion,
+                Atributos = p.ProductoAtributoValores.Select(pav => new ProductoAtributoValorDto
+                {
+                    IdAtributo = pav.IdAtributo,
+                    CodigoAtributo = pav.Atributo?.CodigoAtributo ?? "",
+                    NombreAtributo = pav.Atributo?.Nombre ?? "",
+                    TipoDatoAtributo = pav.Atributo?.TipoDato ?? "",
+                    ValorTexto = pav.ValorTexto,
+                    ValorNumero = pav.ValorNumero,
+                    ValorDecimal = pav.ValorDecimal,
+                    ValorBool = pav.ValorBool,
+                    ValorLista = pav.ValorLista
+                }).ToList()
+            };
+        }
+    }
+}

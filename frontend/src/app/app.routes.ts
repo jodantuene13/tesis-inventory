@@ -33,6 +33,9 @@ export const routes: Routes = [
                     { path: 'roles/edit/:id', component: RoleFormComponent },
                     { path: 'audit-log', loadComponent: () => import('./pages/configuration/audit-log/audit-log.component').then(m => m.AuditLogComponent) },
 
+                    // Sedes Routes
+                    { path: 'sedes', loadComponent: () => import('./pages/configuration/sedes/sedes.component').then(m => m.SedesComponent) },
+
                     { path: '', redirectTo: 'users', pathMatch: 'full' }
                 ]
             },

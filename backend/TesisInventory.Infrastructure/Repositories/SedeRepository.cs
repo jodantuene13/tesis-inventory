@@ -25,5 +25,24 @@ namespace TesisInventory.Infrastructure.Repositories
         {
             return await _context.Sede.FindAsync(id);
         }
+
+        public async Task<Sede> AddAsync(Sede sede)
+        {
+            await _context.Sede.AddAsync(sede);
+            await _context.SaveChangesAsync();
+            return sede;
+        }
+
+        public async Task UpdateAsync(Sede sede)
+        {
+            _context.Sede.Update(sede);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task DeleteAsync(Sede sede)
+        {
+            _context.Sede.Remove(sede);
+            await _context.SaveChangesAsync();
+        }
     }
 }

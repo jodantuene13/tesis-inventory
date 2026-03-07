@@ -7,8 +7,9 @@ namespace TesisInventory.Domain.Entities
     {
         public int IdSede { get; set; }
         public string NombreSede { get; set; } = string.Empty;
+        public string Direccion { get; set; } = string.Empty;
 
-        // Navigation property if needed, though strictly not required for the dropdown
-        // public ICollection<Usuario> Usuarios { get; set; } = new List<Usuario>();
+        // Navigation property
+        public ICollection<Usuario> Usuarios { get; set; } = new List<Usuario>();
     }
 }

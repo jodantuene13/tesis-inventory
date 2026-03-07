@@ -10,7 +10,7 @@ El esquema sigue una arquitectura relacional normalizada (3NF) para asegurar la 
 
 #### Tablas Maestras
 - `Roles`: Definición de perfiles de acceso.
-- `Sedes`: Ubicaciones físicas.
+- `Sedes`: Ubicaciones físicas (incluye `Direccion`).
 - `Categorias`: Clasificación de productos.
 
 #### Tablas Principales

@@ -1,0 +1,69 @@
+<div class="content">
+    <div class="page-header">
+        <h2>Gestión de Sedes</h2>
+        <button class="btn btn-primary" (click)="openCreateModal()">
+            <i class="icon-plus"></i> Crear Sede
+        </button>
+    </div>
+
+    <!-- Table -->
+    <div class="table-container">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Dirección</th>
+                    <th class="text-right">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngFor="let sede of sedes">
+                    <td>{{ sede.idSede }}</td>
+                    <td>{{ sede.nombreSede }}</td>
+                    <td>{{ sede.direccion }}</td>
+                    <td class="text-right actions-column">
+                        <button class="btn btn-icon btn-edit" (click)="openEditModal(sede)" title="Modificar sede">
+                            ✏️
+                        </button>
+                        <button class="btn btn-icon btn-delete" (click)="deleteSede(sede)" title="Eliminar sede">
+                            🗑️
+                        </button>
+                    </td>
+                </tr>
+                <tr *ngIf="sedes.length === 0">
+                    <td colspan="4" class="text-center">No hay sedes registradas.</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Modal (Create/Edit) -->
+    <div class="modal-overlay" *ngIf="isModalOpen">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>{{ isEditing ? 'Modificar Sede' : 'Crear Nueva Sede' }}</h3>
+                <button class="btn-close" (click)="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form (ngSubmit)="saveSede()" #sedeForm="ngForm">
+                    <div class="form-group">
+                        <label for="nombreSede">Nombre <span class="required">*</span></label>
+                        <input type="text" id="nombreSede" name="nombreSede" class="form-control"
+                            [(ngModel)]="currentSede.nombreSede" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="direccion">Dirección</label>
+                        <input type="text" id="direccion" name="direccion" class="form-control"
+                            [(ngModel)]="currentSede.direccion">
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" (click)="closeModal()">Cancelar</button>
+                        <button type="submit" class="btn btn-primary" [disabled]="!sedeForm.form.valid">Guardar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("TesisInventory.Application")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+decfd07a3122cb281a38110a7e5a466ee4e700c8")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+804aef17a20837fd369c93ea32c88d78f717c26a")]
 [assembly: System.Reflection.AssemblyProductAttribute("TesisInventory.Application")]
 [assembly: System.Reflection.AssemblyTitleAttribute("TesisInventory.Application")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "FBQi7fIKCEg=",
+  "dgSpecHash": "qwXdR/e79U0=",
   "success": true,
-  "projectFilePath": "c:\\xampp\\htdocs\\xampp\\tesis-inventory\\backend\\TesisInventory.Infrastructure\\TesisInventory.Infrastructure.csproj",
+  "projectFilePath": "C:\\xampp\\htdocs\\xampp\\tesis-inventory\\backend\\TesisInventory.Infrastructure\\TesisInventory.Infrastructure.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\jodan\\.nuget\\packages\\google.apis\\1.73.0\\google.apis.1.73.0.nupkg.sha512",
     "C:\\Users\\jodan\\.nuget\\packages\\google.apis.auth\\1.73.0\\google.apis.auth.1.73.0.nupkg.sha512",

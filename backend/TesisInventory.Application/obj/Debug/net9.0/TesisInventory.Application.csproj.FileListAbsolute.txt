@@ -8,9 +8,9 @@ C:\xampp\htdocs\xampp\tesis-inventory\backend\TesisInventory.Application\obj\Deb
 C:\xampp\htdocs\xampp\tesis-inventory\backend\TesisInventory.Application\obj\Debug\net9.0\TesisInventory.Application.AssemblyInfoInputs.cache
 C:\xampp\htdocs\xampp\tesis-inventory\backend\TesisInventory.Application\obj\Debug\net9.0\TesisInventory.Application.AssemblyInfo.cs
 C:\xampp\htdocs\xampp\tesis-inventory\backend\TesisInventory.Application\obj\Debug\net9.0\TesisInventory.Application.csproj.CoreCompileInputs.cache
+C:\xampp\htdocs\xampp\tesis-inventory\backend\TesisInventory.Application\obj\Debug\net9.0\TesisInventory.Application.sourcelink.json
 C:\xampp\htdocs\xampp\tesis-inventory\backend\TesisInventory.Application\obj\Debug\net9.0\TesisInv.3AD2284F.Up2Date
 C:\xampp\htdocs\xampp\tesis-inventory\backend\TesisInventory.Application\obj\Debug\net9.0\TesisInventory.Application.dll
 C:\xampp\htdocs\xampp\tesis-inventory\backend\TesisInventory.Application\obj\Debug\net9.0\refint\TesisInventory.Application.dll
 C:\xampp\htdocs\xampp\tesis-inventory\backend\TesisInventory.Application\obj\Debug\net9.0\TesisInventory.Application.pdb
 C:\xampp\htdocs\xampp\tesis-inventory\backend\TesisInventory.Application\obj\Debug\net9.0\ref\TesisInventory.Application.dll
-C:\xampp\htdocs\xampp\tesis-inventory\backend\TesisInventory.Application\obj\Debug\net9.0\TesisInventory.Application.sourcelink.json

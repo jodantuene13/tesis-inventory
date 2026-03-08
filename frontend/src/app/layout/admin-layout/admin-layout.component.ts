@@ -12,11 +12,16 @@ import { AuthService } from '../../services/auth';
 })
 export class AdminLayoutComponent {
     isConfigMenuOpen = false;
+    isInventoryMenuOpen = false;
 
     constructor(private authService: AuthService, private router: Router) { }
 
     toggleConfigMenu() {
         this.isConfigMenuOpen = !this.isConfigMenuOpen;
+    }
+
+    toggleInventoryMenu() {
+        this.isInventoryMenuOpen = !this.isInventoryMenuOpen;
     }
 
     logout() {

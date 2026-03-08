@@ -22,11 +22,49 @@ builder.Services.AddDbContext<InventoryDbContext>(options =>
 // Dependency Injection
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IRoleRepository, RoleRepository>();
+builder.Services.AddScoped<ISedeRepository, SedeRepository>();
+builder.Services.AddScoped<IAuditRepository, AuditRepository>();
+
+// Inventory Repositories
+builder.Services.AddScoped<IRubroRepository, RubroRepository>();
+builder.Services.AddScoped<IFamiliaRepository, FamiliaRepository>();
+builder.Services.AddScoped<IAtributoRepository, AtributoRepository>();
+builder.Services.AddScoped<IProductoRepository, ProductoRepository>();
+
+// Services
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUsersService, UsersService>();
 builder.Services.AddScoped<IRolesService, RolesService>();
-builder.Services.AddScoped<ISedeRepository, SedeRepository>();
 builder.Services.AddScoped<ISedesService, SedesService>();
+builder.Services.AddScoped<IAuditService, AuditService>();
+
+// Inventory Services
+builder.Services.AddScoped<IRubrosService, RubrosService>();
+builder.Services.AddScoped<IFamiliasService, FamiliasService>();
+builder.Services.AddScoped<IAtributosService, AtributosService>();
+builder.Services.AddScoped<IProductosService, ProductosService>();
+
+builder.Services.AddHttpContextAccessor();
+
+// JWT Authentication
+var key = System.Text.Encoding.ASCII.GetBytes(builder.Configuration["Jwt:Secret"]);
+builder.Services.AddAuthentication(x =>
+{
+    x.DefaultAuthenticateScheme = Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerDefaults.AuthenticationScheme;
+    x.DefaultChallengeScheme = Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(x =>
+{
+    x.RequireHttpsMetadata = false;
+    x.SaveToken = true;
+    x.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
+    {
+        ValidateIssuerSigningKey = true,
+        IssuerSigningKey = new Microsoft.IdentityModel.Tokens.SymmetricSecurityKey(key),
+        ValidateIssuer = false,
+        ValidateAudience = false
+    };
+});
 
 // CORS Config (for Angular)
 builder.Services.AddCors(options =>
@@ -63,10 +101,13 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
+app.UseMiddleware<TesisInventory.API.Middlewares.ErrorHandlingMiddleware>();
+
 app.UseHttpsRedirection();
 
 app.UseCors("AllowAngular");
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();

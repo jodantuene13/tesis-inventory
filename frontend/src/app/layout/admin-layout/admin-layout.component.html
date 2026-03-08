@@ -12,6 +12,31 @@
                     </a>
                 </li>
 
+                <!-- Inventory Module -->
+                <li class="nav-item-group">
+                    <a (click)="toggleInventoryMenu()" [class.active]="isInventoryMenuOpen" class="nav-group-toggle">
+                        <i class="icon-box"></i> Inventario
+                        <span class="arrow" [class.rotated]="isInventoryMenuOpen">▼</span>
+                    </a>
+                    <ul class="submenu" [class.open]="isInventoryMenuOpen">
+                        <li>
+                            <a routerLink="/inventory/rubros-familias" routerLinkActive="active">
+                                Rubros y Familias
+                            </a>
+                        </li>
+                        <li>
+                            <a routerLink="/inventory/atributos" routerLinkActive="active">
+                                Atributos
+                            </a>
+                        </li>
+                        <li>
+                            <a routerLink="/inventory/productos" routerLinkActive="active">
+                                Productos
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+
                 <!-- Configuration Module -->
                 <li class="nav-item-group">
                     <a (click)="toggleConfigMenu()" [class.active]="isConfigMenuOpen" class="nav-group-toggle">
@@ -27,6 +52,16 @@
                         <li>
                             <a routerLink="/configuration/roles" routerLinkActive="active">
                                 Roles
+                            </a>
+                        </li>
+                        <li>
+                            <a routerLink="/configuration/sedes" routerLinkActive="active">
+                                Sedes
+                            </a>
+                        </li>
+                        <li>
+                            <a routerLink="/configuration/audit-log" routerLinkActive="active">
+                                Historial
                             </a>
                         </li>
                     </ul>

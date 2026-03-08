@@ -20,6 +20,16 @@ export const routes: Routes = [
         canActivate: [authGuard],
         children: [
             { path: 'home', component: HomeComponent },
+            // Inventory Module
+            {
+                path: 'inventory',
+                children: [
+                    { path: 'rubros-familias', loadComponent: () => import('./pages/inventory/rubros-familias/rubros-familias.component').then(m => m.RubrosFamiliasComponent) },
+                    { path: 'atributos', loadComponent: () => import('./pages/inventory/atributos/atributos.component').then(m => m.AtributosComponent) },
+                    { path: 'productos', loadComponent: () => import('./pages/inventory/productos/productos.component').then(m => m.ProductosComponent) },
+                    { path: '', redirectTo: 'productos', pathMatch: 'full' }
+                ]
+            },
             // Configuration Module
             {
                 path: 'configuration',
@@ -31,6 +41,10 @@ export const routes: Routes = [
                     { path: 'roles', component: RolesListComponent },
                     { path: 'roles/new', component: RoleFormComponent },
                     { path: 'roles/edit/:id', component: RoleFormComponent },
+                    { path: 'audit-log', loadComponent: () => import('./pages/configuration/audit-log/audit-log.component').then(m => m.AuditLogComponent) },
+
+                    // Sedes Routes
+                    { path: 'sedes', loadComponent: () => import('./pages/configuration/sedes/sedes.component').then(m => m.SedesComponent) },
 
                     { path: '', redirectTo: 'users', pathMatch: 'full' }
                 ]

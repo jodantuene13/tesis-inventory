@@ -1,0 +1,9 @@
+C:\xampp\htdocs\xampp\tesis-inventory\backend\TesisInventory.Infrastructure\obj\Debug\net9.0\TesisInventory.Infrastructure.csproj.AssemblyReference.cache
+C:\xampp\htdocs\xampp\tesis-inventory\backend\TesisInventory.Infrastructure\obj\Debug\net9.0\TesisInventory.Infrastructure.GeneratedMSBuildEditorConfig.editorconfig
+C:\xampp\htdocs\xampp\tesis-inventory\backend\TesisInventory.Infrastructure\obj\Debug\net9.0\TesisInventory.Infrastructure.AssemblyInfoInputs.cache
+C:\xampp\htdocs\xampp\tesis-inventory\backend\TesisInventory.Infrastructure\obj\Debug\net9.0\TesisInventory.Infrastructure.AssemblyInfo.cs
+C:\xampp\htdocs\xampp\tesis-inventory\backend\TesisInventory.Infrastructure\obj\Debug\net9.0\TesisInventory.Infrastructure.csproj.CoreCompileInputs.cache
+C:\xampp\htdocs\xampp\tesis-inventory\backend\TesisInventory.Infrastructure\obj\Debug\net9.0\TesisInventory.Infrastructure.sourcelink.json
+C:\xampp\htdocs\xampp\tesis-inventory\backend\TesisInventory.Infrastructure\obj\Debug\net9.0\TesisInventory.Infrastructure.dll
+C:\xampp\htdocs\xampp\tesis-inventory\backend\TesisInventory.Infrastructure\obj\Debug\net9.0\refint\TesisInventory.Infrastructure.dll
+C:\xampp\htdocs\xampp\tesis-inventory\backend\TesisInventory.Infrastructure\obj\Debug\net9.0\TesisInventory.Infrastructure.pdb

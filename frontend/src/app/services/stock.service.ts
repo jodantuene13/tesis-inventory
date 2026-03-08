@@ -1,0 +1,51 @@
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
+import { Injectable } from '@angular/core';
+import { Observable } from 'rxjs';
+import { IncrementarStockDto, Movimiento, RegistrarConsumoDto, RegistrarTransferenciaDto, Stock } from '../models/stock.model';
+
+@Injectable({
+    providedIn: 'root'
+})
+export class StockService {
+    private apiUrl = 'http://localhost:5139/api/Stock';
+    private defaultHeaders = new HttpHeaders({
+        'Sede-Contexto': '1' // Hardcoded temporalmente, tal como requiere la US ("No implementar selector de sede todavía.")
+    });
+
+    constructor(private http: HttpClient) { }
+
+    getStockSede(search?: string, idRubro?: number, idFamilia?: number, estado?: boolean, bajoStock?: boolean, page: number = 1, pageSize: number = 50): Observable<any> {
+        let params = new HttpParams()
+            .set('page', page.toString())
+            .set('pageSize', pageSize.toString());
+
+        if (search) params = params.set('search', search);
+        if (idRubro !== undefined && idRubro !== null) params = params.set('idRubro', idRubro.toString());
+        if (idFamilia !== undefined && idFamilia !== null) params = params.set('idFamilia', idFamilia.toString());
+        if (estado !== undefined && estado !== null) params = params.set('estado', estado.toString());
+        if (bajoStock !== undefined && bajoStock !== null) params = params.set('bajoStock', bajoStock.toString());
+
+        return this.http.get<any>(`${this.apiUrl}/sede`, { params, headers: this.defaultHeaders });
+    }
+
+    incrementarStock(dto: IncrementarStockDto): Observable<any> {
+        return this.http.post<any>(`${this.apiUrl}/incremento`, dto, { headers: this.defaultHeaders });
+    }
+
+    registrarConsumo(dto: RegistrarConsumoDto): Observable<any> {
+        return this.http.post<any>(`${this.apiUrl}/consumo`, dto, { headers: this.defaultHeaders });
+    }
+
+    registrarTransferencia(dto: RegistrarTransferenciaDto): Observable<any> {
+        return this.http.post<any>(`${this.apiUrl}/transferencia`, dto, { headers: this.defaultHeaders });
+    }
+
+    getMovimientos(idProducto: number, tipoMovimiento?: string, fechaDesde?: string, fechaHasta?: string): Observable<Movimiento[]> {
+        let params = new HttpParams();
+        if (tipoMovimiento) params = params.set('tipoMovimiento', tipoMovimiento);
+        if (fechaDesde) params = params.set('fechaDesde', fechaDesde);
+        if (fechaHasta) params = params.set('fechaHasta', fechaHasta);
+
+        return this.http.get<Movimiento[]>(`${this.apiUrl}/${idProducto}/movimientos`, { params, headers: this.defaultHeaders });
+    }
+}

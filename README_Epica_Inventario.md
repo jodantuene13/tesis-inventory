@@ -11,18 +11,20 @@ También incluye un sistema de autogeneración de SKU (Stock Keeping Unit).
 - **HU-INV-04**: Asociación y configuración de Atributos dentro de Familias de productos.
 - **HU-INV-05**: Gestión Avanzada de Productos (con auto-SKU y captura dinámica de atributos).
 - **HU-INV-06**: Adaptación de la relación Stock transaccional entre Sede y Producto.
+- **HU-INV-07**: Implementación del Submódulo Stock: Control de Inventario por Sede, registro de Consumo/Egresos, Adición de Stock por Compra/Ajustes, y Transferencias Logísticas Inter-Sedes con Historial.
 
 ## Alcance Funcional
 - **Rubros y Familias**: Flujo de gestión a doble vista interdependiente. Un Rubro agrupa Familias, estas últimas engloban a su vez el catálogo real de productos. Todo soporta Baja Lógica.
 - **Atributos**: Tipos de datos soportados (`STRING`, `NUMBER`, `DECIMAL`, `BOOLEAN`, `LIST`).
 - **Productos**: El SKU asume la forma de concatenación del Código de Rubro + Código de Familia + Nro Correlativo. Al crearlo, la UI genera los controles visuales correspondientes basados en las normas estrictas impuestas por la asociación con su familia (FamiliaAtributo). El borrado del producto exige confirmación exacta validando su nombre.
+- **Stock**: Visualización detallada del inventario por sede. Permite registrar consumos/egresos (con motivos predefinidos), incrementar stock y solicitar transferencias hacia otras sedes, registrando una trazabilidad (Movimientos y Transferencias) completa.
 
 ## Capas Involucradas
-- **Domain**: `Rubro.cs`, `Familia.cs`, `Atributo.cs`, `FamiliaAtributo.cs`, `AtributoOpcion.cs`, `Producto.cs`, `ProductoAtributoValor.cs`, `Stock.cs`, refactor de `Sede.cs`.
-- **Infrastructure**: Implementación de RepositoryPattern (`RubroRepository`, etc.), inyección por Entity Framework y Migraciones (`InventorySchemaInitialization`).
-- **Application**: DTOs completos de Lectura/Escritura y lógica pesada abstraída en `ProductosService.cs`, `AtributosService.cs` y análogos.
-- **Presentation**: `*Controller.cs` exponiendo endpoints REST estándar.
-- **Frontend (Angular)**: Módulo `inventory` implementando componentes (`rubros-familias`, `atributos`, `productos`) y el manejo de `ReactiveForms` (Angular) para el renderizado programático del ABM base de la aplicación.
+- **Domain**: `Rubro.cs`, `Familia.cs`, `Atributo.cs`, `FamiliaAtributo.cs`, `AtributoOpcion.cs`, `Producto.cs`, `ProductoAtributoValor.cs`, `Stock.cs`, refactor de `Sede.cs`. Adición de `Movimiento.cs`, `Transferencia.cs`, `HistorialTransferencia.cs`.
+- **Infrastructure**: Implementación de RepositoryPattern (`RubroRepository`, `StockRepository`, `MovimientoRepository`, `TransferenciaRepository`, etc.), inyección por Entity Framework y Migraciones (`InventorySchemaInitialization`, `AddStockModule`).
+- **Application**: DTOs completos de Lectura/Escritura y lógica pesada abstraída en `ProductosService.cs`, `AtributosService.cs`, `StockService.cs` y análogos.
+- **Presentation**: `*Controller.cs` exponiendo endpoints REST estándar (`StockController`).
+- **Frontend (Angular)**: Módulo `inventory` implementando componentes (`rubros-familias`, `atributos`, `productos`, `stock`) y el manejo de modales integrados para transacciones logísticas y consultas del almacén.
 
 ## Flujo General
 1. Usuario crea Rubro "Bazar".

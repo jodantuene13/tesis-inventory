@@ -30,6 +30,9 @@ builder.Services.AddScoped<IRubroRepository, RubroRepository>();
 builder.Services.AddScoped<IFamiliaRepository, FamiliaRepository>();
 builder.Services.AddScoped<IAtributoRepository, AtributoRepository>();
 builder.Services.AddScoped<IProductoRepository, ProductoRepository>();
+builder.Services.AddScoped<IStockRepository, StockRepository>();
+builder.Services.AddScoped<IMovimientoRepository, MovimientoRepository>();
+builder.Services.AddScoped<ITransferenciaRepository, TransferenciaRepository>();
 
 // Services
 builder.Services.AddScoped<IAuthService, AuthService>();
@@ -43,6 +46,7 @@ builder.Services.AddScoped<IRubrosService, RubrosService>();
 builder.Services.AddScoped<IFamiliasService, FamiliasService>();
 builder.Services.AddScoped<IAtributosService, AtributosService>();
 builder.Services.AddScoped<IProductosService, ProductosService>();
+builder.Services.AddScoped<IStockService, StockService>();
 
 builder.Services.AddHttpContextAccessor();
 

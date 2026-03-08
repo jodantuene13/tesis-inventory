@@ -15,17 +15,23 @@ namespace TesisInventory.Application.Services
         private readonly IFamiliaRepository _familiaRepository;
         private readonly IAtributoRepository _atributoRepository;
         private readonly IRubroRepository _rubroRepository;
+        private readonly ISedeRepository _sedeRepository;
+        private readonly IStockRepository _stockRepository;
 
         public ProductosService(
             IProductoRepository productoRepository,
             IFamiliaRepository familiaRepository,
             IAtributoRepository atributoRepository,
-            IRubroRepository rubroRepository)
+            IRubroRepository rubroRepository,
+            ISedeRepository sedeRepository,
+            IStockRepository stockRepository)
         {
             _productoRepository = productoRepository;
             _familiaRepository = familiaRepository;
             _atributoRepository = atributoRepository;
             _rubroRepository = rubroRepository;
+            _sedeRepository = sedeRepository;
+            _stockRepository = stockRepository;
         }
 
         public async Task<IEnumerable<ProductoDto>> GetAllProductosAsync(bool includeInactive = false)
@@ -144,6 +150,21 @@ namespace TesisInventory.Application.Services
                 await _productoRepository.AddProductoAtributoValorAsync(pav);
             }
 
+            // Inicializar stock en 0 para todas las sedes
+            var sedes = await _sedeRepository.GetAllAsync();
+            foreach (var s in sedes)
+            {
+                var stockInicial = new Stock
+                {
+                    IdProducto = producto.IdProducto,
+                    IdSede = s.IdSede,
+                    CantidadActual = 0,
+                    PuntoReposicion = createDto.PuntoReposicion, // Generado desde el frontend
+                    FechaActualizacion = DateTime.UtcNow
+                };
+                await _stockRepository.AddStockAsync(stockInicial);
+            }
+
             return await GetProductoByIdAsync(producto.IdProducto) ?? throw new Exception("Error al obtener el producto creado.");
         }
 
@@ -157,7 +178,62 @@ namespace TesisInventory.Application.Services
             producto.Activo = updateDto.Activo;
             producto.FechaActualizacion = DateTime.UtcNow;
 
+            // Validar si quitaron alguno obligatorio
+            var atributosFamilia = await _atributoRepository.GetAtributosByFamiliaIdAsync(producto.IdFamilia);
+            var obligatorios = atributosFamilia.Where(af => af.Obligatorio).Select(af => af.IdAtributo).ToList();
+            var guardados = updateDto.Atributos.Select(a => a.IdAtributo).ToList();
+            
+            var missing = obligatorios.Except(guardados).ToList();
+            if (missing.Any())
+                throw new InvalidOperationException("Faltan atributos obligatorios al actualizar.");
+
+            // Recalcular SKU con los nuevos atributos
+            var obligatoriosOrdenados = atributosFamilia
+                .Where(fa => fa.Obligatorio)
+                .OrderBy(fa => fa.Orden)
+                .ToList();
+
+            var skuAttributesValues = new List<string>();
+            foreach (var fa in obligatoriosOrdenados)
+            {
+                var inputAttr = updateDto.Atributos.FirstOrDefault(a => a.IdAtributo == fa.IdAtributo);
+                if (inputAttr == null) continue;
+
+                string attrVal = "";
+
+                if (!string.IsNullOrWhiteSpace(inputAttr.ValorTexto)) 
+                    attrVal = inputAttr.ValorTexto.Trim();
+                else if (inputAttr.ValorNumero.HasValue) 
+                    attrVal = inputAttr.ValorNumero.Value.ToString();
+                else if (inputAttr.ValorDecimal.HasValue) 
+                    attrVal = inputAttr.ValorDecimal.Value.ToString("0.##");
+                else if (!string.IsNullOrWhiteSpace(inputAttr.ValorLista)) 
+                    attrVal = inputAttr.ValorLista.Trim();
+                else if (inputAttr.ValorBool.HasValue) 
+                    attrVal = inputAttr.ValorBool.Value ? "SI" : "NO";
+
+                if (!string.IsNullOrEmpty(attrVal))
+                {
+                    skuAttributesValues.Add(attrVal.Replace(" ", ""));
+                }
+            }
+
+            var familia = await _familiaRepository.GetByIdAsync(producto.IdFamilia);
+            var rubro = familia!.Rubro ?? await _rubroRepository.GetByIdAsync(familia.IdRubro);
+            
+            var codigoBase = $"{rubro!.CodigoRubro}-{familia.CodigoFamilia}";
+            if (skuAttributesValues.Any())
+            {
+                codigoBase += "-" + string.Join("-", skuAttributesValues);
+            }
+            codigoBase += "-";
+
+            var parts = producto.Sku.Split('-');
+            var correlativo = parts.Last(); 
+            producto.Sku = $"{codigoBase}{correlativo}";
+
             await _productoRepository.UpdateProductoAsync(producto);
+            await _stockRepository.UpdatePuntoReposicionAsync(producto.IdProducto, updateDto.PuntoReposicion);
 
             var atributosExistentes = await _productoRepository.GetAtributosValorByProductoAsync(id);
 
@@ -196,14 +272,6 @@ namespace TesisInventory.Application.Services
                 }
             }
 
-            // Validar si quitaron alguno obligatorio
-            var atributosFamilia = await _atributoRepository.GetAtributosByFamiliaIdAsync(producto.IdFamilia);
-            var obligatorios = atributosFamilia.Where(af => af.Obligatorio).Select(af => af.IdAtributo).ToList();
-            var guardados = updateDto.Atributos.Select(a => a.IdAtributo).ToList();
-            
-            var missing = obligatorios.Except(guardados).ToList();
-            if (missing.Any())
-                throw new InvalidOperationException("Faltan atributos obligatorios al actualizar.");
 
             return await GetProductoByIdAsync(producto.IdProducto) ?? throw new Exception("Error post update");
         }

@@ -68,20 +68,20 @@ namespace TesisInventory.Infrastructure.Repositories
 
         public async Task<bool> HasAsociacionesAsync(int idFamilia)
         {
-            bool hasProductos = await _context.Producto.AnyAsync(p => p.IdFamilia == idFamilia);
-            bool hasAtributos = await _context.FamiliaAtributo.AnyAsync(fa => fa.IdFamilia == idFamilia);
+            bool hasProductos = await _context.Producto.AnyAsync(p => p.IdFamilia == idFamilia && p.Activo);
+            bool hasAtributos = await _context.FamiliaAtributo.AnyAsync(fa => fa.IdFamilia == idFamilia && fa.Atributo!.Activo);
             return hasProductos || hasAtributos;
         }
 
         public async Task<(IEnumerable<string> Productos, IEnumerable<string> Atributos)> GetAsociacionesAsync(int idFamilia)
         {
             var productos = await _context.Producto
-                .Where(p => p.IdFamilia == idFamilia)
+                .Where(p => p.IdFamilia == idFamilia && p.Activo)
                 .Select(p => p.Nombre)
                 .ToListAsync();
 
             var atributos = await _context.FamiliaAtributo
-                .Where(fa => fa.IdFamilia == idFamilia)
+                .Where(fa => fa.IdFamilia == idFamilia && fa.Atributo!.Activo)
                 .Select(fa => fa.Atributo!.Nombre)
                 .ToListAsync();
 

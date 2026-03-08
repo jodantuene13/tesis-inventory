@@ -22,6 +22,81 @@ namespace TesisInventory.Infrastructure.Migrations
 
             MySqlModelBuilderExtensions.AutoIncrementColumns(modelBuilder);
 
+            modelBuilder.Entity("TesisInventory.Domain.Entities.Atributo", b =>
+                {
+                    b.Property<int>("IdAtributo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("IdAtributo"));
+
+                    b.Property<bool>("Activo")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("CodigoAtributo")
+                        .IsRequired()
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<string>("Descripcion")
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime>("FechaActualizacion")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime>("FechaCreacion")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("TipoDato")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Unidad")
+                        .HasColumnType("longtext");
+
+                    b.HasKey("IdAtributo");
+
+                    b.HasIndex("CodigoAtributo")
+                        .IsUnique();
+
+                    b.ToTable("Atributo", (string)null);
+                });
+
+            modelBuilder.Entity("TesisInventory.Domain.Entities.AtributoOpcion", b =>
+                {
+                    b.Property<int>("IdAtributoOpcion")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("IdAtributoOpcion"));
+
+                    b.Property<bool>("Activo")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("CodigoOpcion")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<int>("IdAtributo")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Orden")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Valor")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.HasKey("IdAtributoOpcion");
+
+                    b.HasIndex("IdAtributo");
+
+                    b.ToTable("AtributoOpcion", (string)null);
+                });
+
             modelBuilder.Entity("TesisInventory.Domain.Entities.AuditLog", b =>
                 {
                     b.Property<int>("Id")
@@ -76,6 +151,243 @@ namespace TesisInventory.Infrastructure.Migrations
                     b.ToTable("AuditLog", (string)null);
                 });
 
+            modelBuilder.Entity("TesisInventory.Domain.Entities.Familia", b =>
+                {
+                    b.Property<int>("IdFamilia")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("IdFamilia"));
+
+                    b.Property<bool>("Activo")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("CodigoFamilia")
+                        .IsRequired()
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<DateTime>("FechaActualizacion")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime>("FechaCreacion")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("IdRubro")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.HasKey("IdFamilia");
+
+                    b.HasIndex("IdRubro", "CodigoFamilia")
+                        .IsUnique();
+
+                    b.ToTable("Familia", (string)null);
+                });
+
+            modelBuilder.Entity("TesisInventory.Domain.Entities.FamiliaAtributo", b =>
+                {
+                    b.Property<int>("IdFamiliaAtributo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("IdFamiliaAtributo"));
+
+                    b.Property<bool>("Activo")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<DateTime>("FechaActualizacion")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime>("FechaCreacion")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("IdAtributo")
+                        .HasColumnType("int");
+
+                    b.Property<int>("IdFamilia")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("Obligatorio")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<int>("Orden")
+                        .HasColumnType("int");
+
+                    b.HasKey("IdFamiliaAtributo");
+
+                    b.HasIndex("IdAtributo");
+
+                    b.HasIndex("IdFamilia", "IdAtributo")
+                        .IsUnique();
+
+                    b.ToTable("FamiliaAtributo", (string)null);
+                });
+
+            modelBuilder.Entity("TesisInventory.Domain.Entities.HistorialTransferencia", b =>
+                {
+                    b.Property<int>("IdHistorialTransferencia")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("IdHistorialTransferencia"));
+
+                    b.Property<int>("EstadoAnterior")
+                        .HasColumnType("int");
+
+                    b.Property<int>("EstadoNuevo")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("Fecha")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("IdTransferencia")
+                        .HasColumnType("int");
+
+                    b.Property<int>("IdUsuario")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Observaciones")
+                        .HasColumnType("longtext");
+
+                    b.HasKey("IdHistorialTransferencia");
+
+                    b.HasIndex("IdTransferencia");
+
+                    b.HasIndex("IdUsuario");
+
+                    b.ToTable("HistorialTransferencia", (string)null);
+                });
+
+            modelBuilder.Entity("TesisInventory.Domain.Entities.Movimiento", b =>
+                {
+                    b.Property<int>("IdMovimiento")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("IdMovimiento"));
+
+                    b.Property<int>("Cantidad")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("Fecha")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("IdProducto")
+                        .HasColumnType("int");
+
+                    b.Property<int>("IdSede")
+                        .HasColumnType("int");
+
+                    b.Property<int>("IdUsuario")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Motivo")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Observaciones")
+                        .HasColumnType("longtext");
+
+                    b.Property<int>("TipoMovimiento")
+                        .HasColumnType("int");
+
+                    b.HasKey("IdMovimiento");
+
+                    b.HasIndex("IdProducto");
+
+                    b.HasIndex("IdSede");
+
+                    b.HasIndex("IdUsuario");
+
+                    b.ToTable("Movimiento", (string)null);
+                });
+
+            modelBuilder.Entity("TesisInventory.Domain.Entities.Producto", b =>
+                {
+                    b.Property<int>("IdProducto")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("IdProducto"));
+
+                    b.Property<bool>("Activo")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<DateTime>("FechaActualizacion")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime>("FechaCreacion")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("IdFamilia")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Sku")
+                        .IsRequired()
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<string>("UnidadMedida")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.HasKey("IdProducto");
+
+                    b.HasIndex("IdFamilia");
+
+                    b.HasIndex("Sku")
+                        .IsUnique();
+
+                    b.ToTable("Producto", (string)null);
+                });
+
+            modelBuilder.Entity("TesisInventory.Domain.Entities.ProductoAtributoValor", b =>
+                {
+                    b.Property<int>("IdProductoAtributoValor")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("IdProductoAtributoValor"));
+
+                    b.Property<DateTime>("FechaActualizacion")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("IdAtributo")
+                        .HasColumnType("int");
+
+                    b.Property<int>("IdProducto")
+                        .HasColumnType("int");
+
+                    b.Property<bool?>("ValorBool")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<decimal?>("ValorDecimal")
+                        .HasColumnType("decimal(65,30)");
+
+                    b.Property<string>("ValorLista")
+                        .HasColumnType("longtext");
+
+                    b.Property<int?>("ValorNumero")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ValorTexto")
+                        .HasColumnType("longtext");
+
+                    b.HasKey("IdProductoAtributoValor");
+
+                    b.HasIndex("IdAtributo");
+
+                    b.HasIndex("IdProducto", "IdAtributo")
+                        .IsUnique();
+
+                    b.ToTable("ProductoAtributoValor", (string)null);
+                });
+
             modelBuilder.Entity("TesisInventory.Domain.Entities.Rol", b =>
                 {
                     b.Property<int>("IdRol")
@@ -100,6 +412,39 @@ namespace TesisInventory.Infrastructure.Migrations
                     b.ToTable("Rol", (string)null);
                 });
 
+            modelBuilder.Entity("TesisInventory.Domain.Entities.Rubro", b =>
+                {
+                    b.Property<int>("IdRubro")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("IdRubro"));
+
+                    b.Property<bool>("Activo")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("CodigoRubro")
+                        .IsRequired()
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<DateTime>("FechaActualizacion")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime>("FechaCreacion")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.HasKey("IdRubro");
+
+                    b.HasIndex("CodigoRubro")
+                        .IsUnique();
+
+                    b.ToTable("Rubro", (string)null);
+                });
+
             modelBuilder.Entity("TesisInventory.Domain.Entities.Sede", b =>
                 {
                     b.Property<int>("IdSede")
@@ -108,6 +453,13 @@ namespace TesisInventory.Infrastructure.Migrations
                         .HasColumnName("idSede");
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("IdSede"));
+
+                    b.Property<bool>("Activo")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("CodigoSede")
+                        .IsRequired()
+                        .HasColumnType("longtext");
 
                     b.Property<string>("Direccion")
                         .IsRequired()
@@ -121,6 +473,84 @@ namespace TesisInventory.Infrastructure.Migrations
                     b.HasKey("IdSede");
 
                     b.ToTable("Sede", (string)null);
+                });
+
+            modelBuilder.Entity("TesisInventory.Domain.Entities.Stock", b =>
+                {
+                    b.Property<int>("IdStock")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("IdStock"));
+
+                    b.Property<int>("CantidadActual")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("FechaActualizacion")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("IdProducto")
+                        .HasColumnType("int");
+
+                    b.Property<int>("IdSede")
+                        .HasColumnType("int");
+
+                    b.Property<int>("PuntoReposicion")
+                        .HasColumnType("int");
+
+                    b.HasKey("IdStock");
+
+                    b.HasIndex("IdSede");
+
+                    b.HasIndex("IdProducto", "IdSede")
+                        .IsUnique();
+
+                    b.ToTable("Stock", (string)null);
+                });
+
+            modelBuilder.Entity("TesisInventory.Domain.Entities.Transferencia", b =>
+                {
+                    b.Property<int>("IdTransferencia")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("IdTransferencia"));
+
+                    b.Property<int>("Cantidad")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Estado")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("FechaSolicitud")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("IdProducto")
+                        .HasColumnType("int");
+
+                    b.Property<int>("IdSedeDestino")
+                        .HasColumnType("int");
+
+                    b.Property<int>("IdSedeOrigen")
+                        .HasColumnType("int");
+
+                    b.Property<int>("IdUsuarioSolicita")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Observaciones")
+                        .HasColumnType("longtext");
+
+                    b.HasKey("IdTransferencia");
+
+                    b.HasIndex("IdProducto");
+
+                    b.HasIndex("IdSedeDestino");
+
+                    b.HasIndex("IdSedeOrigen");
+
+                    b.HasIndex("IdUsuarioSolicita");
+
+                    b.ToTable("Transferencia", (string)null);
                 });
 
             modelBuilder.Entity("TesisInventory.Domain.Entities.Usuario", b =>
@@ -166,18 +596,184 @@ namespace TesisInventory.Infrastructure.Migrations
                         .HasColumnType("longtext")
                         .HasColumnName("password");
 
-                    b.Property<int?>("SedeIdSede")
-                        .HasColumnType("int");
-
                     b.HasKey("IdUsuario");
 
                     b.HasIndex("IdRol");
 
                     b.HasIndex("IdSede");
 
-                    b.HasIndex("SedeIdSede");
-
                     b.ToTable("Usuario", (string)null);
+                });
+
+            modelBuilder.Entity("TesisInventory.Domain.Entities.AtributoOpcion", b =>
+                {
+                    b.HasOne("TesisInventory.Domain.Entities.Atributo", "Atributo")
+                        .WithMany("Opciones")
+                        .HasForeignKey("IdAtributo")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Atributo");
+                });
+
+            modelBuilder.Entity("TesisInventory.Domain.Entities.Familia", b =>
+                {
+                    b.HasOne("TesisInventory.Domain.Entities.Rubro", "Rubro")
+                        .WithMany("Familias")
+                        .HasForeignKey("IdRubro")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Rubro");
+                });
+
+            modelBuilder.Entity("TesisInventory.Domain.Entities.FamiliaAtributo", b =>
+                {
+                    b.HasOne("TesisInventory.Domain.Entities.Atributo", "Atributo")
+                        .WithMany("FamiliaAtributos")
+                        .HasForeignKey("IdAtributo")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("TesisInventory.Domain.Entities.Familia", "Familia")
+                        .WithMany("FamiliaAtributos")
+                        .HasForeignKey("IdFamilia")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Atributo");
+
+                    b.Navigation("Familia");
+                });
+
+            modelBuilder.Entity("TesisInventory.Domain.Entities.HistorialTransferencia", b =>
+                {
+                    b.HasOne("TesisInventory.Domain.Entities.Transferencia", "Transferencia")
+                        .WithMany("HistorialTransferencias")
+                        .HasForeignKey("IdTransferencia")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("TesisInventory.Domain.Entities.Usuario", "Usuario")
+                        .WithMany("HistorialTransferencias")
+                        .HasForeignKey("IdUsuario")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Transferencia");
+
+                    b.Navigation("Usuario");
+                });
+
+            modelBuilder.Entity("TesisInventory.Domain.Entities.Movimiento", b =>
+                {
+                    b.HasOne("TesisInventory.Domain.Entities.Producto", "Producto")
+                        .WithMany("Movimientos")
+                        .HasForeignKey("IdProducto")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("TesisInventory.Domain.Entities.Sede", "Sede")
+                        .WithMany("Movimientos")
+                        .HasForeignKey("IdSede")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("TesisInventory.Domain.Entities.Usuario", "Usuario")
+                        .WithMany("Movimientos")
+                        .HasForeignKey("IdUsuario")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Producto");
+
+                    b.Navigation("Sede");
+
+                    b.Navigation("Usuario");
+                });
+
+            modelBuilder.Entity("TesisInventory.Domain.Entities.Producto", b =>
+                {
+                    b.HasOne("TesisInventory.Domain.Entities.Familia", "Familia")
+                        .WithMany("Productos")
+                        .HasForeignKey("IdFamilia")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Familia");
+                });
+
+            modelBuilder.Entity("TesisInventory.Domain.Entities.ProductoAtributoValor", b =>
+                {
+                    b.HasOne("TesisInventory.Domain.Entities.Atributo", "Atributo")
+                        .WithMany()
+                        .HasForeignKey("IdAtributo")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("TesisInventory.Domain.Entities.Producto", "Producto")
+                        .WithMany("ProductoAtributoValores")
+                        .HasForeignKey("IdProducto")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Atributo");
+
+                    b.Navigation("Producto");
+                });
+
+            modelBuilder.Entity("TesisInventory.Domain.Entities.Stock", b =>
+                {
+                    b.HasOne("TesisInventory.Domain.Entities.Producto", "Producto")
+                        .WithMany("Stocks")
+                        .HasForeignKey("IdProducto")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("TesisInventory.Domain.Entities.Sede", "Sede")
+                        .WithMany("Stocks")
+                        .HasForeignKey("IdSede")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Producto");
+
+                    b.Navigation("Sede");
+                });
+
+            modelBuilder.Entity("TesisInventory.Domain.Entities.Transferencia", b =>
+                {
+                    b.HasOne("TesisInventory.Domain.Entities.Producto", "Producto")
+                        .WithMany("Transferencias")
+                        .HasForeignKey("IdProducto")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("TesisInventory.Domain.Entities.Sede", "SedeDestino")
+                        .WithMany("TransferenciasDestino")
+                        .HasForeignKey("IdSedeDestino")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("TesisInventory.Domain.Entities.Sede", "SedeOrigen")
+                        .WithMany("TransferenciasOrigen")
+                        .HasForeignKey("IdSedeOrigen")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("TesisInventory.Domain.Entities.Usuario", "UsuarioSolicita")
+                        .WithMany("TransferenciasSolicitadas")
+                        .HasForeignKey("IdUsuarioSolicita")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Producto");
+
+                    b.Navigation("SedeDestino");
+
+                    b.Navigation("SedeOrigen");
+
+                    b.Navigation("UsuarioSolicita");
                 });
 
             modelBuilder.Entity("TesisInventory.Domain.Entities.Usuario", b =>
@@ -189,18 +785,39 @@ namespace TesisInventory.Infrastructure.Migrations
                         .IsRequired();
 
                     b.HasOne("TesisInventory.Domain.Entities.Sede", "Sede")
-                        .WithMany()
+                        .WithMany("Usuarios")
                         .HasForeignKey("IdSede")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("TesisInventory.Domain.Entities.Sede", null)
-                        .WithMany("Usuarios")
-                        .HasForeignKey("SedeIdSede");
-
                     b.Navigation("Rol");
 
                     b.Navigation("Sede");
+                });
+
+            modelBuilder.Entity("TesisInventory.Domain.Entities.Atributo", b =>
+                {
+                    b.Navigation("FamiliaAtributos");
+
+                    b.Navigation("Opciones");
+                });
+
+            modelBuilder.Entity("TesisInventory.Domain.Entities.Familia", b =>
+                {
+                    b.Navigation("FamiliaAtributos");
+
+                    b.Navigation("Productos");
+                });
+
+            modelBuilder.Entity("TesisInventory.Domain.Entities.Producto", b =>
+                {
+                    b.Navigation("Movimientos");
+
+                    b.Navigation("ProductoAtributoValores");
+
+                    b.Navigation("Stocks");
+
+                    b.Navigation("Transferencias");
                 });
 
             modelBuilder.Entity("TesisInventory.Domain.Entities.Rol", b =>
@@ -208,9 +825,36 @@ namespace TesisInventory.Infrastructure.Migrations
                     b.Navigation("Usuarios");
                 });
 
+            modelBuilder.Entity("TesisInventory.Domain.Entities.Rubro", b =>
+                {
+                    b.Navigation("Familias");
+                });
+
             modelBuilder.Entity("TesisInventory.Domain.Entities.Sede", b =>
                 {
+                    b.Navigation("Movimientos");
+
+                    b.Navigation("Stocks");
+
+                    b.Navigation("TransferenciasDestino");
+
+                    b.Navigation("TransferenciasOrigen");
+
                     b.Navigation("Usuarios");
+                });
+
+            modelBuilder.Entity("TesisInventory.Domain.Entities.Transferencia", b =>
+                {
+                    b.Navigation("HistorialTransferencias");
+                });
+
+            modelBuilder.Entity("TesisInventory.Domain.Entities.Usuario", b =>
+                {
+                    b.Navigation("HistorialTransferencias");
+
+                    b.Navigation("Movimientos");
+
+                    b.Navigation("TransferenciasSolicitadas");
                 });
 #pragma warning restore 612, 618
         }

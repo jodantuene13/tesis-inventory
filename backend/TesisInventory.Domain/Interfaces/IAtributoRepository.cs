@@ -12,6 +12,7 @@ namespace TesisInventory.Domain.Interfaces
         Task<Atributo?> GetAtributoByCodigoAsync(string codigo);
         Task<Atributo> AddAtributoAsync(Atributo atributo);
         Task UpdateAtributoAsync(Atributo atributo);
+        Task DeleteAtributoAsync(Atributo atributo);
         
         // AtributoOpcion
         Task<IEnumerable<AtributoOpcion>> GetOpcionesByAtributoIdAsync(int idAtributo);
@@ -24,6 +25,7 @@ namespace TesisInventory.Domain.Interfaces
         Task<IEnumerable<FamiliaAtributo>> GetAtributosByFamiliaIdAsync(int idFamilia);
         Task<FamiliaAtributo> AddFamiliaAtributoAsync(FamiliaAtributo familiaAtributo);
         Task UpdateFamiliaAtributoAsync(FamiliaAtributo familiaAtributo);
+        Task DeleteFamiliaAtributoAsync(FamiliaAtributo familiaAtributo);
         Task<FamiliaAtributo?> GetFamiliaAtributoAsync(int idFamilia, int idAtributo);
     }
 }

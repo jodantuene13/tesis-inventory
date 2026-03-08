@@ -14,6 +14,16 @@ namespace TesisInventory.Infrastructure.Persistence
         public DbSet<Sede> Sede { get; set; }
         public DbSet<AuditLog> AuditLogs { get; set; }
 
+        // Inventory DbSets
+        public DbSet<Rubro> Rubro { get; set; }
+        public DbSet<Familia> Familia { get; set; }
+        public DbSet<Atributo> Atributo { get; set; }
+        public DbSet<FamiliaAtributo> FamiliaAtributo { get; set; }
+        public DbSet<AtributoOpcion> AtributoOpcion { get; set; }
+        public DbSet<Producto> Producto { get; set; }
+        public DbSet<ProductoAtributoValor> ProductoAtributoValor { get; set; }
+        public DbSet<Stock> Stock { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -49,7 +59,7 @@ namespace TesisInventory.Infrastructure.Persistence
 
             modelBuilder.Entity<Usuario>()
                 .HasOne(u => u.Sede)
-                .WithMany() // Assuming one-to-many but Sede doesn't have Usuarios collection yet, which is fine
+                .WithMany(s => s.Usuarios)
                 .HasForeignKey(u => u.IdSede);
 
             modelBuilder.Entity<Sede>().ToTable("Sede");
@@ -60,6 +70,83 @@ namespace TesisInventory.Infrastructure.Persistence
             // Audit
             modelBuilder.Entity<AuditLog>().ToTable("AuditLog");
             modelBuilder.Entity<AuditLog>().HasKey(a => a.Id);
+
+            // Inventory Module Configurations
+            modelBuilder.Entity<Rubro>().ToTable("Rubro");
+            modelBuilder.Entity<Rubro>().HasKey(r => r.IdRubro);
+            modelBuilder.Entity<Rubro>().HasIndex(r => r.CodigoRubro).IsUnique();
+
+            modelBuilder.Entity<Familia>().ToTable("Familia");
+            modelBuilder.Entity<Familia>().HasKey(f => f.IdFamilia);
+            modelBuilder.Entity<Familia>().HasIndex(f => new { f.IdRubro, f.CodigoFamilia }).IsUnique();
+            modelBuilder.Entity<Familia>()
+                .HasOne(f => f.Rubro)
+                .WithMany(r => r.Familias)
+                .HasForeignKey(f => f.IdRubro)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Atributo>().ToTable("Atributo");
+            modelBuilder.Entity<Atributo>().HasKey(a => a.IdAtributo);
+            modelBuilder.Entity<Atributo>().HasIndex(a => a.CodigoAtributo).IsUnique();
+
+            modelBuilder.Entity<FamiliaAtributo>().ToTable("FamiliaAtributo");
+            modelBuilder.Entity<FamiliaAtributo>().HasKey(fa => fa.IdFamiliaAtributo);
+            modelBuilder.Entity<FamiliaAtributo>().HasIndex(fa => new { fa.IdFamilia, fa.IdAtributo }).IsUnique();
+            modelBuilder.Entity<FamiliaAtributo>()
+                .HasOne(fa => fa.Familia)
+                .WithMany(f => f.FamiliaAtributos)
+                .HasForeignKey(fa => fa.IdFamilia)
+                .OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<FamiliaAtributo>()
+                .HasOne(fa => fa.Atributo)
+                .WithMany(a => a.FamiliaAtributos)
+                .HasForeignKey(fa => fa.IdAtributo)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<AtributoOpcion>().ToTable("AtributoOpcion");
+            modelBuilder.Entity<AtributoOpcion>().HasKey(ao => ao.IdAtributoOpcion);
+            modelBuilder.Entity<AtributoOpcion>()
+                .HasOne(ao => ao.Atributo)
+                .WithMany(a => a.Opciones)
+                .HasForeignKey(ao => ao.IdAtributo)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Producto>().ToTable("Producto");
+            modelBuilder.Entity<Producto>().HasKey(p => p.IdProducto);
+            modelBuilder.Entity<Producto>().HasIndex(p => p.Sku).IsUnique();
+            modelBuilder.Entity<Producto>()
+                .HasOne(p => p.Familia)
+                .WithMany(f => f.Productos)
+                .HasForeignKey(p => p.IdFamilia)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<ProductoAtributoValor>().ToTable("ProductoAtributoValor");
+            modelBuilder.Entity<ProductoAtributoValor>().HasKey(pav => pav.IdProductoAtributoValor);
+            modelBuilder.Entity<ProductoAtributoValor>().HasIndex(pav => new { pav.IdProducto, pav.IdAtributo }).IsUnique();
+            modelBuilder.Entity<ProductoAtributoValor>()
+                .HasOne(pav => pav.Producto)
+                .WithMany(p => p.ProductoAtributoValores)
+                .HasForeignKey(pav => pav.IdProducto)
+                .OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<ProductoAtributoValor>()
+                .HasOne(pav => pav.Atributo)
+                .WithMany()
+                .HasForeignKey(pav => pav.IdAtributo)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Stock>().ToTable("Stock");
+            modelBuilder.Entity<Stock>().HasKey(s => s.IdStock);
+            modelBuilder.Entity<Stock>().HasIndex(s => new { s.IdProducto, s.IdSede }).IsUnique();
+            modelBuilder.Entity<Stock>()
+                .HasOne(s => s.Producto)
+                .WithMany(p => p.Stocks)
+                .HasForeignKey(s => s.IdProducto)
+                .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<Stock>()
+                .HasOne(s => s.Sede)
+                .WithMany()
+                .HasForeignKey(s => s.IdSede)
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

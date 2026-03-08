@@ -20,3 +20,8 @@ export interface UpdateFamilia {
     nombre: string;
     activo: boolean;
 }
+
+export interface FamiliaAsociaciones {
+    productos: string[];
+    atributos: string[];
+}

@@ -60,5 +60,12 @@ namespace TesisInventory.API.Controllers
             await _familiasService.DeleteFamiliaAsync(id);
             return NoContent();
         }
+
+        [HttpGet("{id}/asociaciones")]
+        public async Task<IActionResult> GetAsociaciones(int id)
+        {
+            var result = await _familiasService.GetAsociacionesAsync(id);
+            return Ok(result);
+        }
     }
 }

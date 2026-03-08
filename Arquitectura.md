@@ -11,7 +11,8 @@ El esquema sigue una arquitectura relacional normalizada (3NF) para asegurar la 
 #### Tablas Maestras
 - `Roles`: Definición de perfiles de acceso.
 - `Sedes`: Ubicaciones físicas (incluye `Direccion`).
-- `Categorias`: Clasificación de productos.
+- `Rubros` y `Familias`: Estructura jerárquica de agrupación de productos.
+- `Atributos`: Diccionario de características dinámicas para productos.
 
 #### Tablas Principales
 - `Usuarios`: Gestión de acceso y perfiles.

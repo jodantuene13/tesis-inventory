@@ -12,5 +12,6 @@ namespace TesisInventory.Application.Interfaces
         Task<FamiliaDto> CreateFamiliaAsync(CreateFamiliaDto createFamiliaDto);
         Task<FamiliaDto> UpdateFamiliaAsync(int id, UpdateFamiliaDto updateFamiliaDto);
         Task DeleteFamiliaAsync(int id);
+        Task<FamiliaAsociacionesDto> GetAsociacionesAsync(int idFamilia);
     }
 }

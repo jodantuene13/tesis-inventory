@@ -154,7 +154,25 @@ namespace TesisInventory.Application.Services
             if (familia == null)
                 throw new KeyNotFoundException("Familia no encontrada.");
 
+            var hasAsociaciones = await _familiaRepository.HasAsociacionesAsync(id);
+            if (hasAsociaciones)
+                throw new InvalidOperationException("No se puede eliminar la familia porque tiene productos o atributos asociados.");
+
             await _familiaRepository.DeleteAsync(familia);
+        }
+
+        public async Task<FamiliaAsociacionesDto> GetAsociacionesAsync(int idFamilia)
+        {
+            var familia = await _familiaRepository.GetByIdAsync(idFamilia);
+            if (familia == null)
+                throw new KeyNotFoundException("Familia no encontrada.");
+
+            var asociaciones = await _familiaRepository.GetAsociacionesAsync(idFamilia);
+            return new FamiliaAsociacionesDto
+            {
+                Productos = asociaciones.Productos,
+                Atributos = asociaciones.Atributos
+            };
         }
     }
 }

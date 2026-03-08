@@ -59,7 +59,22 @@ namespace TesisInventory.Application.Services
         {
             var existing = await _atributoRepository.GetAtributoByCodigoAsync(createDto.CodigoAtributo);
             if (existing != null)
+            {
+                if (!existing.Activo)
+                {
+                    existing.Nombre = createDto.Nombre;
+                    existing.TipoDato = createDto.TipoDato;
+                    existing.Unidad = createDto.Unidad;
+                    existing.Descripcion = createDto.Descripcion;
+                    existing.Activo = true;
+                    existing.FechaActualizacion = DateTime.UtcNow;
+                    
+                    await _atributoRepository.UpdateAtributoAsync(existing);
+                    return await GetAtributoByIdAsync(existing.IdAtributo) ?? throw new Exception("Error al reactivar atributo.");
+                }
+                
                 throw new InvalidOperationException("Ya existe un atributo con este código.");
+            }
 
             var newAttr = new Atributo
             {
@@ -105,8 +120,7 @@ namespace TesisInventory.Application.Services
             var attr = await _atributoRepository.GetAtributoByIdAsync(id);
             if (attr == null) throw new KeyNotFoundException("Atributo no encontrado.");
 
-            attr.Activo = false;
-            await _atributoRepository.UpdateAtributoAsync(attr);
+            await _atributoRepository.DeleteAtributoAsync(attr);
         }
 
         // ====== Opciones ======
@@ -243,9 +257,7 @@ namespace TesisInventory.Application.Services
             var exists = await _atributoRepository.GetFamiliaAtributoAsync(idFamilia, idAtributo);
             if (exists == null) throw new KeyNotFoundException("Asignación no encontrada.");
 
-            exists.Activo = false;
-            exists.FechaActualizacion = DateTime.UtcNow;
-            await _atributoRepository.UpdateFamiliaAtributoAsync(exists);
+            await _atributoRepository.DeleteFamiliaAtributoAsync(exists);
         }
     }
 }

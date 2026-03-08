@@ -57,9 +57,53 @@ namespace TesisInventory.Application.Services
             if (missing.Any())
                 throw new InvalidOperationException($"Faltan atributos obligatorios para esta familia (Ids: {string.Join(", ", missing)}).");
 
-            // Auto-generación del SKU: RubroCodigo-FamiliaCodigo-Numero
+            // Extraer y procesar valores para los atributos obligatorios a usar en el SKU
+            var skuAttributesValues = new List<string>();
+
+            // Para mantener el orden, usamos la lista "obligatorios" como referencia de Ids si tiene algún orden específico 
+            // aunque para mayor precisión usamos la asignación con la familia si hubiese orden ("fa.Orden")
+            var obligatoriosOrdenados = atributosFamilia
+                .Where(fa => fa.Obligatorio)
+                .OrderBy(fa => fa.Orden)
+                .ToList();
+
+            foreach (var fa in obligatoriosOrdenados)
+            {
+                var inputAttr = createDto.Atributos.FirstOrDefault(a => a.IdAtributo == fa.IdAtributo);
+                if (inputAttr == null) continue; // Ya fue validado arriba teóricamente
+
+                // Detectar qué campo tiene el valor en base a lo que se envió en el DTO (como no tenemos directo TipoDato aquí)
+                string attrVal = "";
+
+                if (!string.IsNullOrWhiteSpace(inputAttr.ValorTexto)) 
+                    attrVal = inputAttr.ValorTexto.Trim();
+                else if (inputAttr.ValorNumero.HasValue) 
+                    attrVal = inputAttr.ValorNumero.Value.ToString();
+                else if (inputAttr.ValorDecimal.HasValue) 
+                    attrVal = inputAttr.ValorDecimal.Value.ToString("0.##");
+                else if (!string.IsNullOrWhiteSpace(inputAttr.ValorLista)) 
+                    attrVal = inputAttr.ValorLista.Trim();
+                else if (inputAttr.ValorBool.HasValue) 
+                    attrVal = inputAttr.ValorBool.Value ? "SI" : "NO";
+
+                // Limpiamos los espacios vacíos y agregamos
+                if (!string.IsNullOrEmpty(attrVal))
+                {
+                    skuAttributesValues.Add(attrVal.Replace(" ", "")); // Sin espacios
+                }
+            }
+
+            // Auto-generación del SKU: RubroCodigo-FamiliaCodigo-[Attr1]-[Attr2]-Numero
             var rubro = familia.Rubro ?? await _rubroRepository.GetByIdAsync(familia.IdRubro);
-            var codigoBase = $"{rubro!.CodigoRubro}-{familia.CodigoFamilia}-";
+            
+            var codigoBase = $"{rubro!.CodigoRubro}-{familia.CodigoFamilia}";
+            
+            if (skuAttributesValues.Any())
+            {
+                codigoBase += "-" + string.Join("-", skuAttributesValues);
+            }
+            // Agregamos el separador final antes del dígito
+            codigoBase += "-";
 
             // Conseguir el correlativo actual para esta Familia
             var getAllProd = await _productoRepository.GetAllProductosAsync(true);

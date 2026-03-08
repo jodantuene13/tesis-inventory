@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { RubroService } from '../../../services/rubro.service';
 import { FamiliaService } from '../../../services/familia.service';
 import { Rubro, CreateRubro, UpdateRubro } from '../../../models/rubro.model';
-import { Familia, CreateFamilia, UpdateFamilia } from '../../../models/familia.model';
+import { Familia, CreateFamilia, UpdateFamilia, FamiliaAsociaciones } from '../../../models/familia.model';
 import Swal from 'sweetalert2';
 
 @Component({
@@ -33,6 +33,11 @@ export class RubrosFamiliasComponent implements OnInit {
     currentFamiliaForm: CreateFamilia | UpdateFamilia = { idRubro: 0, codigoFamilia: '', nombre: '', activo: true };
     currentFamiliaId: number | null = null;
     errorFamilia: string | null = null;
+
+    showAsociacionesModal = false;
+    loadingAsociaciones = false;
+    currentAsociaciones: FamiliaAsociaciones | null = null;
+    currentFamiliaName = '';
 
     constructor(
         private rubroService: RubroService,
@@ -214,24 +219,49 @@ export class RubrosFamiliasComponent implements OnInit {
 
     deleteFamilia(id: number): void {
         Swal.fire({
-            title: '¿Dar de baja esta familia?',
-            text: "Se marcará como inactiva (Baja lógica).",
+            title: '¿Eliminar físicamente esta familia?',
+            text: "Se borrará de forma permanente. Esta operación fallará si hay productos o atributos asociados.",
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonText: 'Sí, dar de baja',
+            confirmButtonText: 'Sí, eliminar',
             cancelButtonText: 'Cancelar'
         }).then((result) => {
             if (result.isConfirmed) {
                 this.familiaService.delete(id).subscribe({
                     next: () => {
                         if (this.selectedRubroId) this.loadFamilias(this.selectedRubroId);
-                        Swal.fire('Baja Exitosa', 'La familia ha sido desactivada.', 'success');
+                        Swal.fire('Eliminación Exitosa', 'La familia ha sido eliminada permanentemente.', 'success');
                     },
                     error: (err) => {
-                        Swal.fire('Error', err.error?.message || 'No se pudo desactivar la familia.', 'error');
+                        Swal.fire('Error', err.error?.message || 'No se pudo eliminar la familia.', 'error');
                     }
                 });
             }
         });
+    }
+
+    // --- Asociaciones Modal Logic ---
+    openAsociacionesModal(f: Familia): void {
+        this.currentFamiliaName = f.nombre;
+        this.showAsociacionesModal = true;
+        this.loadingAsociaciones = true;
+        this.currentAsociaciones = null;
+
+        this.familiaService.getAsociaciones(f.idFamilia).subscribe({
+            next: (data) => {
+                this.currentAsociaciones = data;
+                this.loadingAsociaciones = false;
+            },
+            error: (err) => {
+                this.loadingAsociaciones = false;
+                Swal.fire('Error', err.error?.message || 'Error al cargar asociaciones', 'error');
+                this.showAsociacionesModal = false;
+            }
+        });
+    }
+
+    closeAsociacionesModal(): void {
+        this.showAsociacionesModal = false;
+        this.currentAsociaciones = null;
     }
 }

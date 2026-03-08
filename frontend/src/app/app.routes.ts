@@ -20,6 +20,16 @@ export const routes: Routes = [
         canActivate: [authGuard],
         children: [
             { path: 'home', component: HomeComponent },
+            // Inventory Module
+            {
+                path: 'inventory',
+                children: [
+                    { path: 'rubros-familias', loadComponent: () => import('./pages/inventory/rubros-familias/rubros-familias.component').then(m => m.RubrosFamiliasComponent) },
+                    { path: 'atributos', loadComponent: () => import('./pages/inventory/atributos/atributos.component').then(m => m.AtributosComponent) },
+                    { path: 'productos', loadComponent: () => import('./pages/inventory/productos/productos.component').then(m => m.ProductosComponent) },
+                    { path: '', redirectTo: 'productos', pathMatch: 'full' }
+                ]
+            },
             // Configuration Module
             {
                 path: 'configuration',

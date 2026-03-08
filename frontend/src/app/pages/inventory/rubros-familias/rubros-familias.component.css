@@ -1,9 +1,4 @@
-.split-view-container {
-    padding: 20px;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-}
+/* Using global Tailwind CSS classes */
 
 .header-section {
     margin-bottom: 20px;
@@ -205,4 +200,70 @@
     border-radius: 4px;
     margin-bottom: 15px;
     font-size: 0.9rem;
+}
+
+.large-modal {
+    width: 600px;
+    max-width: 90vw;
+}
+
+.modal-header-flex {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.modal-header-flex h2 {
+    margin: 0;
+}
+
+.close-btn {
+    font-size: 1.2rem;
+    color: #64748b;
+}
+
+.split-lists {
+    display: flex;
+    gap: 20px;
+}
+
+.asociaciones-list {
+    flex: 1;
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+}
+
+.asociaciones-list h3 {
+    margin-top: 0;
+    font-size: 1rem;
+    border-bottom: 1px solid #e2e8f0;
+    padding-bottom: 8px;
+    margin-bottom: 10px;
+}
+
+.asociaciones-list ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.asociaciones-list li {
+    padding: 6px 0;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.asociaciones-list li:last-child {
+    border-bottom: none;
+}
+
+.empty-list {
+    color: #94a3b8;
+    font-style: italic;
+    text-align: center;
+    padding: 10px 0;
 }

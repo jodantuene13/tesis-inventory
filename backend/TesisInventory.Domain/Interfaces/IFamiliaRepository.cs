@@ -12,6 +12,8 @@ namespace TesisInventory.Domain.Interfaces
         Task<Familia?> GetByCodigoLocalAsync(int idRubro, string codigoFamilia);
         Task<Familia> AddAsync(Familia familia);
         Task UpdateAsync(Familia familia);
-        Task DeleteAsync(Familia familia); // Baja Lógica
+        Task DeleteAsync(Familia familia); // Baja Fisica
+        Task<bool> HasAsociacionesAsync(int idFamilia);
+        Task<(IEnumerable<string> Productos, IEnumerable<string> Atributos)> GetAsociacionesAsync(int idFamilia);
     }
 }

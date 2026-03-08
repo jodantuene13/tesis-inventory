@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Familia, CreateFamilia, UpdateFamilia } from '../models/familia.model';
+import { Familia, CreateFamilia, UpdateFamilia, FamiliaAsociaciones } from '../models/familia.model';
 
 @Injectable({
     providedIn: 'root'
@@ -33,5 +33,9 @@ export class FamiliaService {
 
     delete(id: number): Observable<any> {
         return this.http.delete(`${this.apiUrl}/${id}`);
+    }
+
+    getAsociaciones(idFamilia: number): Observable<FamiliaAsociaciones> {
+        return this.http.get<FamiliaAsociaciones>(`${this.apiUrl}/${idFamilia}/asociaciones`);
     }
 }

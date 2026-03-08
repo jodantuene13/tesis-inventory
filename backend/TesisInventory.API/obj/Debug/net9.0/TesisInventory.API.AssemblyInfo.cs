@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("TesisInventory.API")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+2fe408d04d1b6d1b95d7c99fa713ccbbf6d4a908")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+f395e846335ea6503336949ca609ead208ea6157")]
 [assembly: System.Reflection.AssemblyProductAttribute("TesisInventory.API")]
 [assembly: System.Reflection.AssemblyTitleAttribute("TesisInventory.API")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

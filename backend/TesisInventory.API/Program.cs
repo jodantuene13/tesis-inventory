@@ -22,15 +22,28 @@ builder.Services.AddDbContext<InventoryDbContext>(options =>
 // Dependency Injection
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IRoleRepository, RoleRepository>();
+builder.Services.AddScoped<ISedeRepository, SedeRepository>();
+builder.Services.AddScoped<IAuditRepository, AuditRepository>();
+
+// Inventory Repositories
+builder.Services.AddScoped<IRubroRepository, RubroRepository>();
+builder.Services.AddScoped<IFamiliaRepository, FamiliaRepository>();
+builder.Services.AddScoped<IAtributoRepository, AtributoRepository>();
+builder.Services.AddScoped<IProductoRepository, ProductoRepository>();
+
+// Services
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUsersService, UsersService>();
 builder.Services.AddScoped<IRolesService, RolesService>();
-builder.Services.AddScoped<ISedeRepository, SedeRepository>();
 builder.Services.AddScoped<ISedesService, SedesService>();
-builder.Services.AddScoped<IAuditRepository, AuditRepository>();
 builder.Services.AddScoped<IAuditService, AuditService>();
-builder.Services.AddScoped<IAuditRepository, AuditRepository>();
-builder.Services.AddScoped<IAuditService, AuditService>();
+
+// Inventory Services
+builder.Services.AddScoped<IRubrosService, RubrosService>();
+builder.Services.AddScoped<IFamiliasService, FamiliasService>();
+builder.Services.AddScoped<IAtributosService, AtributosService>();
+builder.Services.AddScoped<IProductosService, ProductosService>();
+
 builder.Services.AddHttpContextAccessor();
 
 // JWT Authentication
@@ -87,6 +100,8 @@ if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 }
+
+app.UseMiddleware<TesisInventory.API.Middlewares.ErrorHandlingMiddleware>();
 
 app.UseHttpsRedirection();
 

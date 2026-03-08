@@ -51,6 +51,13 @@ namespace TesisInventory.Infrastructure.Repositories
             await _context.SaveChangesAsync();
         }
 
+        public async Task DeleteAtributoAsync(Atributo atributo)
+        {
+            // Borrado fisico en cascada
+            _context.Atributo.Remove(atributo);
+            await _context.SaveChangesAsync();
+        }
+
         // ====== Opciones ======
 
         public async Task<IEnumerable<AtributoOpcion>> GetOpcionesByAtributoIdAsync(int idAtributo)
@@ -115,6 +122,12 @@ namespace TesisInventory.Infrastructure.Repositories
         {
             return await _context.FamiliaAtributo
                 .FirstOrDefaultAsync(fa => fa.IdFamilia == idFamilia && fa.IdAtributo == idAtributo);
+        }
+
+        public async Task DeleteFamiliaAtributoAsync(FamiliaAtributo familiaAtributo)
+        {
+            _context.FamiliaAtributo.Remove(familiaAtributo);
+            await _context.SaveChangesAsync();
         }
     }
 }

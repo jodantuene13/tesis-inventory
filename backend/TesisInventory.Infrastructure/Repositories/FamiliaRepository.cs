@@ -62,9 +62,30 @@ namespace TesisInventory.Infrastructure.Repositories
 
         public async Task DeleteAsync(Familia familia)
         {
-            familia.Activo = false; // Logic delete
-            _context.Familia.Update(familia);
+            _context.Familia.Remove(familia);
             await _context.SaveChangesAsync();
+        }
+
+        public async Task<bool> HasAsociacionesAsync(int idFamilia)
+        {
+            bool hasProductos = await _context.Producto.AnyAsync(p => p.IdFamilia == idFamilia);
+            bool hasAtributos = await _context.FamiliaAtributo.AnyAsync(fa => fa.IdFamilia == idFamilia);
+            return hasProductos || hasAtributos;
+        }
+
+        public async Task<(IEnumerable<string> Productos, IEnumerable<string> Atributos)> GetAsociacionesAsync(int idFamilia)
+        {
+            var productos = await _context.Producto
+                .Where(p => p.IdFamilia == idFamilia)
+                .Select(p => p.Nombre)
+                .ToListAsync();
+
+            var atributos = await _context.FamiliaAtributo
+                .Where(fa => fa.IdFamilia == idFamilia)
+                .Select(fa => fa.Atributo!.Nombre)
+                .ToListAsync();
+
+            return (productos, atributos);
         }
     }
 }

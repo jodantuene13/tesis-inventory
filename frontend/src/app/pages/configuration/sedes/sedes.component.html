@@ -1,66 +1,103 @@
-<div class="content">
-    <div class="page-header">
-        <h2>Gestión de Sedes</h2>
-        <button class="btn btn-primary" (click)="openCreateModal()">
-            <i class="icon-plus"></i> Crear Sede
+<div class="container mx-auto p-4">
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+        <h2 class="text-2xl font-bold text-gray-800">Gestión de Sedes</h2>
+        <button
+            class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded shadow transition flex items-center gap-2"
+            (click)="openCreateModal()">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd"
+                    d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
+                    clip-rule="evenodd" />
+            </svg>
+            Crear Sede
         </button>
     </div>
 
     <!-- Table -->
-    <div class="table-container">
-        <table class="table">
+    <div class="overflow-x-auto">
+        <table class="min-w-full bg-white border border-gray-300">
             <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Nombre</th>
-                    <th>Dirección</th>
-                    <th class="text-right">Acciones</th>
+                <tr class="bg-gray-100 text-gray-600 uppercase text-sm leading-normal">
+                    <th class="py-3 px-6 text-left">ID</th>
+                    <th class="py-3 px-6 text-left">Nombre</th>
+                    <th class="py-3 px-6 text-left">Dirección</th>
+                    <th class="py-3 px-6 text-center">Acciones</th>
                 </tr>
             </thead>
-            <tbody>
-                <tr *ngFor="let sede of sedes">
-                    <td>{{ sede.idSede }}</td>
-                    <td>{{ sede.nombreSede }}</td>
-                    <td>{{ sede.direccion }}</td>
-                    <td class="text-right actions-column">
-                        <button class="btn btn-icon btn-edit" (click)="openEditModal(sede)" title="Modificar sede">
-                            ✏️
-                        </button>
-                        <button class="btn btn-icon btn-delete" (click)="deleteSede(sede)" title="Eliminar sede">
-                            🗑️
-                        </button>
+            <tbody class="text-gray-600 text-sm font-light">
+                <tr *ngFor="let sede of sedes" class="border-b border-gray-200 hover:bg-gray-100">
+                    <td class="py-3 px-6 text-left whitespace-nowrap">{{ sede.idSede }}</td>
+                    <td class="py-3 px-6 text-left font-medium">{{ sede.nombreSede }}</td>
+                    <td class="py-3 px-6 text-left">{{ sede.direccion }}</td>
+                    <td class="py-3 px-6 text-center">
+                        <div class="flex item-center justify-center space-x-4">
+                            <button (click)="openEditModal(sede)"
+                                class="transform hover:text-blue-500 hover:scale-110 transition duration-150 ease-in-out text-gray-500"
+                                title="Modificar sede">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                    stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+                                </svg>
+                            </button>
+                            <button (click)="deleteSede(sede)"
+                                class="transform hover:text-red-500 hover:scale-110 transition duration-150 ease-in-out text-gray-500"
+                                title="Eliminar sede">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                    stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+                                </svg>
+                            </button>
+                        </div>
                     </td>
                 </tr>
                 <tr *ngIf="sedes.length === 0">
-                    <td colspan="4" class="text-center">No hay sedes registradas.</td>
+                    <td colspan="4" class="py-4 text-center text-gray-500 italic">No hay sedes registradas.</td>
                 </tr>
             </tbody>
         </table>
     </div>
 
     <!-- Modal (Create/Edit) -->
-    <div class="modal-overlay" *ngIf="isModalOpen">
-        <div class="modal">
-            <div class="modal-header">
-                <h3>{{ isEditing ? 'Modificar Sede' : 'Crear Nueva Sede' }}</h3>
-                <button class="btn-close" (click)="closeModal()">&times;</button>
+    <div class="fixed inset-0 bg-black bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center"
+        *ngIf="isModalOpen">
+        <div class="relative mx-auto p-5 border w-96 md:w-1/2 lg:w-1/3 shadow-lg rounded-md bg-white">
+            <div class="flex justify-between items-center mb-4 border-b pb-2">
+                <h3 class="text-xl font-bold text-gray-800">{{ isEditing ? 'Modificar Sede' : 'Crear Nueva Sede' }}</h3>
+                <button
+                    class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center"
+                    (click)="closeModal()">
+                    <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
+                        viewBox="0 0 14 14">
+                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
+                    </svg>
+                </button>
             </div>
-            <div class="modal-body">
+            <div class="mt-2">
                 <form (ngSubmit)="saveSede()" #sedeForm="ngForm">
-                    <div class="form-group">
-                        <label for="nombreSede">Nombre <span class="required">*</span></label>
-                        <input type="text" id="nombreSede" name="nombreSede" class="form-control"
+                    <div class="mb-4">
+                        <label for="nombreSede" class="block text-sm font-medium text-gray-700 mb-1">Nombre <span
+                                class="text-red-500">*</span></label>
+                        <input type="text" id="nombreSede" name="nombreSede"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                             [(ngModel)]="currentSede.nombreSede" required>
                     </div>
-                    <div class="form-group">
-                        <label for="direccion">Dirección</label>
-                        <input type="text" id="direccion" name="direccion" class="form-control"
+                    <div class="mb-4">
+                        <label for="direccion" class="block text-sm font-medium text-gray-700 mb-1">Dirección</label>
+                        <input type="text" id="direccion" name="direccion"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                             [(ngModel)]="currentSede.direccion">
                     </div>
 
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" (click)="closeModal()">Cancelar</button>
-                        <button type="submit" class="btn btn-primary" [disabled]="!sedeForm.form.valid">Guardar</button>
+                    <div class="flex justify-end gap-2 mt-6">
+                        <button type="button"
+                            class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition"
+                            (click)="closeModal()">Cancelar</button>
+                        <button type="submit"
+                            class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                            [disabled]="!sedeForm.form.valid">Guardar</button>
                     </div>
                 </form>
             </div>

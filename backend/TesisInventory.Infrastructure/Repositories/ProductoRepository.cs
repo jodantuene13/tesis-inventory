@@ -60,8 +60,7 @@ namespace TesisInventory.Infrastructure.Repositories
 
         public async Task DeleteProductoAsync(Producto producto)
         {
-            producto.Activo = false;
-            _context.Producto.Update(producto);
+            _context.Producto.Remove(producto);
             await _context.SaveChangesAsync();
         }
 

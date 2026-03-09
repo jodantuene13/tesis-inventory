@@ -8,7 +8,7 @@ También incluye un sistema de autogeneración de SKU (Stock Keeping Unit).
 - **HU-INV-01**: ABM de Rubros.
 - **HU-INV-02**: ABM de Familias asociadas a Rubros.
 - **HU-INV-03**: Mantenimiento de Atributos del Sistema (Diccionario Global).
-- **HU-INV-04**: Asociación y configuración de Atributos dentro de Familias de productos.
+- **HU-INV-04**: Asociación y configuración de Atributos dentro de Familias de productos (Incluye la desvinculación selectiva con auditoría visual).
 - **HU-INV-05**: Gestión Avanzada de Productos (con auto-SKU y captura dinámica de atributos).
 - **HU-INV-06**: Adaptación de la relación Stock transaccional entre Sede y Producto.
 - **HU-INV-07**: Implementación del Submódulo Stock: Control de Inventario por Sede, registro de Consumo/Egresos, Adición de Stock por Compra/Ajustes, y Transferencias Logísticas Inter-Sedes con Historial.

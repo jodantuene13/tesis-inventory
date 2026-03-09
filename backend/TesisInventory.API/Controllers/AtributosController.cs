@@ -101,5 +101,12 @@ namespace TesisInventory.API.Controllers
             await _atributosService.RemoveAtributoFromFamiliaAsync(idFamilia, idAtributo);
             return NoContent();
         }
+
+        [HttpGet("{idAtributo}/familias")]
+        public async Task<IActionResult> GetFamiliasDeAtributo(int idAtributo)
+        {
+            var result = await _atributosService.GetFamiliasDeAtributoAsync(idAtributo);
+            return Ok(result);
+        }
     }
 }

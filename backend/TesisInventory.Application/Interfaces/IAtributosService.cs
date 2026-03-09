@@ -22,5 +22,6 @@ namespace TesisInventory.Application.Interfaces
         Task<IEnumerable<FamiliaAtributoDto>> GetAtributosDeFamiliaAsync(int idFamilia);
         Task<FamiliaAtributoDto> AssignAtributoToFamiliaAsync(int idFamilia, CreateFamiliaAtributoDto req);
         Task RemoveAtributoFromFamiliaAsync(int idFamilia, int idAtributo);
+        Task<IEnumerable<FamiliaAtributoDto>> GetFamiliasDeAtributoAsync(int idAtributo);
     }
 }

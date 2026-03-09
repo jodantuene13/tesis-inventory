@@ -289,6 +289,72 @@ namespace TesisInventory.Application.Services
             await _productoRepository.DeleteProductoAsync(producto);
         }
 
+        public async Task RegenerateSkusForFamiliaAsync(int idFamilia)
+        {
+            var todosProductos = await _productoRepository.GetAllProductosAsync(true);
+            var productosFamilia = todosProductos.Where(p => p.IdFamilia == idFamilia).ToList();
+
+            if (!productosFamilia.Any()) return;
+
+            var atributosFamilia = await _atributoRepository.GetAtributosByFamiliaIdAsync(idFamilia);
+            var obligatoriosOrdenados = atributosFamilia
+                .Where(fa => fa.Obligatorio)
+                .OrderBy(fa => fa.Orden)
+                .ToList();
+
+            var familia = await _familiaRepository.GetByIdAsync(idFamilia);
+            if (familia == null) throw new InvalidOperationException("Familia no encontrada.");
+
+            var rubro = familia.Rubro ?? await _rubroRepository.GetByIdAsync(familia.IdRubro);
+            var codigoBaseGeneral = $"{rubro!.CodigoRubro}-{familia.CodigoFamilia}";
+
+            foreach (var prod in productosFamilia)
+            {
+                var valoresAttrs = await _productoRepository.GetAtributosValorByProductoAsync(prod.IdProducto);
+                var skuAttributesValues = new List<string>();
+
+                foreach (var fa in obligatoriosOrdenados)
+                {
+                    var inputAttr = valoresAttrs.FirstOrDefault(v => v.IdAtributo == fa.IdAtributo);
+                    if (inputAttr == null) continue;
+
+                    string attrVal = "";
+
+                    if (!string.IsNullOrWhiteSpace(inputAttr.ValorTexto))
+                        attrVal = inputAttr.ValorTexto.Trim();
+                    else if (inputAttr.ValorNumero.HasValue)
+                        attrVal = inputAttr.ValorNumero.Value.ToString();
+                    else if (inputAttr.ValorDecimal.HasValue)
+                        attrVal = inputAttr.ValorDecimal.Value.ToString("0.##");
+                    else if (!string.IsNullOrWhiteSpace(inputAttr.ValorLista))
+                        attrVal = inputAttr.ValorLista.Trim();
+                    else if (inputAttr.ValorBool.HasValue)
+                        attrVal = inputAttr.ValorBool.Value ? "SI" : "NO";
+
+                    if (!string.IsNullOrEmpty(attrVal))
+                    {
+                        skuAttributesValues.Add(attrVal.Replace(" ", ""));
+                    }
+                }
+
+                var codigoBaseActualizado = codigoBaseGeneral;
+                if (skuAttributesValues.Any())
+                {
+                    codigoBaseActualizado += "-" + string.Join("-", skuAttributesValues);
+                }
+                codigoBaseActualizado += "-";
+
+                var parts = prod.Sku.Split('-');
+                var correlativo = parts.Last();
+
+                prod.Sku = $"{codigoBaseActualizado}{correlativo}";
+                
+                // Realizamos el UPDATE
+                // Recordar desactivar ChangeTracking global si se hiciera foreach grande, pero como es en memoria no es tan lento el Update (ya que EF lo rastrea)
+                await _productoRepository.UpdateProductoAsync(prod);
+            }
+        }
+
         private ProductoDto MapToDto(Producto p)
         {
             return new ProductoDto

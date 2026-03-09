@@ -129,5 +129,14 @@ namespace TesisInventory.Infrastructure.Repositories
             _context.FamiliaAtributo.Remove(familiaAtributo);
             await _context.SaveChangesAsync();
         }
+
+        public async Task<IEnumerable<FamiliaAtributo>> GetFamiliasByAtributoIdAsync(int idAtributo)
+        {
+            return await _context.FamiliaAtributo
+                .Include(fa => fa.Familia)
+                .Where(fa => fa.IdAtributo == idAtributo && fa.Activo)
+                .OrderBy(fa => fa.Familia!.Nombre)
+                .ToListAsync();
+        }
     }
 }

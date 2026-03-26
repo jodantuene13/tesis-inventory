@@ -57,4 +57,8 @@ export class AtributoService {
     removeFromFamilia(idFamilia: number, idAtributo: number): Observable<any> {
         return this.http.delete(`${this.apiUrl}/familia/${idFamilia}/atributo/${idAtributo}`);
     }
+
+    getFamiliasDeAtributo(idAtributo: number): Observable<FamiliaAtributo[]> {
+        return this.http.get<FamiliaAtributo[]>(`${this.apiUrl}/${idAtributo}/familias`);
+    }
 }

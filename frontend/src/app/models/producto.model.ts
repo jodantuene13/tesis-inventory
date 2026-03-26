@@ -6,6 +6,7 @@ export interface Producto {
     nombre: string;
     unidadMedida: string;
     activo: boolean;
+    puntoReposicion: number;
     atributos: ProductoAtributoValor[];
 }
 
@@ -27,6 +28,7 @@ export interface CreateProducto {
     nombre: string;
     unidadMedida: string;
     activo: boolean;
+    puntoReposicion: number;
     atributos: CreateProductoAtributoValor[];
 }
 
@@ -34,6 +36,7 @@ export interface UpdateProducto {
     nombre: string;
     unidadMedida: string;
     activo: boolean;
+    puntoReposicion: number;
     atributos: CreateProductoAtributoValor[];
 }
 

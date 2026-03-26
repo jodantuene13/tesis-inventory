@@ -6,7 +6,7 @@ import { RubroService } from '../../../services/rubro.service';
 import { FamiliaService } from '../../../services/familia.service';
 import { AtributoService } from '../../../services/atributo.service';
 
-import { Producto, CreateProducto, CreateProductoAtributoValor } from '../../../models/producto.model';
+import { Producto, CreateProducto, CreateProductoAtributoValor, ProductoAtributoValor } from '../../../models/producto.model';
 import { Rubro } from '../../../models/rubro.model';
 import { Familia } from '../../../models/familia.model';
 import { FamiliaAtributo, AtributoOpcion } from '../../../models/atributo.model';
@@ -33,6 +33,7 @@ export class ProductosComponent implements OnInit {
     familias: Familia[] = [];
     atributosDinamicos: FamiliaAtributo[] = [];
     opcionesListas: { [idAtributo: number]: AtributoOpcion[] } = {};
+    originalAtributos: ProductoAtributoValor[] = [];
 
     productForm: FormGroup;
 
@@ -49,6 +50,7 @@ export class ProductosComponent implements OnInit {
             nombre: ['', Validators.required],
             unidadMedida: ['UN', Validators.required],
             activo: [true],
+            puntoReposicion: [0, [Validators.required, Validators.min(0)]],
             atributosForm: this.fb.array([])
         });
     }
@@ -64,17 +66,21 @@ export class ProductosComponent implements OnInit {
                 this.loadFamilias(Number(idRubro));
             } else {
                 this.productForm.get('idFamilia')?.disable();
-                this.productForm.get('idFamilia')?.setValue('');
+                if (!this.isEdit) {
+                    this.productForm.get('idFamilia')?.setValue('');
+                }
                 this.familias = [];
             }
         });
 
         // Cuando cambie la familia, cargar esquema de atributos dinámicos
         this.productForm.get('idFamilia')?.valueChanges.subscribe(idFamilia => {
-            if (idFamilia && !this.isEdit) { // Si estamos editando, los atributos se cargan desde el producto existente
-                this.loadAtributosConfiguracion(Number(idFamilia));
-            } else if (!idFamilia) {
-                this.clearAtributosForm();
+            if (!this.isEdit) { // Solo reaccionamos si NO es edición (en edición controlamos la carga manualmente)
+                if (idFamilia) {
+                    this.loadAtributosConfiguracion(Number(idFamilia));
+                } else {
+                    this.clearAtributosForm();
+                }
             }
         });
     }
@@ -122,12 +128,14 @@ export class ProductosComponent implements OnInit {
                     let val = null;
                     if (existingValues) {
                         const ev = existingValues.find(e => e.idAtributo === fa.idAtributo);
+                        console.log(`Buscando atributo ID ${fa.idAtributo}`, ev, existingValues);
+
                         if (ev) {
                             if (fa.tipoDatoAtributo === 'STRING') val = ev.valorTexto;
-                            else if (fa.tipoDatoAtributo === 'NUMBER') val = ev.valorNumero;
-                            else if (fa.tipoDatoAtributo === 'DECIMAL') val = ev.valorDecimal;
-                            else if (fa.tipoDatoAtributo === 'BOOLEAN') val = ev.valorBool;
-                            else if (fa.tipoDatoAtributo === 'LIST') val = ev.valorLista;
+                            else if (fa.tipoDatoAtributo === 'NUMBER') val = Number(ev.valorNumero);
+                            else if (fa.tipoDatoAtributo === 'DECIMAL') val = parseFloat(ev.valorDecimal);
+                            else if (fa.tipoDatoAtributo === 'BOOLEAN') val = (ev.valorBool === true || ev.valorBool === 'true');
+                            else if (fa.tipoDatoAtributo === 'LIST') val = ev.valorLista ? ev.valorLista.toString() : null;
                         }
                     }
 
@@ -167,7 +175,7 @@ export class ProductosComponent implements OnInit {
         this.isEdit = false;
         this.currentProductoId = null;
         this.skuAutogenerado = 'Autogenerado al guardar';
-        this.productForm.reset({ unidadMedida: 'UN', activo: true });
+        this.productForm.reset({ unidadMedida: 'UN', activo: true, puntoReposicion: 0 });
         this.clearAtributosForm();
 
         // Enable rubro/familia to allow selection
@@ -180,20 +188,39 @@ export class ProductosComponent implements OnInit {
         this.isEdit = true;
         this.currentProductoId = p.idProducto;
         this.skuAutogenerado = p.sku;
-
-        // Al editar, no se permite cambiar familia/rubro (generalmente la identidad del producto)
-        this.productForm.get('idRubro')?.disable();
-        this.productForm.get('idFamilia')?.disable();
+        this.originalAtributos = p.atributos || [];
 
         // Necesitamos cargar los atributos de la familia y bindear los valores existentes
         this.loadAtributosConfiguracion(p.idFamilia, p.atributos);
 
+        // Encontrar a qué rubro pertenece esta familia
+        let idRubroEncontrado = '';
+        const familiaDelProducto = this.familias.find(f => f.idFamilia === p.idFamilia);
+        if (familiaDelProducto) {
+            idRubroEncontrado = familiaDelProducto.idRubro.toString();
+        } else {
+            // Si no teníamos las familias cargadas (porque no eligió rubro en una sesión previa), cargamos la familia
+            this.familiaService.getAll(false).subscribe(fams => {
+                this.familias = fams;
+                const fam = fams.find(f => f.idFamilia === p.idFamilia);
+                if (fam) {
+                    this.productForm.patchValue({ idRubro: fam.idRubro, idFamilia: p.idFamilia });
+                }
+            });
+        }
+
         this.productForm.patchValue({
-            idRubro: '', // Visualmente no aplicará porque está deshabilitado en edición sin refactor mayor, pero el form preserva datos vitales en edit
+            idRubro: idRubroEncontrado,
+            idFamilia: p.idFamilia,
             nombre: p.nombre,
             unidadMedida: p.unidadMedida,
-            activo: p.activo
+            activo: p.activo,
+            puntoReposicion: p.puntoReposicion || 0
         });
+
+        // Al editar, no se permite cambiar familia/rubro (generalmente la identidad del producto)
+        this.productForm.get('idRubro')?.disable();
+        this.productForm.get('idFamilia')?.disable();
 
         this.showModal = true;
     }
@@ -230,17 +257,67 @@ export class ProductosComponent implements OnInit {
                 nombre: formVal.nombre,
                 unidadMedida: formVal.unidadMedida,
                 activo: formVal.activo,
+                puntoReposicion: formVal.puntoReposicion,
                 atributos: attrsPayload
             };
 
-            this.productoService.update(this.currentProductoId, updatePayload).subscribe({
-                next: () => {
-                    this.loadProductos();
-                    this.closeModal();
-                    Swal.fire('Éxito', 'Producto actualizado', 'success');
-                },
-                error: (err) => Swal.fire('Error', err.error?.message || 'Hubo un error', 'error')
+            const changedMandatory: string[] = [];
+            formVal.atributosForm.forEach((af: any) => {
+                if (af.obligatorio) {
+                    const originalAttr = this.originalAtributos.find(o => o.idAtributo === af.idAtributo);
+                    const newAttrDto = attrsPayload.find(a => a.idAtributo === af.idAtributo);
+
+                    let isChanged = false;
+                    if (!originalAttr) {
+                        isChanged = true;
+                    } else {
+                        if (af.tipoDato === 'STRING' && (newAttrDto?.valorTexto || '') !== (originalAttr.valorTexto || '')) isChanged = true;
+                        if (af.tipoDato === 'NUMBER' && newAttrDto?.valorNumero != originalAttr.valorNumero) isChanged = true;
+                        if (af.tipoDato === 'DECIMAL' && newAttrDto?.valorDecimal != originalAttr.valorDecimal) isChanged = true;
+                        if (af.tipoDato === 'BOOLEAN') {
+                            const originalBool = originalAttr.valorBool === true || originalAttr.valorBool === 'true' as any;
+                            if (newAttrDto?.valorBool !== originalBool) isChanged = true;
+                        }
+                        if (af.tipoDato === 'LIST') {
+                            const originalList = originalAttr.valorLista ? originalAttr.valorLista.toString() : '';
+                            const newList = newAttrDto?.valorLista ? newAttrDto.valorLista.toString() : '';
+                            if (newList !== originalList) isChanged = true;
+                        }
+                    }
+
+                    if (isChanged) {
+                        changedMandatory.push(af.nombreAtributo);
+                    }
+                }
             });
+
+            const performUpdate = () => {
+                this.productoService.update(this.currentProductoId!, updatePayload).subscribe({
+                    next: () => {
+                        this.loadProductos();
+                        this.closeModal();
+                        Swal.fire('Éxito', 'Producto actualizado', 'success');
+                    },
+                    error: (err) => Swal.fire('Error', err.error?.message || 'Hubo un error', 'error')
+                });
+            };
+
+            if (changedMandatory.length > 0) {
+                Swal.fire({
+                    title: 'Se recalculará el SKU',
+                    text: `El SKU se recalculará para incluir atributo nuevo/modificado: ${changedMandatory.join(', ')}`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Confirmar',
+                    cancelButtonText: 'Cancelar'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        performUpdate();
+                    }
+                });
+            } else {
+                performUpdate();
+            }
 
         } else {
             const createPayload: CreateProducto = {
@@ -249,6 +326,7 @@ export class ProductosComponent implements OnInit {
                 nombre: formVal.nombre,
                 unidadMedida: formVal.unidadMedida,
                 activo: formVal.activo,
+                puntoReposicion: formVal.puntoReposicion,
                 atributos: attrsPayload
             };
 

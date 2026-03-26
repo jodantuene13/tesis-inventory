@@ -13,6 +13,8 @@ namespace TesisInventory.Application.DTOs.Productos
 
         public bool Activo { get; set; }
 
+        public int PuntoReposicion { get; set; } = 0;
+
         public List<CreateProductoAtributoValorDto> Atributos { get; set; } = new List<CreateProductoAtributoValorDto>();
     }
 }

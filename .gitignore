@@ -1,0 +1,8 @@
+/backend/TesisInventory.API/bin
+/backend/TesisInventory.API/obj
+/backend/TesisInventory.Application/bin
+/backend/TesisInventory.Application/obj
+/backend/TesisInventory.Domain/bin
+/backend/TesisInventory.Domain/obj
+/backend/TesisInventory.Infrastructure/bin
+/backend/TesisInventory.Infrastructure/obj

@@ -11,5 +11,7 @@ namespace TesisInventory.Application.Interfaces
         Task<ProductoDto> CreateProductoAsync(CreateProductoDto createDto);
         Task<ProductoDto> UpdateProductoAsync(int id, UpdateProductoDto updateDto);
         Task DeleteProductoAsync(int id, string confirmacionNombre); // Baja lógica estricta
+
+        Task RegenerateSkusForFamiliaAsync(int idFamilia);
     }
 }

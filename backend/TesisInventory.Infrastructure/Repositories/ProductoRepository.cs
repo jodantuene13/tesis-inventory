@@ -22,6 +22,8 @@ namespace TesisInventory.Infrastructure.Repositories
             var query = _context.Producto
                 .Include(p => p.Familia)
                 .ThenInclude(f => f.Rubro)
+                .Include(p => p.ProductoAtributoValores)
+                .ThenInclude(pav => pav.Atributo)
                 .AsQueryable();
 
             if (!includeInactive)

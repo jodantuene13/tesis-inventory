@@ -46,6 +46,12 @@ export class AtributosComponent implements OnInit {
         return f ? f.nombre : '';
     }
 
+    // Modal Asociaciones
+    showAsociacionesModal = false;
+    familiasAsociadas: FamiliaAtributo[] = [];
+    selectedAtributoParaAsociaciones: Atributo | null = null;
+    loadingAsociaciones = false;
+
     constructor(
         private atributoService: AtributoService,
         private rubroService: RubroService,
@@ -242,6 +248,63 @@ export class AtributosComponent implements OnInit {
         this.atributoService.removeFromFamilia(this.selectedFamiliaId, idAtributo).subscribe({
             next: () => this.loadAtributosDeFamilia(this.selectedFamiliaId!),
             error: (err) => Swal.fire('Error', err.error?.message, 'error')
+        });
+    }
+
+    // ==== Ver Asociaciones ====
+    openAsociacionesModal(attr: Atributo, event: Event): void {
+        event.stopPropagation();
+        this.selectedAtributoParaAsociaciones = attr;
+        this.showAsociacionesModal = true;
+        this.loadFamiliasAsociadas(attr.idAtributo);
+    }
+
+    closeAsociacionesModal(): void {
+        this.showAsociacionesModal = false;
+        this.selectedAtributoParaAsociaciones = null;
+        this.familiasAsociadas = [];
+    }
+
+    loadFamiliasAsociadas(idAtributo: number): void {
+        this.loadingAsociaciones = true;
+        this.atributoService.getFamiliasDeAtributo(idAtributo).subscribe({
+            next: (data) => {
+                this.familiasAsociadas = data;
+                this.loadingAsociaciones = false;
+            },
+            error: () => {
+                this.loadingAsociaciones = false;
+                Swal.fire('Error', 'No se pudieron cargar las asociaciones', 'error');
+            }
+        });
+    }
+
+    desasociarFamiliaDesdeModal(idFamilia: number, idAtributo: number, esObligatorio: boolean): void {
+        const textWarning = esObligatorio
+            ? 'Se perderán todos los datos guardados en ese atributo para los productos de esta familia. IMPORTANTE: Como el atributo es obligatorio, se regenerarán los SKUs de todos los productos de esta familia. ¿Continuar?'
+            : 'Se perderán todos los datos guardados en ese atributo para los productos de esta familia. ¿Continuar?';
+
+        Swal.fire({
+            title: '¿Desasociar de familia?',
+            text: textWarning,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Sí, desasociar',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                this.atributoService.removeFromFamilia(idFamilia, idAtributo).subscribe({
+                    next: () => {
+                        this.loadFamiliasAsociadas(idAtributo);
+                        // Si da la casualidad q la familia seleccionada abajo es esta misma, la actualizamos
+                        if (this.selectedFamiliaId === idFamilia) {
+                            this.loadAtributosDeFamilia(this.selectedFamiliaId);
+                        }
+                        Swal.fire('Éxito', 'Atributo desasociado correctamente', 'success');
+                    },
+                    error: (err) => Swal.fire('Error', err.error?.message, 'error')
+                });
+            }
         });
     }
 }

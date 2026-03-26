@@ -23,6 +23,9 @@ namespace TesisInventory.Infrastructure.Persistence
         public DbSet<Producto> Producto { get; set; }
         public DbSet<ProductoAtributoValor> ProductoAtributoValor { get; set; }
         public DbSet<Stock> Stock { get; set; }
+        public DbSet<Movimiento> Movimiento { get; set; }
+        public DbSet<Transferencia> Transferencia { get; set; }
+        public DbSet<HistorialTransferencia> HistorialTransferencia { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -144,8 +147,65 @@ namespace TesisInventory.Infrastructure.Persistence
                 .OnDelete(DeleteBehavior.Restrict);
             modelBuilder.Entity<Stock>()
                 .HasOne(s => s.Sede)
-                .WithMany()
+                .WithMany(s => s.Stocks)
                 .HasForeignKey(s => s.IdSede)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Movimiento
+            modelBuilder.Entity<Movimiento>().ToTable("Movimiento");
+            modelBuilder.Entity<Movimiento>().HasKey(m => m.IdMovimiento);
+            modelBuilder.Entity<Movimiento>()
+                .HasOne(m => m.Producto)
+                .WithMany(p => p.Movimientos)
+                .HasForeignKey(m => m.IdProducto)
+                .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<Movimiento>()
+                .HasOne(m => m.Sede)
+                .WithMany(s => s.Movimientos)
+                .HasForeignKey(m => m.IdSede)
+                .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<Movimiento>()
+                .HasOne(m => m.Usuario)
+                .WithMany(u => u.Movimientos)
+                .HasForeignKey(m => m.IdUsuario)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Transferencia
+            modelBuilder.Entity<Transferencia>().ToTable("Transferencia");
+            modelBuilder.Entity<Transferencia>().HasKey(t => t.IdTransferencia);
+            modelBuilder.Entity<Transferencia>()
+                .HasOne(t => t.Producto)
+                .WithMany(p => p.Transferencias)
+                .HasForeignKey(t => t.IdProducto)
+                .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<Transferencia>()
+                .HasOne(t => t.SedeOrigen)
+                .WithMany(s => s.TransferenciasOrigen)
+                .HasForeignKey(t => t.IdSedeOrigen)
+                .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<Transferencia>()
+                .HasOne(t => t.SedeDestino)
+                .WithMany(s => s.TransferenciasDestino)
+                .HasForeignKey(t => t.IdSedeDestino)
+                .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<Transferencia>()
+                .HasOne(t => t.UsuarioSolicita)
+                .WithMany(u => u.TransferenciasSolicitadas)
+                .HasForeignKey(t => t.IdUsuarioSolicita)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // HistorialTransferencia
+            modelBuilder.Entity<HistorialTransferencia>().ToTable("HistorialTransferencia");
+            modelBuilder.Entity<HistorialTransferencia>().HasKey(h => h.IdHistorialTransferencia);
+            modelBuilder.Entity<HistorialTransferencia>()
+                .HasOne(h => h.Transferencia)
+                .WithMany(t => t.HistorialTransferencias)
+                .HasForeignKey(h => h.IdTransferencia)
+                .OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<HistorialTransferencia>()
+                .HasOne(h => h.Usuario)
+                .WithMany(u => u.HistorialTransferencias)
+                .HasForeignKey(h => h.IdUsuario)
                 .OnDelete(DeleteBehavior.Restrict);
         }
     }

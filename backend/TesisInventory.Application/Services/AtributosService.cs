@@ -13,11 +13,13 @@ namespace TesisInventory.Application.Services
     {
         private readonly IAtributoRepository _atributoRepository;
         private readonly IFamiliaRepository _familiaRepository;
+        private readonly IProductosService _productosService;
 
-        public AtributosService(IAtributoRepository atributoRepository, IFamiliaRepository familiaRepository)
+        public AtributosService(IAtributoRepository atributoRepository, IFamiliaRepository familiaRepository, IProductosService productosService)
         {
             _atributoRepository = atributoRepository;
             _familiaRepository = familiaRepository;
+            _productosService = productosService;
         }
 
         public async Task<IEnumerable<AtributoDto>> GetAllAtributosAsync(bool includeInactive = false)
@@ -257,7 +259,31 @@ namespace TesisInventory.Application.Services
             var exists = await _atributoRepository.GetFamiliaAtributoAsync(idFamilia, idAtributo);
             if (exists == null) throw new KeyNotFoundException("Asignación no encontrada.");
 
+            bool eraObligatorio = exists.Obligatorio;
+
             await _atributoRepository.DeleteFamiliaAtributoAsync(exists);
+
+            if (eraObligatorio)
+            {
+                await _productosService.RegenerateSkusForFamiliaAsync(idFamilia);
+            }
+        }
+
+        public async Task<IEnumerable<FamiliaAtributoDto>> GetFamiliasDeAtributoAsync(int idAtributo)
+        {
+            var faList = await _atributoRepository.GetFamiliasByAtributoIdAsync(idAtributo);
+            return faList.Select(fa => new FamiliaAtributoDto
+            {
+                IdFamiliaAtributo = fa.IdFamiliaAtributo,
+                IdFamilia = fa.IdFamilia,
+                NombreFamilia = fa.Familia?.Nombre ?? "",
+                IdAtributo = fa.IdAtributo,
+                NombreAtributo = fa.Atributo?.Nombre ?? "",
+                TipoDatoAtributo = fa.Atributo?.TipoDato ?? "",
+                Obligatorio = fa.Obligatorio,
+                Orden = fa.Orden,
+                Activo = fa.Activo
+            });
         }
     }
 }

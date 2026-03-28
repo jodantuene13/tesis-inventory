@@ -1,8 +1,31 @@
-/backend/TesisInventory.API/bin
-/backend/TesisInventory.API/obj
-/backend/TesisInventory.Application/bin
-/backend/TesisInventory.Application/obj
-/backend/TesisInventory.Domain/bin
-/backend/TesisInventory.Domain/obj
-/backend/TesisInventory.Infrastructure/bin
-/backend/TesisInventory.Infrastructure/obj
+# =========================
+# Backend (.NET / C#)
+# =========================
+[Bb]in/
+[Oo]bj/
+[Oo]ut/
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.log
+
+# =========================
+# Frontend (Angular / Node)
+# =========================
+node_modules/
+dist/
+out-tsc/
+.angular/
+npm-debug.log
+yarn-error.log
+
+# =========================
+# OS & IDE Files
+# =========================
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp

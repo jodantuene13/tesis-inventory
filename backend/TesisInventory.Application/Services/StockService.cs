@@ -92,6 +92,7 @@ namespace TesisInventory.Application.Services
                 IdSede = idSede,
                 TipoMovimiento = TipoMovimiento.Ingreso,
                 Cantidad = dto.Cantidad,
+                CantidadRestante = stock.CantidadActual,
                 Motivo = dto.Motivo,
                 IdUsuario = idUsuario,
                 Observaciones = dto.Observaciones,
@@ -131,6 +132,7 @@ namespace TesisInventory.Application.Services
                 IdSede = idSede,
                 TipoMovimiento = TipoMovimiento.Egreso,
                 Cantidad = dto.Cantidad,
+                CantidadRestante = stock.CantidadActual,
                 Motivo = dto.Motivo,
                 IdUsuario = idUsuario,
                 Observaciones = "Consumo registrado",
@@ -212,15 +214,48 @@ namespace TesisInventory.Application.Services
             {
                 IdMovimiento = m.IdMovimiento,
                 IdProducto = m.IdProducto,
+                Sku = m.Producto?.Sku ?? string.Empty,
+                NombreProducto = m.Producto?.Nombre ?? string.Empty,
+                UnidadMedida = m.Producto?.UnidadMedida ?? string.Empty,
+                RubroProducto = m.Producto?.Familia?.Rubro?.Nombre ?? string.Empty,
+                FamiliaProducto = m.Producto?.Familia?.Nombre ?? string.Empty,
                 IdSede = m.IdSede,
                 TipoMovimiento = m.TipoMovimiento,
                 Cantidad = m.Cantidad,
+                CantidadRestante = m.CantidadRestante,
                 Fecha = m.Fecha,
                 Motivo = m.Motivo,
                 IdUsuario = m.IdUsuario,
                 NombreUsuario = m.Usuario?.NombreUsuario ?? "Usuario Desconocido",
                 Observaciones = m.Observaciones
             });
+        }
+
+        public async Task<(IEnumerable<MovimientoDto> Items, int TotalCount)> GetHistorialGlobalAsync(int idSede, string? search, int? idRubro, int? idFamilia, string? tipoMovimiento, int? idUsuario, string? fechaDesde, string? fechaHasta, int skip, int take)
+        {
+            var (movimientos, totalCount) = await _movimientoRepository.GetHistorialGlobalAsync(idSede, search, idRubro, idFamilia, tipoMovimiento, idUsuario, fechaDesde, fechaHasta, skip, take);
+
+            var items = movimientos.Select(m => new MovimientoDto
+            {
+                IdMovimiento = m.IdMovimiento,
+                IdProducto = m.IdProducto,
+                Sku = m.Producto?.Sku ?? string.Empty,
+                NombreProducto = m.Producto?.Nombre ?? string.Empty,
+                UnidadMedida = m.Producto?.UnidadMedida ?? string.Empty,
+                RubroProducto = m.Producto?.Familia?.Rubro?.Nombre ?? string.Empty,
+                FamiliaProducto = m.Producto?.Familia?.Nombre ?? string.Empty,
+                IdSede = m.IdSede,
+                TipoMovimiento = m.TipoMovimiento,
+                Cantidad = m.Cantidad,
+                CantidadRestante = m.CantidadRestante,
+                Fecha = m.Fecha,
+                Motivo = m.Motivo,
+                IdUsuario = m.IdUsuario,
+                NombreUsuario = m.Usuario?.NombreUsuario ?? "Usuario Desconocido",
+                Observaciones = m.Observaciones
+            });
+
+            return (items, totalCount);
         }
 
         public Task<IEnumerable<TransferenciaDto>> GetTransferenciasSedeAsync(int idSede)

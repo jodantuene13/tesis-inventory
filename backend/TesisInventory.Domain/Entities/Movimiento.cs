@@ -10,6 +10,7 @@ namespace TesisInventory.Domain.Entities
         public int IdSede { get; set; }
         public TipoMovimiento TipoMovimiento { get; set; }
         public int Cantidad { get; set; }
+        public int CantidadRestante { get; set; }
         public DateTime Fecha { get; set; } = DateTime.UtcNow;
         public MotivoMovimiento Motivo { get; set; }
         public int IdUsuario { get; set; }

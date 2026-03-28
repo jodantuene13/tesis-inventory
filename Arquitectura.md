@@ -20,7 +20,7 @@ El esquema sigue una arquitectura relacional normalizada (3NF) para asegurar la 
 - `Stock`: Relación N:M entre Productos y Sedes (cantidad actual).
 
 #### Tablas Transaccionales
-- `Movimientos`: Registro de entradas/salidas (consumos, ajustes preventivos).
+- `Movimientos`: Registro de entradas/salidas (consumos, ajustes preventivos) manteniendo el saldo de cantidad restante histórico.
 - `Transferencias`: Logística e intercambio de stock entre sedes (con estado de aprobación).
 - `SolicitudesCompra`: Flujo de aprobaciones.
 - `AjustesStock`: Correcciones manuales.

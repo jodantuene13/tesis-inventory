@@ -40,6 +40,30 @@ namespace TesisInventory.Infrastructure.Repositories
                 .FirstOrDefaultAsync(t => t.IdTransferencia == id);
         }
 
+        public async Task<System.Collections.Generic.IEnumerable<Transferencia>> GetEntrantesAsync(int idSede)
+        {
+            return await _context.Transferencia
+                .Include(t => t.Producto)
+                .Include(t => t.SedeOrigen)
+                .Include(t => t.SedeDestino)
+                .Include(t => t.UsuarioSolicita)
+                .Where(t => t.IdSedeOrigen == idSede)
+                .OrderByDescending(t => t.FechaSolicitud)
+                .ToListAsync();
+        }
+
+        public async Task<System.Collections.Generic.IEnumerable<Transferencia>> GetSalientesAsync(int idSede)
+        {
+            return await _context.Transferencia
+                .Include(t => t.Producto)
+                .Include(t => t.SedeOrigen)
+                .Include(t => t.SedeDestino)
+                .Include(t => t.UsuarioSolicita)
+                .Where(t => t.IdSedeDestino == idSede)
+                .OrderByDescending(t => t.FechaSolicitud)
+                .ToListAsync();
+        }
+
         public async Task AddHistorialTransferenciaAsync(HistorialTransferencia historial)
         {
             _context.HistorialTransferencia.Add(historial);

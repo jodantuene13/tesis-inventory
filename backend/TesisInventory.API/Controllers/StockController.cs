@@ -34,13 +34,12 @@ namespace TesisInventory.API.Controllers
         // Simularemos que el ID de Sede se pasa como parámetro o se obtiene del claim "SedeId".
         private int GetCurrentSedeId()
         {
-            var sedeIdClaim = User.FindFirst("SedeId")?.Value;
+            var sedeIdClaim = User.FindFirst("sede_id")?.Value;
             if (int.TryParse(sedeIdClaim, out int sedeId))
             {
                 return sedeId;
             }
-            // Fallback for current requirement: read from header or just throw
-            // Let's rely on a header for 'SedeEnContexto', or parameter for simplicity in endpoints since Sede is not yet fully contextualized in token maybe
+            // Fallback
             if (Request.Headers.TryGetValue("Sede-Contexto", out var sedeContexto) && int.TryParse(sedeContexto, out int headerSedeId))
             {
                 return headerSedeId;
@@ -55,12 +54,13 @@ namespace TesisInventory.API.Controllers
             [FromQuery] int? idFamilia = null,
             [FromQuery] bool? estado = null,
             [FromQuery] bool? bajoStock = null,
+            [FromQuery] int? idSedeQuery = null,
             [FromQuery] int page = 1,
             [FromQuery] int pageSize = 50)
         {
             try
             {
-                int idSede = GetCurrentSedeId();
+                int idSede = idSedeQuery ?? GetCurrentSedeId();
                 int skip = (page - 1) * pageSize;
 
                 var (items, totalCount) = await _stockService.GetStockAsync(

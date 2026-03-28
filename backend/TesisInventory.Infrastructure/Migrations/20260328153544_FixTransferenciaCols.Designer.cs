@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TesisInventory.Infrastructure.Persistence;
 
@@ -11,9 +12,11 @@ using TesisInventory.Infrastructure.Persistence;
 namespace TesisInventory.Infrastructure.Migrations
 {
     [DbContext(typeof(InventoryDbContext))]
-    partial class InventoryDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260328153544_FixTransferenciaCols")]
+    partial class FixTransferenciaCols
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -562,10 +565,6 @@ namespace TesisInventory.Infrastructure.Migrations
                     b.Property<string>("Observaciones")
                         .HasColumnType("longtext")
                         .HasColumnName("observaciones");
-
-                    b.Property<int?>("StockOrigenSnapshot")
-                        .HasColumnType("int")
-                        .HasColumnName("stockOrigenSnapshot");
 
                     b.HasKey("IdTransferencia");
 

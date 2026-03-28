@@ -1,7 +1,7 @@
 using System;
 using TesisInventory.Domain.Enums;
 
-namespace TesisInventory.Application.DTOs.Stock
+namespace TesisInventory.Application.DTOs.Transferencias
 {
     public class TransferenciaDto
     {
@@ -16,7 +16,7 @@ namespace TesisInventory.Application.DTOs.Stock
         public int? StockOrigenSnapshot { get; set; }
         public DateTime FechaSolicitud { get; set; }
         public EstadoTransferencia Estado { get; set; }
-        public string EstadoDescripcion => Estado.ToString();
+        public MotivoTransferencia Motivo { get; set; }
         public int IdUsuarioSolicita { get; set; }
         public string NombreUsuarioSolicita { get; set; } = string.Empty;
         public string? Observaciones { get; set; }

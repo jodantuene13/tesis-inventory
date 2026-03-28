@@ -62,7 +62,8 @@ namespace TesisInventory.Infrastructure.Services
                 {
                     new Claim("id", usuario.IdUsuario.ToString()),
                     new Claim(ClaimTypes.Email, usuario.Email),
-                    new Claim(ClaimTypes.Role, usuario.IdRol.ToString()) // Asumiendo ID Rol por ahora
+                    new Claim(ClaimTypes.Role, usuario.IdRol.ToString()), // Asumiendo ID Rol por ahora
+                    new Claim("sede_id", usuario.IdSede.ToString())
                 }),
                 Expires = DateTime.UtcNow.AddDays(1), // Expiración de 1 día
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)

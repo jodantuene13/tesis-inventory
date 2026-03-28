@@ -52,7 +52,7 @@ namespace TesisInventory.API.Controllers
                 // 6. Generar JWT
                 var jwt = await _authService.GenerateJwtTokenAsync(dbUser);
 
-                return Ok(new { token = jwt, user = new { dbUser.NombreUsuario, dbUser.Email, dbUser.IdRol, nombreRol = dbUser.Rol?.NombreRol } });
+                return Ok(new { token = jwt, user = new { dbUser.IdUsuario, dbUser.NombreUsuario, dbUser.Email, dbUser.IdRol, dbUser.IdSede, nombreRol = dbUser.Rol?.NombreRol, nombreSede = dbUser.Sede?.NombreSede } });
             }
             catch (System.Exception ex)
             {

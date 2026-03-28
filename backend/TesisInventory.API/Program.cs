@@ -47,6 +47,7 @@ builder.Services.AddScoped<IFamiliasService, FamiliasService>();
 builder.Services.AddScoped<IAtributosService, AtributosService>();
 builder.Services.AddScoped<IProductosService, ProductosService>();
 builder.Services.AddScoped<IStockService, StockService>();
+builder.Services.AddScoped<ITransferenciaService, TransferenciaService>();
 
 builder.Services.AddHttpContextAccessor();
 

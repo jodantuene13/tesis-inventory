@@ -32,6 +32,11 @@ export const routes: Routes = [
                     { path: '', redirectTo: 'productos', pathMatch: 'full' }
                 ]
             },
+            // Transferencias Module
+            {
+                path: 'transferencias',
+                loadComponent: () => import('./pages/transferencias/transferencias-list/transferencias-list.component').then(m => m.TransferenciasListComponent)
+            },
             // Configuration Module
             {
                 path: 'configuration',

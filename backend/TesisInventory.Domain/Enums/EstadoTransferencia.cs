@@ -5,6 +5,10 @@ namespace TesisInventory.Domain.Enums
         Solicitada,
         Aprobada,
         Rechazada,
-        Completada
+        Completada,
+        EnTransito,
+        Recibida,
+        PendienteDevolucion,
+        Devuelta
     }
 }

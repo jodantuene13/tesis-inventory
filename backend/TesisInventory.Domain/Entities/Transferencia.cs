@@ -11,8 +11,10 @@ namespace TesisInventory.Domain.Entities
         public int IdSedeOrigen { get; set; }
         public int IdSedeDestino { get; set; }
         public int Cantidad { get; set; }
+        public int? StockOrigenSnapshot { get; set; }
         public DateTime FechaSolicitud { get; set; } = DateTime.UtcNow;
         public EstadoTransferencia Estado { get; set; } = EstadoTransferencia.Solicitada;
+        public MotivoTransferencia Motivo { get; set; } = MotivoTransferencia.Definitiva;
         public int IdUsuarioSolicita { get; set; }
         public string? Observaciones { get; set; }
 

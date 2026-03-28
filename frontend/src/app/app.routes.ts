@@ -28,6 +28,7 @@ export const routes: Routes = [
                     { path: 'atributos', loadComponent: () => import('./pages/inventory/atributos/atributos.component').then(m => m.AtributosComponent) },
                     { path: 'productos', loadComponent: () => import('./pages/inventory/productos/productos.component').then(m => m.ProductosComponent) },
                     { path: 'stock', loadComponent: () => import('./pages/inventory/stock/stock').then(m => m.StockComponent) },
+                    { path: 'historial-movimientos', loadComponent: () => import('./pages/inventory/historial-movimientos/historial-movimientos.component').then(m => m.HistorialMovimientosComponent) },
                     { path: '', redirectTo: 'productos', pathMatch: 'full' }
                 ]
             },

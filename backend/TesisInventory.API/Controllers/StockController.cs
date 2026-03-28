@@ -8,7 +8,7 @@ namespace TesisInventory.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize] // Asume que todos estos endpoints requieren autenticación
+    // [Authorize] // Asume que todos estos endpoints requieren autenticación
     public class StockController : ControllerBase
     {
         private readonly IStockService _stockService;
@@ -153,6 +153,41 @@ namespace TesisInventory.API.Controllers
                 int idSede = GetCurrentSedeId();
                 var movimientos = await _stockService.GetHistorialMovimientosAsync(idProducto, idSede, tipoMovimiento, fechaDesde, fechaHasta);
                 return Ok(movimientos);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { Message = ex.Message });
+            }
+        }
+
+        [HttpGet("movimientos/historial")]
+        public async Task<IActionResult> GetHistorialGlobal(
+            [FromQuery] string? search = null,
+            [FromQuery] int? idRubro = null,
+            [FromQuery] int? idFamilia = null,
+            [FromQuery] string? tipoMovimiento = null,
+            [FromQuery] int? idUsuario = null,
+            [FromQuery] string? fechaDesde = null,
+            [FromQuery] string? fechaHasta = null,
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 50)
+        {
+            try
+            {
+                int idSede = GetCurrentSedeId();
+                int skip = (page - 1) * pageSize;
+
+                var (items, totalCount) = await _stockService.GetHistorialGlobalAsync(
+                    idSede, search, idRubro, idFamilia, tipoMovimiento, idUsuario, fechaDesde, fechaHasta, skip, pageSize);
+
+                return Ok(new
+                {
+                    Data = items,
+                    TotalCount = totalCount,
+                    Page = page,
+                    PageSize = pageSize,
+                    TotalPages = (int)Math.Ceiling(totalCount / (double)pageSize)
+                });
             }
             catch (Exception ex)
             {

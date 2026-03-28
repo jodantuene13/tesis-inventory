@@ -17,11 +17,16 @@ export interface Stock {
 export interface Movimiento {
     idMovimiento: number;
     idProducto: number;
+    sku: string;
     nombreProducto: string;
+    unidadMedida: string;
+    rubroProducto: string;
+    familiaProducto: string;
     idSede: number;
     tipoMovimiento: number;
     tipoMovimientoDescripcion: string;
     cantidad: number;
+    cantidadRestante: number;
     fecha: string;
     motivo: number;
     motivoDescripcion: string;

@@ -20,6 +20,7 @@ namespace TesisInventory.Application.Interfaces
         Task<StockDto> RegistrarConsumoAsync(int idSede, int idUsuario, RegistrarConsumoDto dto);
         Task<TransferenciaDto> RegistrarTransferenciaAsync(int idSedeOrigen, int idUsuario, RegistrarTransferenciaDto dto);
         Task<IEnumerable<MovimientoDto>> GetHistorialMovimientosAsync(int idProducto, int idSede, string? tipoMovimiento = null, string? fechaDesde = null, string? fechaHasta = null);
+        Task<(IEnumerable<MovimientoDto> Items, int TotalCount)> GetHistorialGlobalAsync(int idSede, string? search, int? idRubro, int? idFamilia, string? tipoMovimiento, int? idUsuario, string? fechaDesde, string? fechaHasta, int skip, int take);
         Task<IEnumerable<TransferenciaDto>> GetTransferenciasSedeAsync(int idSede);
     }
 }

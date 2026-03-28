@@ -12,6 +12,7 @@ También incluye un sistema de autogeneración de SKU (Stock Keeping Unit).
 - **HU-INV-05**: Gestión Avanzada de Productos (con auto-SKU y captura dinámica de atributos).
 - **HU-INV-06**: Adaptación de la relación Stock transaccional entre Sede y Producto.
 - **HU-INV-07**: Implementación del Submódulo Stock: Control de Inventario por Sede, registro de Consumo/Egresos, Adición de Stock por Compra/Ajustes, y Transferencias Logísticas Inter-Sedes con Historial.
+- **HU-INV-08**: Desarrollo de vista global de Historial de Movimientos de Stock, con panel de filtros avanzados y detalle de saldos restantes.
 
 ## Alcance Funcional
 - **Rubros y Familias**: Flujo de gestión a doble vista interdependiente. Un Rubro agrupa Familias, estas últimas engloban a su vez el catálogo real de productos. Todo soporta Baja Lógica.

@@ -8,24 +8,21 @@ using TesisInventory.Infrastructure.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-
 builder.Services.AddControllers();
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
-// DB Context Configuration
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+if (string.IsNullOrWhiteSpace(connectionString))
+    throw new Exception("DefaultConnection no está configurada.");
+
 builder.Services.AddDbContext<InventoryDbContext>(options =>
     options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
 
-// Dependency Injection
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IRoleRepository, RoleRepository>();
 builder.Services.AddScoped<ISedeRepository, SedeRepository>();
 builder.Services.AddScoped<IAuditRepository, AuditRepository>();
 
-// Inventory Repositories
 builder.Services.AddScoped<IRubroRepository, RubroRepository>();
 builder.Services.AddScoped<IFamiliaRepository, FamiliaRepository>();
 builder.Services.AddScoped<IAtributoRepository, AtributoRepository>();
@@ -34,14 +31,11 @@ builder.Services.AddScoped<IStockRepository, StockRepository>();
 builder.Services.AddScoped<IMovimientoRepository, MovimientoRepository>();
 builder.Services.AddScoped<ITransferenciaRepository, TransferenciaRepository>();
 
-// Services
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUsersService, UsersService>();
 builder.Services.AddScoped<IRolesService, RolesService>();
 builder.Services.AddScoped<ISedesService, SedesService>();
 builder.Services.AddScoped<IAuditService, AuditService>();
-
-// Inventory Services
 builder.Services.AddScoped<IRubrosService, RubrosService>();
 builder.Services.AddScoped<IFamiliasService, FamiliasService>();
 builder.Services.AddScoped<IAtributosService, AtributosService>();
@@ -51,8 +45,12 @@ builder.Services.AddScoped<ITransferenciaService, TransferenciaService>();
 
 builder.Services.AddHttpContextAccessor();
 
-// JWT Authentication
-var key = System.Text.Encoding.ASCII.GetBytes(builder.Configuration["Jwt:Secret"]);
+var jwtSecret = builder.Configuration["Jwt:Secret"];
+if (string.IsNullOrWhiteSpace(jwtSecret))
+    throw new Exception("Jwt:Secret no está configurado.");
+
+var key = System.Text.Encoding.ASCII.GetBytes(jwtSecret);
+
 builder.Services.AddAuthentication(x =>
 {
     x.DefaultAuthenticateScheme = Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerDefaults.AuthenticationScheme;
@@ -71,26 +69,22 @@ builder.Services.AddAuthentication(x =>
     };
 });
 
-// CORS Config (for Angular)
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAngular",
-        policy => policy.WithOrigins("http://localhost:4200")
-                        .AllowAnyHeader()
-                        .AllowAnyMethod());
+    options.AddPolicy("AllowFrontend", policy =>
+        policy.AllowAnyOrigin()
+              .AllowAnyHeader()
+              .AllowAnyMethod());
 });
 
 var app = builder.Build();
 
-// Seed Data
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
     try
     {
-        var context = services.GetRequiredService<TesisInventory.Infrastructure.Persistence.InventoryDbContext>();
-        // Ensure database is created/migrated before seeding
-        // context.Database.Migrate(); // Optional: if using migrations exclusively
+        var context = services.GetRequiredService<InventoryDbContext>();
         TesisInventory.Infrastructure.Data.DbInitializer.Initialize(context);
     }
     catch (Exception ex)
@@ -100,7 +94,6 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
@@ -108,9 +101,9 @@ if (app.Environment.IsDevelopment())
 
 app.UseMiddleware<TesisInventory.API.Middlewares.ErrorHandlingMiddleware>();
 
-app.UseHttpsRedirection();
+// app.UseHttpsRedirection();
 
-app.UseCors("AllowAngular");
+app.UseCors("AllowFrontend");
 
 app.UseAuthentication();
 app.UseAuthorization();

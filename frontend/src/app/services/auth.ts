@@ -21,15 +21,25 @@ export class AuthService {
   constructor(private http: HttpClient, private router: Router, private ngZone: NgZone) { }
 
   initializeGoogleSignIn(buttonElementId: string) {
+    if (typeof google === 'undefined' || !google?.accounts?.id) {
+      setTimeout(() => this.initializeGoogleSignIn(buttonElementId), 100);
+      return;
+    }
+
     google.accounts.id.initialize({
       client_id: '70922431623-9uvscucfm7r8e33c2c5e3dugt1f5isi0.apps.googleusercontent.com', // Replace with real ID
       callback: (response: any) => this.handleGoogleCredential(response)
     });
 
-    google.accounts.id.renderButton(
-      document.getElementById(buttonElementId),
-      { theme: 'outline', size: 'large', type: 'standard', text: 'signin_with' }
-    );
+    const btnElement = document.getElementById(buttonElementId);
+    if (btnElement) {
+      google.accounts.id.renderButton(
+        btnElement,
+        { theme: 'outline', size: 'large', type: 'standard', text: 'signin_with' }
+      );
+    } else {
+      console.error('Sign-in button element not found.');
+    }
   }
 
   handleGoogleCredential(response: any) {

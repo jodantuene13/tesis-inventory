@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../services/auth';
 
@@ -9,11 +9,11 @@ import { AuthService } from '../../services/auth';
   templateUrl: './login.html',
   styleUrls: ['./login.css']
 })
-export class LoginComponent implements OnInit {
+export class LoginComponent implements AfterViewInit {
 
   constructor(private authService: AuthService) { }
 
-  ngOnInit(): void {
+  ngAfterViewInit(): void {
     // Pass the ID of the div where the button will be rendered
     this.authService.initializeGoogleSignIn('google-btn');
   }

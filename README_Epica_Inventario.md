@@ -43,3 +43,8 @@ También incluye un sistema de autogeneración de SKU (Stock Keeping Unit).
 - **Descripción del cambio**: Hotfix de sensibilidad a mayúsculas (Case Sensitivity) en comprobación de Rol de Administrador en el Backend.
 - **Motivo técnico**: El sistema comparaba de manera exacta `(roleClaim == "Admin")`. Debido a que los roles en la base de datos se habían registrado as `'ADMIN'`, la comparación resultaba falsa, denegando el privilegio de cambio de `Sede-Contexto` y forzando la visualización de la sede estática del usuario. Se reemplazó por `.Equals("Admin", StringComparison.OrdinalIgnoreCase)`.
 - **Impacto funcional**: Al cambiar la `Sede-Contexto` en el Header del frontend, el backend ahora obedece exitosamente el contexto para el administrador, refrescando dinámicamente las grillas de Stock y Transferencias para mostrar la información correspondiente a la sede solicitada.
+
+**[2026-04-16] (Sincronización de Sedes)**
+- **Descripción del cambio**: Autocompletado de registros de Stock al instanciar una nueva Sede.
+- **Motivo técnico**: El módulo de `SedesService` fue inyectado con `IProductoRepository` y `IStockRepository` para remediar una brecha de integridad. Previo a esto, la creación de una Sede nueva no poblaba la tabla intermedia de inventario para el catálogo preexistente, resultando en grids vacíos al consultar el stock.
+- **Impacto funcional**: Al crear una Sede, ésta adopta inmediatamente todo el catálogo de productos registrados en el sistema, figurando en la grilla visual de la GUI con `CantidadActual = 0`. Mantiene consistencia de inventario multi-sucursal garantizando visibilidad inmediata.

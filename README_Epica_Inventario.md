@@ -38,3 +38,8 @@ También incluye un sistema de autogeneración de SKU (Stock Keeping Unit).
 - **Descripción del cambio**: Implementación de contexto global (interceptor HTTP y SedeContextService en UI) para el manejo dinámico de la sede seleccionada en componentes dependientes del inventario (Stock / Movimientos).
 - **Motivo técnico**: Se optó por una arquitectura reactiva (RxJS BehaviorSubject) en sustitución de inyección manual de parámetros en Sede para asegurar la recarga automática (auto-refresco y refetching) de los grids de datos en toda la aplicación Inventario cuando el Administrador cambia la sede en el layout global.
 - **Impacto funcional**: Mejora sustancial en la UX del Administrador al consultar inventarios sedes-afines. Los grids de datos listarán estricta y únicamente el stock y transferencias correspondientes a la sede actualmente dispuesta en la top-bar por el Admin, transparentando la operación de consulta en multi-sede.
+
+**[2026-04-16]**
+- **Descripción del cambio**: Hotfix de sensibilidad a mayúsculas (Case Sensitivity) en comprobación de Rol de Administrador en el Backend.
+- **Motivo técnico**: El sistema comparaba de manera exacta `(roleClaim == "Admin")`. Debido a que los roles en la base de datos se habían registrado as `'ADMIN'`, la comparación resultaba falsa, denegando el privilegio de cambio de `Sede-Contexto` y forzando la visualización de la sede estática del usuario. Se reemplazó por `.Equals("Admin", StringComparison.OrdinalIgnoreCase)`.
+- **Impacto funcional**: Al cambiar la `Sede-Contexto` en el Header del frontend, el backend ahora obedece exitosamente el contexto para el administrador, refrescando dinámicamente las grillas de Stock y Transferencias para mostrar la información correspondiente a la sede solicitada.

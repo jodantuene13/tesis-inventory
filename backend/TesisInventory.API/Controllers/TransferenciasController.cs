@@ -35,7 +35,10 @@ namespace TesisInventory.API.Controllers
             }
 
             var roleClaim = User.FindFirstValue(ClaimTypes.Role) ?? User.FindFirstValue("role") ?? User.FindFirstValue("nombreRol");
-            bool isAdmin = (roleClaim == "Admin" || roleClaim == "Administrador");
+            bool isAdmin = roleClaim?.Equals("Admin", StringComparison.OrdinalIgnoreCase) == true || 
+                           roleClaim?.Equals("Administrador", StringComparison.OrdinalIgnoreCase) == true ||
+                           roleClaim?.Equals("ADMIN", StringComparison.OrdinalIgnoreCase) == true ||
+                           roleClaim == "1";
 
             // Priorizar el Sede-Contexto que envía el front (Interceptor)
             if (Request.Headers.TryGetValue("Sede-Contexto", out var sedeContexto) && int.TryParse(sedeContexto, out int headerSedeId))

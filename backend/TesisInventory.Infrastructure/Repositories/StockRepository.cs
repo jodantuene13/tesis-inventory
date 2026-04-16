@@ -27,17 +27,25 @@ namespace TesisInventory.Infrastructure.Repositories
             int skip = 0,
             int take = 50)
         {
-            var query = _context.Stock
-                .Include(s => s.Producto)
-                .ThenInclude(p => p!.Familia)
-                .ThenInclude(f => f!.Rubro)
-                .Where(s => s.IdSede == idSede)
-                .AsQueryable();
+            var query = from p in _context.Producto.Include(x => x.Familia).ThenInclude(f => f!.Rubro)
+                        join s in _context.Stock.Where(st => st.IdSede == idSede)
+                        on p.IdProducto equals s.IdProducto into stGroup
+                        from st in stGroup.DefaultIfEmpty()
+                        select new Stock
+                        {
+                            IdStock = st != null ? st.IdStock : 0,
+                            IdProducto = p.IdProducto,
+                            IdSede = idSede,
+                            CantidadActual = st != null ? st.CantidadActual : 0,
+                            PuntoReposicion = st != null ? st.PuntoReposicion : 0,
+                            FechaActualizacion = st != null ? st.FechaActualizacion : p.FechaActualizacion,
+                            Producto = p
+                        };
 
             if (!string.IsNullOrWhiteSpace(searchSkuOrName))
             {
                 query = query.Where(s => EF.Functions.Like(s.Producto!.Sku, $"%{searchSkuOrName}%") || 
-                                         EF.Functions.Like(s.Producto.Nombre, $"%{searchSkuOrName}%"));
+                                         EF.Functions.Like(s.Producto!.Nombre, $"%{searchSkuOrName}%"));
             }
 
             if (idRubro.HasValue)
@@ -56,6 +64,7 @@ namespace TesisInventory.Infrastructure.Repositories
                 .OrderBy(s => s.Producto!.Nombre)
                 .Skip(skip)
                 .Take(take)
+                .AsNoTracking()
                 .ToListAsync();
         }
 
@@ -67,14 +76,25 @@ namespace TesisInventory.Infrastructure.Repositories
             bool? estado = null,
             bool? bajoStock = null)
         {
-            var query = _context.Stock
-                .Where(s => s.IdSede == idSede)
-                .AsQueryable();
+            var query = from p in _context.Producto
+                        join s in _context.Stock.Where(st => st.IdSede == idSede)
+                        on p.IdProducto equals s.IdProducto into stGroup
+                        from st in stGroup.DefaultIfEmpty()
+                        select new Stock
+                        {
+                            IdStock = st != null ? st.IdStock : 0,
+                            IdProducto = p.IdProducto,
+                            IdSede = idSede,
+                            CantidadActual = st != null ? st.CantidadActual : 0,
+                            PuntoReposicion = st != null ? st.PuntoReposicion : 0,
+                            FechaActualizacion = st != null ? st.FechaActualizacion : p.FechaActualizacion,
+                            Producto = p
+                        };
 
             if (!string.IsNullOrWhiteSpace(searchSkuOrName))
             {
                 query = query.Where(s => EF.Functions.Like(s.Producto!.Sku, $"%{searchSkuOrName}%") || 
-                                         EF.Functions.Like(s.Producto.Nombre, $"%{searchSkuOrName}%"));
+                                         EF.Functions.Like(s.Producto!.Nombre, $"%{searchSkuOrName}%"));
             }
 
             if (idRubro.HasValue)

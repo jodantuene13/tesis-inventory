@@ -65,3 +65,19 @@ Implementar la funcionalidad completa para solicitar, gestionar y hacer seguimie
 - Nomenclaturas pasaron a "Pedidos a Mi Sede (Recibidos)" y "Mis Pedidos Emitidos".
 - Tarjetas `TransferenciaCardComponent` migraron de un diseño vertical a horizontal (panorámico).
 - Integración del "Ojito" (Ver Detalles) con un sub-modal profundo que captura la columna `StockOrigenSnapshot` recién agregada en Entity Framework y dispara un HTTP Get pasivo al backend para arrojar una advertencia luminosa en color Ámbar si la Sede Origen no está capacitada físicamente para aprobar el pedido en la actualidad.
+
+### [2026-04-16]
+**Descripción del cambio:** Refactor de Base de Datos y Formulario hacia modelo Multiproducto (1 a N).
+**Motivo técnico:** El diseño lógico anterior ("Una transferencia = un producto") era limitante y requería generar N solicitudes separadas manuales para un pedido completo. Se separó al responsable de la meta data `Transferencia.cs` y su mercadería interna `TransferenciaDetalle.cs`.
+**Impacto funcional:**
+- Se purgó el histórico preexistente de base de datos debido al hard-reset estructural del esquema.
+- El Navbar Lateral agrupa ahora "Gestionar" (Órdenes activas) e "Histórico" en un dropdown de submenús.
+- Al generar una nueva transferencia, el Interfaz provee un FormArray dinámico para ir encolando N productos con diferentes cantidades, todo empaquetado bajo un único Número de ID Transferencia visible globalmente.
+
+### [2026-04-16]
+**Descripción del cambio:** Generación dinámica de Código de Rastreo (TR) y rediseño a Doble Modal.
+**Motivo técnico:** Proveer una experiencia de usuario que mejore el autocompletado sin deformar el UI, y dotar de un código TR legible. Se hizo mediante lógica calculada en el DTO sin necesidad de tocar la base de datos de Entity Framework.
+**Impacto funcional:**
+- Las transferencias se rigen visualmente por un código como `TR-160426-5` (donde 5 es el ID incremental, precedido por la fecha DDMMAA).
+- El autocompletador de inventario ahora vive en un Modal Secundario que se interpone temporalmente, retornando automáticamente los productos clickeados hacia el carrito del Modal Principal.
+- Refactorización transversal: Se extirpó la "Ficha de Producto" que vivía harcodeada adentro de `stock.html` y se la convirtió en un `Shared Component` reutilizable en `/shared/components/ficha-producto-modal/`. Esto permitió invocarla en Transferencias mediante un nuevo botón "Ver" durante la selección de stock (con respeto al patrón DRY).

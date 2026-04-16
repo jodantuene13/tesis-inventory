@@ -48,10 +48,23 @@
                 </li>
 
                 <!-- Transferencias Module -->
-                <li>
-                    <a routerLink="/transferencias" routerLinkActive="active" [routerLinkActiveOptions]="{exact: false}">
+                <li class="nav-item-group">
+                    <a (click)="toggleTransferenciasMenu()" [class.active]="isTransferenciasMenuOpen" class="nav-group-toggle">
                         <i class="icon-transfer"></i> Transferencias
+                        <span class="arrow" [class.rotated]="isTransferenciasMenuOpen">▼</span>
                     </a>
+                    <ul class="submenu" [class.open]="isTransferenciasMenuOpen">
+                        <li>
+                            <a routerLink="/transferencias/gestionar" routerLinkActive="active">
+                                Gestionar
+                            </a>
+                        </li>
+                        <li>
+                            <a routerLink="/transferencias/historico" routerLinkActive="active">
+                                Histórico
+                            </a>
+                        </li>
+                    </ul>
                 </li>
 
                 <!-- Configuration Module -->

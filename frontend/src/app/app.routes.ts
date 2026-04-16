@@ -35,7 +35,11 @@ export const routes: Routes = [
             // Transferencias Module
             {
                 path: 'transferencias',
-                loadComponent: () => import('./pages/transferencias/transferencias-list/transferencias-list.component').then(m => m.TransferenciasListComponent)
+                children: [
+                    { path: 'gestionar', loadComponent: () => import('./pages/transferencias/transferencias-list/transferencias-list.component').then(m => m.TransferenciasListComponent) },
+                    { path: 'historico', loadComponent: () => import('./pages/transferencias/historico-transferencias/historico-transferencias.component').then(m => m.HistoricoTransferenciasComponent) },
+                    { path: '', redirectTo: 'gestionar', pathMatch: 'full' }
+                ]
             },
             // Configuration Module
             {

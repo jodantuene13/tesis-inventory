@@ -31,6 +31,9 @@ namespace TesisInventory.Infrastructure.Repositories
                 .Include(s => s.Producto)
                 .ThenInclude(p => p!.Familia)
                 .ThenInclude(f => f!.Rubro)
+                .Include(s => s.Producto)
+                .ThenInclude(p => p!.ProductoAtributoValores)
+                .ThenInclude(pav => pav.Atributo)
                 .Where(s => s.IdSede == idSede)
                 .AsQueryable();
 
@@ -96,6 +99,8 @@ namespace TesisInventory.Infrastructure.Repositories
         {
             return await _context.Stock
                 .Include(s => s.Producto)
+                .ThenInclude(p => p!.ProductoAtributoValores)
+                .ThenInclude(pav => pav.Atributo)
                 .FirstOrDefaultAsync(s => s.IdProducto == idProducto && s.IdSede == idSede);
         }
 

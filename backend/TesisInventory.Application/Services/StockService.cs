@@ -58,7 +58,19 @@ namespace TesisInventory.Application.Services
                 IdSede = s.IdSede,
                 CantidadActual = s.CantidadActual,
                 PuntoReposicion = s.PuntoReposicion,
-                FechaActualizacion = s.FechaActualizacion
+                FechaActualizacion = s.FechaActualizacion,
+                Atributos = s.Producto.ProductoAtributoValores.Select(av => new TesisInventory.Application.DTOs.Productos.ProductoAtributoValorDto
+                {
+                    IdAtributo = av.IdAtributo,
+                    CodigoAtributo = av.Atributo?.CodigoAtributo ?? "",
+                    NombreAtributo = av.Atributo?.Nombre ?? "",
+                    TipoDatoAtributo = av.Atributo?.TipoDato ?? "",
+                    ValorTexto = av.ValorTexto,
+                    ValorNumero = av.ValorNumero,
+                    ValorDecimal = av.ValorDecimal,
+                    ValorBool = av.ValorBool,
+                    ValorLista = av.ValorLista
+                }).ToList()
             });
 
             return (items, totalCount);
@@ -159,24 +171,36 @@ namespace TesisInventory.Application.Services
                 throw new InvalidOperationException("La sede destino no puede ser la misma que la sede origen.");
             }
             
-            var stockOrigen = await _stockRepository.GetStockAsync(dto.IdProducto, idSedeOrigen);
-            
-            if (stockOrigen == null || stockOrigen.CantidadActual < dto.Cantidad)
+            foreach (var detalle in dto.Detalles)
             {
-                throw new InvalidOperationException("No hay stock suficiente para realizar la transferencia.");
+               var stockOrigenObj = await _stockRepository.GetStockAsync(detalle.IdProducto, idSedeOrigen);
+               if (stockOrigenObj == null || stockOrigenObj.CantidadActual < detalle.Cantidad)
+               {
+                   throw new InvalidOperationException($"No hay stock suficiente para realizar la transferencia del producto {detalle.IdProducto}.");
+               }
             }
 
             var transferencia = new Transferencia
             {
-                IdProducto = dto.IdProducto,
                 IdSedeOrigen = idSedeOrigen,
                 IdSedeDestino = dto.IdSedeDestino,
-                Cantidad = dto.Cantidad,
                 FechaSolicitud = DateTime.UtcNow,
                 Estado = EstadoTransferencia.Solicitada,
                 IdUsuarioSolicita = idUsuario,
-                Observaciones = dto.Observaciones
+                Observaciones = dto.Observaciones,
+                Detalles = new List<TransferenciaDetalle>()
             };
+
+            foreach (var dt in dto.Detalles)
+            {
+                var stock = await _stockRepository.GetStockAsync(dt.IdProducto, idSedeOrigen);
+                transferencia.Detalles.Add(new TransferenciaDetalle
+                {
+                    IdProducto = dt.IdProducto,
+                    Cantidad = dt.Cantidad,
+                    StockOrigenSnapshot = stock!.CantidadActual
+                });
+            }
 
             transferencia = await _transferenciaRepository.AddTransferenciaAsync(transferencia);
 
@@ -195,12 +219,10 @@ namespace TesisInventory.Application.Services
             return new TransferenciaDto
             {
                 IdTransferencia = transferencia.IdTransferencia,
-                IdProducto = transferencia.IdProducto,
                 IdSedeOrigen = transferencia.IdSedeOrigen,
                 IdSedeDestino = transferencia.IdSedeDestino,
-                Cantidad = transferencia.Cantidad,
-                Estado = transferencia.Estado,
                 FechaSolicitud = transferencia.FechaSolicitud,
+                Estado = transferencia.Estado,
                 IdUsuarioSolicita = transferencia.IdUsuarioSolicita,
                 Observaciones = transferencia.Observaciones
             };

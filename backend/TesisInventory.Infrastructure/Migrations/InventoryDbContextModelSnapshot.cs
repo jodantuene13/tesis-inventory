@@ -230,27 +230,34 @@ namespace TesisInventory.Infrastructure.Migrations
                 {
                     b.Property<int>("IdHistorialTransferencia")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .HasColumnType("int")
+                        .HasColumnName("idHistorialTransferencia");
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("IdHistorialTransferencia"));
 
                     b.Property<int>("EstadoAnterior")
-                        .HasColumnType("int");
+                        .HasColumnType("int")
+                        .HasColumnName("estadoAnterior");
 
                     b.Property<int>("EstadoNuevo")
-                        .HasColumnType("int");
+                        .HasColumnType("int")
+                        .HasColumnName("estadoNuevo");
 
                     b.Property<DateTime>("Fecha")
-                        .HasColumnType("datetime(6)");
+                        .HasColumnType("datetime(6)")
+                        .HasColumnName("fecha");
 
                     b.Property<int>("IdTransferencia")
-                        .HasColumnType("int");
+                        .HasColumnType("int")
+                        .HasColumnName("idTransferencia");
 
                     b.Property<int>("IdUsuario")
-                        .HasColumnType("int");
+                        .HasColumnType("int")
+                        .HasColumnName("idUsuario");
 
                     b.Property<string>("Observaciones")
-                        .HasColumnType("longtext");
+                        .HasColumnType("longtext")
+                        .HasColumnName("observaciones");
 
                     b.HasKey("IdHistorialTransferencia");
 
@@ -515,33 +522,50 @@ namespace TesisInventory.Infrastructure.Migrations
                 {
                     b.Property<int>("IdTransferencia")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .HasColumnType("int")
+                        .HasColumnName("idTransferencia");
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("IdTransferencia"));
 
                     b.Property<int>("Cantidad")
-                        .HasColumnType("int");
+                        .HasColumnType("int")
+                        .HasColumnName("cantidad");
 
                     b.Property<int>("Estado")
-                        .HasColumnType("int");
+                        .HasColumnType("int")
+                        .HasColumnName("estado");
 
                     b.Property<DateTime>("FechaSolicitud")
-                        .HasColumnType("datetime(6)");
+                        .HasColumnType("datetime(6)")
+                        .HasColumnName("fechaSolicitud");
 
                     b.Property<int>("IdProducto")
-                        .HasColumnType("int");
+                        .HasColumnType("int")
+                        .HasColumnName("idProducto");
 
                     b.Property<int>("IdSedeDestino")
-                        .HasColumnType("int");
+                        .HasColumnType("int")
+                        .HasColumnName("idSedeDestino");
 
                     b.Property<int>("IdSedeOrigen")
-                        .HasColumnType("int");
+                        .HasColumnType("int")
+                        .HasColumnName("idSedeOrigen");
 
                     b.Property<int>("IdUsuarioSolicita")
-                        .HasColumnType("int");
+                        .HasColumnType("int")
+                        .HasColumnName("idUsuarioSolicita");
+
+                    b.Property<int>("Motivo")
+                        .HasColumnType("int")
+                        .HasColumnName("motivo");
 
                     b.Property<string>("Observaciones")
-                        .HasColumnType("longtext");
+                        .HasColumnType("longtext")
+                        .HasColumnName("observaciones");
+
+                    b.Property<int?>("StockOrigenSnapshot")
+                        .HasColumnType("int")
+                        .HasColumnName("stockOrigenSnapshot");
 
                     b.HasKey("IdTransferencia");
 

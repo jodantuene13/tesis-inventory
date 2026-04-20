@@ -173,6 +173,18 @@ namespace TesisInventory.Infrastructure.Persistence
             // Transferencia
             modelBuilder.Entity<Transferencia>().ToTable("Transferencia");
             modelBuilder.Entity<Transferencia>().HasKey(t => t.IdTransferencia);
+            modelBuilder.Entity<Transferencia>().Property(t => t.IdTransferencia).HasColumnName("idTransferencia");
+            modelBuilder.Entity<Transferencia>().Property(t => t.IdProducto).HasColumnName("idProducto");
+            modelBuilder.Entity<Transferencia>().Property(t => t.IdSedeOrigen).HasColumnName("idSedeOrigen");
+            modelBuilder.Entity<Transferencia>().Property(t => t.IdSedeDestino).HasColumnName("idSedeDestino");
+            modelBuilder.Entity<Transferencia>().Property(t => t.Cantidad).HasColumnName("cantidad");
+            modelBuilder.Entity<Transferencia>().Property(t => t.StockOrigenSnapshot).HasColumnName("stockOrigenSnapshot");
+            modelBuilder.Entity<Transferencia>().Property(t => t.FechaSolicitud).HasColumnName("fechaSolicitud");
+            modelBuilder.Entity<Transferencia>().Property(t => t.Estado).HasColumnName("estado");
+            modelBuilder.Entity<Transferencia>().Property(t => t.Motivo).HasColumnName("motivo");
+            modelBuilder.Entity<Transferencia>().Property(t => t.IdUsuarioSolicita).HasColumnName("idUsuarioSolicita");
+            modelBuilder.Entity<Transferencia>().Property(t => t.Observaciones).HasColumnName("observaciones");
+
             modelBuilder.Entity<Transferencia>()
                 .HasOne(t => t.Producto)
                 .WithMany(p => p.Transferencias)
@@ -197,6 +209,14 @@ namespace TesisInventory.Infrastructure.Persistence
             // HistorialTransferencia
             modelBuilder.Entity<HistorialTransferencia>().ToTable("HistorialTransferencia");
             modelBuilder.Entity<HistorialTransferencia>().HasKey(h => h.IdHistorialTransferencia);
+            modelBuilder.Entity<HistorialTransferencia>().Property(h => h.IdHistorialTransferencia).HasColumnName("idHistorialTransferencia");
+            modelBuilder.Entity<HistorialTransferencia>().Property(h => h.IdTransferencia).HasColumnName("idTransferencia");
+            modelBuilder.Entity<HistorialTransferencia>().Property(h => h.EstadoAnterior).HasColumnName("estadoAnterior");
+            modelBuilder.Entity<HistorialTransferencia>().Property(h => h.EstadoNuevo).HasColumnName("estadoNuevo");
+            modelBuilder.Entity<HistorialTransferencia>().Property(h => h.Fecha).HasColumnName("fecha");
+            modelBuilder.Entity<HistorialTransferencia>().Property(h => h.IdUsuario).HasColumnName("idUsuario");
+            modelBuilder.Entity<HistorialTransferencia>().Property(h => h.Observaciones).HasColumnName("observaciones");
+
             modelBuilder.Entity<HistorialTransferencia>()
                 .HasOne(h => h.Transferencia)
                 .WithMany(t => t.HistorialTransferencias)

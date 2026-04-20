@@ -25,6 +25,11 @@ export class UsersListComponent implements OnInit {
     selectedRoleId: number | null = null;
     selectedSedeId: number | null = null;
     selectedStatus: string = ''; // 'true', 'false', or ''
+    
+    // Indicators
+    indicatorTotal: number = 0;
+    indicatorActivos: number = 0;
+    indicatorInactivos: number = 0;
 
     constructor(
         private userService: UserService,
@@ -56,7 +61,14 @@ export class UsersListComponent implements OnInit {
             statusBool
         ).subscribe(data => {
             this.users = data;
+            this.calculateIndicators();
         });
+    }
+
+    calculateIndicators(): void {
+        this.indicatorTotal = this.users.length;
+        this.indicatorActivos = this.users.filter(u => u.estado).length;
+        this.indicatorInactivos = this.users.filter(u => !u.estado).length;
     }
 
     search(): void {

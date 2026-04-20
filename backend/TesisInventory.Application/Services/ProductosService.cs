@@ -70,7 +70,7 @@ namespace TesisInventory.Application.Services
             // aunque para mayor precisión usamos la asignación con la familia si hubiese orden ("fa.Orden")
             var obligatoriosOrdenados = atributosFamilia
                 .Where(fa => fa.Obligatorio)
-                .OrderBy(fa => fa.Orden)
+                .OrderBy(fa => fa.IdFamiliaAtributo)
                 .ToList();
 
             foreach (var fa in obligatoriosOrdenados)
@@ -190,7 +190,7 @@ namespace TesisInventory.Application.Services
             // Recalcular SKU con los nuevos atributos
             var obligatoriosOrdenados = atributosFamilia
                 .Where(fa => fa.Obligatorio)
-                .OrderBy(fa => fa.Orden)
+                .OrderBy(fa => fa.IdFamiliaAtributo)
                 .ToList();
 
             var skuAttributesValues = new List<string>();
@@ -299,7 +299,7 @@ namespace TesisInventory.Application.Services
             var atributosFamilia = await _atributoRepository.GetAtributosByFamiliaIdAsync(idFamilia);
             var obligatoriosOrdenados = atributosFamilia
                 .Where(fa => fa.Obligatorio)
-                .OrderBy(fa => fa.Orden)
+                .OrderBy(fa => fa.IdFamiliaAtributo)
                 .ToList();
 
             var familia = await _familiaRepository.GetByIdAsync(idFamilia);

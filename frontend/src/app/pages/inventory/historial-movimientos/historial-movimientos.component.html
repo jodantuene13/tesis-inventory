@@ -3,6 +3,66 @@
         <h2 class="text-2xl font-bold text-gray-800">Historial de Movimientos</h2>
     </div>
 
+    <!-- Quick Indicators -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <!-- Total Card -->
+        <div class="bg-gradient-to-br from-slate-600 to-slate-800 rounded-2xl shadow-lg p-6 text-white transform hover:scale-105 transition-all duration-300">
+            <div class="flex justify-between items-center">
+                <div>
+                    <p class="text-slate-300 text-sm font-medium uppercase tracking-wider">Movimientos Hoy</p>
+                    <h3 class="text-4xl font-black mt-1">{{ indicatorTotal }}</h3>
+                </div>
+                <div class="bg-white/10 p-3 rounded-xl backdrop-blur-sm border border-white/10">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </div>
+            </div>
+            <p class="mt-4 text-sm text-slate-300 flex items-center">
+                <span class="w-2 h-2 bg-slate-400 rounded-full mr-2"></span>
+                Actividad general del día
+            </p>
+        </div>
+
+        <!-- Ingresos Card -->
+        <div class="bg-gradient-to-br from-emerald-500 to-teal-700 rounded-2xl shadow-lg p-6 text-white transform hover:scale-105 transition-all duration-300">
+            <div class="flex justify-between items-center">
+                <div>
+                    <p class="text-emerald-100 text-sm font-medium uppercase tracking-wider">Ingresos Hoy</p>
+                    <h3 class="text-4xl font-black mt-1">{{ indicatorIngresos }}</h3>
+                </div>
+                <div class="bg-white/20 p-3 rounded-xl backdrop-blur-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 11l5-5m0 0l5 5m-5-5v12" />
+                    </svg>
+                </div>
+            </div>
+            <p class="mt-4 text-sm text-emerald-100 flex items-center">
+                <span class="w-2 h-2 bg-emerald-300 rounded-full mr-2"></span>
+                Stock entrante al sistema
+            </p>
+        </div>
+
+        <!-- Egresos Card -->
+        <div class="bg-gradient-to-br from-orange-500 to-red-600 rounded-2xl shadow-lg p-6 text-white transform hover:scale-105 transition-all duration-300">
+            <div class="flex justify-between items-center">
+                <div>
+                    <p class="text-orange-100 text-sm font-medium uppercase tracking-wider">Egresos Hoy</p>
+                    <h3 class="text-4xl font-black mt-1">{{ indicatorEgresos }}</h3>
+                </div>
+                <div class="bg-white/20 p-3 rounded-xl backdrop-blur-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 13l-5 5m0 0l-5-5m5 5V6" />
+                    </svg>
+                </div>
+            </div>
+            <p class="mt-4 text-sm text-orange-100 flex items-center">
+                <span class="w-2 h-2 bg-orange-300 rounded-full mr-2"></span>
+                Consumos y transferencias
+            </p>
+        </div>
+    </div>
+
     <!-- Filters -->
     <div class="bg-white p-4 rounded-lg shadow mb-6 flex flex-wrap gap-4 items-end">
         <div class="flex-1 min-w-[200px]">
@@ -103,7 +163,7 @@
                         <div class="font-bold text-gray-800">{{ m.sku }}</div>
                         <div class="text-xs text-gray-500">{{ m.nombreProducto }}</div>
                     </td>
-                    <td class="py-3 px-4 text-left whitespace-nowrap">{{ m.fecha | date:'medium' }}</td>
+                    <td class="py-3 px-4 text-left whitespace-nowrap">{{ m.fecha | date }}</td>
                     <td class="py-3 px-4 text-center font-bold"
                         [ngClass]="{'text-green-600': m.tipoMovimiento === 0, 'text-red-600': m.tipoMovimiento === 1}">
                         {{ m.tipoMovimiento === 0 ? 'INGRESO' : 'EGRESO' }}
@@ -174,7 +234,7 @@
                 </div>
                 <div class="col-span-2 md:col-span-1">
                     <span class="block text-gray-500 mb-1">Fecha de Operación</span> 
-                    <span class="font-bold text-gray-800">{{ selectedMovimiento?.fecha | date:'medium' }}</span>
+                    <span class="font-bold text-gray-800">{{ selectedMovimiento?.fecha | date }}</span>
                 </div>
                 <div class="col-span-2 md:col-span-1">
                     <span class="block text-gray-500 mb-1">Tipo de Movimiento</span> 

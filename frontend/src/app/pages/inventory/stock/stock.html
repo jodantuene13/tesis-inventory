@@ -3,6 +3,68 @@
         <h2 class="text-2xl font-bold text-gray-800">Stock Local</h2>
     </div>
 
+    <!-- Quick Indicators -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <!-- Total Products Card -->
+        <div class="bg-gradient-to-br from-blue-500 to-blue-700 rounded-2xl shadow-lg p-6 text-white transform hover:scale-105 transition-all duration-300">
+            <div class="flex justify-between items-center">
+                <div>
+                    <p class="text-blue-100 text-sm font-medium uppercase tracking-wider">Total Productos</p>
+                    <h3 class="text-4xl font-black mt-1">{{ indicatorTotal }}</h3>
+                </div>
+                <div class="bg-white/20 p-3 rounded-xl backdrop-blur-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                    </svg>
+                </div>
+            </div>
+            <div class="mt-4 flex items-center text-sm text-blue-100">
+                <span class="bg-blue-400/30 px-2 py-0.5 rounded-full mr-2">Sede actual</span>
+                <span>Catálogo completo</span>
+            </div>
+        </div>
+
+        <!-- Low Stock Card -->
+        <div class="bg-gradient-to-br from-rose-500 to-rose-700 rounded-2xl shadow-lg p-6 text-white transform hover:scale-105 transition-all duration-300">
+            <div class="flex justify-between items-center">
+                <div>
+                    <p class="text-rose-100 text-sm font-medium uppercase tracking-wider">Alertas Bajo Stock</p>
+                    <h3 class="text-4xl font-black mt-1">{{ indicatorBajoStock }}</h3>
+                </div>
+                <div class="bg-white/20 p-3 rounded-xl backdrop-blur-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                </div>
+            </div>
+            <div class="mt-4 flex items-center text-sm text-rose-100">
+                <span class="bg-rose-400/30 px-2 py-0.5 rounded-full mr-2">Crítico</span>
+                <span>Requiere reposición</span>
+            </div>
+        </div>
+
+        <!-- Movemement Hint Card -->
+        <div class="bg-gradient-to-br from-amber-400 to-orange-600 rounded-2xl shadow-lg p-6 text-white transform hover:scale-105 transition-all duration-300 cursor-pointer" routerLink="/inventory/historial-movimientos">
+            <div class="flex justify-between items-center">
+                <div>
+                    <p class="text-amber-100 text-sm font-medium uppercase tracking-wider">Gestión de Stock</p>
+                    <h3 class="text-2xl font-bold mt-1">Movimientos</h3>
+                </div>
+                <div class="bg-white/20 p-3 rounded-xl backdrop-blur-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                    </svg>
+                </div>
+            </div>
+            <div class="mt-4 flex items-center text-sm text-amber-100">
+                <span>Ir al historial completo</span>
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                </svg>
+            </div>
+        </div>
+    </div>
+
     <!-- Filters -->
     <div class="bg-white p-4 rounded-lg shadow mb-6 flex flex-wrap gap-4 items-end">
         <div class="flex-1 min-w-[200px]">
@@ -340,7 +402,7 @@
                 <tbody class="text-sm font-light">
                     <tr *ngFor="let m of historial" class="border-b"
                         [ngClass]="{'bg-green-50': m.tipoMovimiento === 0, 'bg-red-50': m.tipoMovimiento === 1}">
-                        <td class="py-2 px-3 text-left">{{ m.fecha | date:'short' }}</td>
+                        <td class="py-2 px-3 text-left">{{ m.fecha | date }}</td>
                         <td class="py-2 px-3 text-left font-bold"
                             [ngClass]="{'text-green-600': m.tipoMovimiento === 0, 'text-red-600': m.tipoMovimiento === 1}">
                             {{ m.tipoMovimiento === 0 ? 'INGRESO' : 'EGRESO' }}
@@ -356,6 +418,21 @@
                     </tr>
                 </tbody>
             </table>
+
+            <div class="bg-blue-50 p-4 rounded-lg flex justify-between items-center mt-2 border border-blue-100">
+                <p class="text-sm text-blue-700 italic">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Se muestran solo los últimos 6 movimientos para una vista rápida.
+                </p>
+                <a routerLink="/inventory/historial-movimientos" (click)="closeModal()" class="text-blue-600 hover:text-blue-800 text-sm font-bold flex items-center gap-1 transition">
+                    Ver historial completo 
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                    </svg>
+                </a>
+            </div>
         </div>
 
         <!-- Detalle Ficha Modal -->

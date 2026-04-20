@@ -47,6 +47,7 @@ builder.Services.AddScoped<IFamiliasService, FamiliasService>();
 builder.Services.AddScoped<IAtributosService, AtributosService>();
 builder.Services.AddScoped<IProductosService, ProductosService>();
 builder.Services.AddScoped<IStockService, StockService>();
+builder.Services.AddScoped<ITransferenciaService, TransferenciaService>();
 
 builder.Services.AddHttpContextAccessor();
 
@@ -74,7 +75,7 @@ builder.Services.AddAuthentication(x =>
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAngular",
-        policy => policy.WithOrigins("http://localhost:4200")
+        policy => policy.WithOrigins("http://localhost:4200", "http://127.0.0.1:4200")
                         .AllowAnyHeader()
                         .AllowAnyMethod());
 });

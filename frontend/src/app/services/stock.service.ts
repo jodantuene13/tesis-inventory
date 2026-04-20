@@ -8,13 +8,11 @@ import { IncrementarStockDto, Movimiento, RegistrarConsumoDto, RegistrarTransfer
 })
 export class StockService {
     private apiUrl = 'http://localhost:5139/api/Stock';
-    private defaultHeaders = new HttpHeaders({
-        'Sede-Contexto': '1' // Hardcoded temporalmente, tal como requiere la US ("No implementar selector de sede todavía.")
-    });
 
     constructor(private http: HttpClient) { }
 
-    getStockSede(search?: string, idRubro?: number, idFamilia?: number, estado?: boolean, bajoStock?: boolean, page: number = 1, pageSize: number = 50): Observable<any> {
+
+    getStockSede(search?: string, idRubro?: number, idFamilia?: number, estado?: boolean, bajoStock?: boolean, page: number = 1, pageSize: number = 50, idSedeQuery?: number): Observable<any> {
         let params = new HttpParams()
             .set('page', page.toString())
             .set('pageSize', pageSize.toString());
@@ -24,20 +22,21 @@ export class StockService {
         if (idFamilia !== undefined && idFamilia !== null) params = params.set('idFamilia', idFamilia.toString());
         if (estado !== undefined && estado !== null) params = params.set('estado', estado.toString());
         if (bajoStock !== undefined && bajoStock !== null) params = params.set('bajoStock', bajoStock.toString());
+        if (idSedeQuery !== undefined && idSedeQuery !== null) params = params.set('idSedeQuery', idSedeQuery.toString());
 
-        return this.http.get<any>(`${this.apiUrl}/sede`, { params, headers: this.defaultHeaders });
+        return this.http.get<any>(`${this.apiUrl}/sede`, { params });
     }
 
     incrementarStock(dto: IncrementarStockDto): Observable<any> {
-        return this.http.post<any>(`${this.apiUrl}/incremento`, dto, { headers: this.defaultHeaders });
+        return this.http.post<any>(`${this.apiUrl}/incremento`, dto);
     }
 
     registrarConsumo(dto: RegistrarConsumoDto): Observable<any> {
-        return this.http.post<any>(`${this.apiUrl}/consumo`, dto, { headers: this.defaultHeaders });
+        return this.http.post<any>(`${this.apiUrl}/consumo`, dto);
     }
 
     registrarTransferencia(dto: RegistrarTransferenciaDto): Observable<any> {
-        return this.http.post<any>(`${this.apiUrl}/transferencia`, dto, { headers: this.defaultHeaders });
+        return this.http.post<any>(`${this.apiUrl}/transferencia`, dto);
     }
 
     getMovimientos(idProducto: number, tipoMovimiento?: string, fechaDesde?: string, fechaHasta?: string): Observable<Movimiento[]> {
@@ -46,7 +45,7 @@ export class StockService {
         if (fechaDesde) params = params.set('fechaDesde', fechaDesde);
         if (fechaHasta) params = params.set('fechaHasta', fechaHasta);
 
-        return this.http.get<Movimiento[]>(`${this.apiUrl}/${idProducto}/movimientos`, { params, headers: this.defaultHeaders });
+        return this.http.get<Movimiento[]>(`${this.apiUrl}/${idProducto}/movimientos`, { params });
     }
 
     getHistorialGlobal(search?: string, idRubro?: number, idFamilia?: number, tipoMovimiento?: string, idUsuario?: number, fechaDesde?: string, fechaHasta?: string, page: number = 1, pageSize: number = 50): Observable<any> {
@@ -62,6 +61,6 @@ export class StockService {
         if (fechaDesde) params = params.set('fechaDesde', fechaDesde);
         if (fechaHasta) params = params.set('fechaHasta', fechaHasta);
 
-        return this.http.get<any>(`${this.apiUrl}/movimientos/historial`, { params, headers: this.defaultHeaders });
+        return this.http.get<any>(`${this.apiUrl}/movimientos/historial`, { params });
     }
 }

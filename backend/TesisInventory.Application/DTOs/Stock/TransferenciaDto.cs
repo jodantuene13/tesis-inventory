@@ -13,6 +13,7 @@ namespace TesisInventory.Application.DTOs.Stock
         public int IdSedeDestino { get; set; }
         public string NombreSedeDestino { get; set; } = string.Empty;
         public int Cantidad { get; set; }
+        public int? StockOrigenSnapshot { get; set; }
         public DateTime FechaSolicitud { get; set; }
         public EstadoTransferencia Estado { get; set; }
         public string EstadoDescripcion => Estado.ToString();

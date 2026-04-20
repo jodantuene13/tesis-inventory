@@ -19,6 +19,11 @@ import Swal from 'sweetalert2';
 export class AtributosComponent implements OnInit {
     atributos: Atributo[] = [];
     loadingAtributos = false;
+    
+    // Indicators
+    indicatorTotal: number = 0;
+    indicatorActivos: number = 0;
+    indicatorTipos: { [key: string]: number } = {};
     selectedAtributo: Atributo | null = null;
 
     // Atributo Modal
@@ -30,7 +35,7 @@ export class AtributosComponent implements OnInit {
 
     // Opciones LIST
     opciones: AtributoOpcion[] = [];
-    nuevaOpcionForm: CreateAtributoOpcion = { codigoOpcion: '', valor: '', orden: 1, activo: true };
+    nuevaOpcionForm: CreateAtributoOpcion = { codigoOpcion: '', valor: '', activo: true };
 
     // Asignacion Familia
     rubros: Rubro[] = [];
@@ -39,7 +44,6 @@ export class AtributosComponent implements OnInit {
     selectedFamiliaId: number | null = null;
     atributosDeFamilia: FamiliaAtributo[] = [];
     configObligatorio = false;
-    configOrden = 1;
 
     get selectedFamiliaNombre(): string {
         const f = this.familiasSelect.find(fam => fam.idFamilia === this.selectedFamiliaId);
@@ -69,6 +73,7 @@ export class AtributosComponent implements OnInit {
         this.atributoService.getAll(true).subscribe({
             next: (data) => {
                 this.atributos = data;
+                this.calculateIndicators();
                 this.loadingAtributos = false;
             },
             error: () => {
@@ -172,7 +177,7 @@ export class AtributosComponent implements OnInit {
         this.atributoService.addOpcion(this.selectedAtributo.idAtributo, this.nuevaOpcionForm).subscribe({
             next: () => {
                 this.loadOpciones(this.selectedAtributo!.idAtributo);
-                this.nuevaOpcionForm = { codigoOpcion: '', valor: '', orden: this.opciones.length + 2, activo: true };
+                this.nuevaOpcionForm = { codigoOpcion: '', valor: '', activo: true };
             },
             error: (err) => Swal.fire('Error', err.error?.message, 'error')
         });
@@ -229,7 +234,6 @@ export class AtributosComponent implements OnInit {
         const dto = {
             idAtributo: this.selectedAtributo.idAtributo,
             obligatorio: this.configObligatorio,
-            orden: this.configOrden,
             activo: true
         };
 
@@ -237,7 +241,6 @@ export class AtributosComponent implements OnInit {
             next: () => {
                 this.loadAtributosDeFamilia(this.selectedFamiliaId!);
                 Swal.fire('Éxito', 'Atributo configurado a familia', 'success');
-                this.configOrden++;
             },
             error: (err) => Swal.fire('Error', err.error?.message, 'error')
         });
@@ -305,6 +308,16 @@ export class AtributosComponent implements OnInit {
                     error: (err) => Swal.fire('Error', err.error?.message, 'error')
                 });
             }
+        });
+    }
+
+    calculateIndicators(): void {
+        this.indicatorTotal = this.atributos.length;
+        this.indicatorActivos = this.atributos.filter(a => a.activo).length;
+        
+        this.indicatorTipos = {};
+        this.atributos.forEach(a => {
+            this.indicatorTipos[a.tipoDato] = (this.indicatorTipos[a.tipoDato] || 0) + 1;
         });
     }
 }

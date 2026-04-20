@@ -6,6 +6,8 @@ import { StockService } from '../../../services/stock.service';
 import { RubroService } from '../../../services/rubro.service';
 import { FamiliaService } from '../../../services/familia.service';
 import { SedeService } from '../../../services/sede.service';
+import { SedeContextService } from '../../../services/sede-context.service';
+import { Subscription } from 'rxjs';
 import { IncrementarStockDto, RegistrarConsumoDto, RegistrarTransferenciaDto, Stock } from '../../../models/stock.model';
 import { Rubro } from '../../../models/rubro.model';
 import { Familia } from '../../../models/familia.model';
@@ -22,6 +24,8 @@ export class StockComponent implements OnInit {
   rubros: Rubro[] = [];
   familias: Familia[] = [];
   sedes: any[] = [];
+  
+  private contextSub!: Subscription;
 
   // Paginación
   totalCount: number = 0;
@@ -36,6 +40,10 @@ export class StockComponent implements OnInit {
   selectedEstado: string = '';
   selectedBajoStock: string = '';
   hasSearched: boolean = false;
+
+  // Indicators
+  indicatorTotal: number = 0;
+  indicatorBajoStock: number = 0;
 
   // Modals state
   activeModal: 'consumo' | 'transferencia' | 'incremento' | 'historial' | 'detalle' | null = null;
@@ -66,13 +74,24 @@ export class StockComponent implements OnInit {
     private stockService: StockService,
     private rubroService: RubroService,
     private familiaService: FamiliaService,
-    private sedeService: SedeService
+    private sedeService: SedeService,
+    private sedeContextService: SedeContextService
   ) { }
 
   ngOnInit(): void {
     this.loadRubros();
     this.loadSedes();
-    this.loadStocks();
+    // Suscribirse a cambios de sede para recargar
+    this.contextSub = this.sedeContextService.sedeEnContexto$.subscribe(() => {
+      this.hasSearched = false;
+      this.page = 1;
+      this.loadStocks();
+      this.loadIndicators();
+    });
+  }
+
+  ngOnDestroy(): void {
+    if (this.contextSub) this.contextSub.unsubscribe();
   }
 
   loadRubros(): void {
@@ -109,6 +128,18 @@ export class StockComponent implements OnInit {
       this.totalCount = res.totalCount;
       this.page = res.page;
       this.totalPages = res.totalPages;
+    });
+  }
+
+  loadIndicators(): void {
+    // Traer total de productos activos en la sede
+    this.stockService.getStockSede(undefined, undefined, undefined, true, undefined, 1, 1).subscribe(res => {
+      this.indicatorTotal = res.totalCount;
+    });
+
+    // Traer total de productos con bajo stock (activos)
+    this.stockService.getStockSede(undefined, undefined, undefined, true, true, 1, 1).subscribe(res => {
+      this.indicatorBajoStock = res.totalCount;
     });
   }
 
@@ -177,6 +208,7 @@ export class StockComponent implements OnInit {
       next: () => {
         this.closeModal();
         this.loadStocks();
+        this.loadIndicators();
       },
       error: (err) => alert(err.error?.message || 'Error al registrar consumo')
     });
@@ -204,6 +236,7 @@ export class StockComponent implements OnInit {
       next: () => {
         this.closeModal();
         this.loadStocks();
+        this.loadIndicators();
       },
       error: (err) => alert(err.error?.message || 'Error al registrar transferencia')
     });
@@ -231,6 +264,7 @@ export class StockComponent implements OnInit {
       next: () => {
         this.closeModal();
         this.loadStocks();
+        this.loadIndicators();
       },
       error: (err) => alert(err.error?.message || 'Error al incrementar stock')
     });
@@ -249,7 +283,7 @@ export class StockComponent implements OnInit {
     if (!this.selectedStock) return;
     this.stockService.getMovimientos(this.selectedStock.idProducto, this.histFiltroTipo || undefined, this.histFiltroDesde || undefined, this.histFiltroHasta || undefined)
       .subscribe({
-        next: (data) => this.historial = data,
+        next: (data) => this.historial = data.slice(0, 6),
         error: (err) => alert('Error al cargar historial')
       });
   }

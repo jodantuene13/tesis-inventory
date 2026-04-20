@@ -34,17 +34,27 @@ namespace TesisInventory.API.Controllers
         // Simularemos que el ID de Sede se pasa como parámetro o se obtiene del claim "SedeId".
         private int GetCurrentSedeId()
         {
-            var sedeIdClaim = User.FindFirst("SedeId")?.Value;
-            if (int.TryParse(sedeIdClaim, out int sedeId))
+            int sedeClaimId = 0;
+            var sedeIdClaim = User.FindFirst("sede_id")?.Value;
+            if (int.TryParse(sedeIdClaim, out int sId))
             {
-                return sedeId;
+                sedeClaimId = sId;
             }
-            // Fallback for current requirement: read from header or just throw
-            // Let's rely on a header for 'SedeEnContexto', or parameter for simplicity in endpoints since Sede is not yet fully contextualized in token maybe
+
+            var roleClaim = User.FindFirst(ClaimTypes.Role)?.Value ?? User.FindFirst("role")?.Value ?? User.FindFirst("nombreRol")?.Value;
+            bool isAdmin = (roleClaim == "Admin" || roleClaim == "Administrador");
+
+            // Priorizar el Sede-Contexto que envía el front (Interceptor)
             if (Request.Headers.TryGetValue("Sede-Contexto", out var sedeContexto) && int.TryParse(sedeContexto, out int headerSedeId))
             {
-                return headerSedeId;
+                if (isAdmin) return headerSedeId; // Administradores pueden ver/actuar sobre cualquier sede seleccionada
+                
+                // Si no es admin, ignoramos el header si intenta spoofear y forzamos su sede
+                if (headerSedeId == sedeClaimId) return headerSedeId;
             }
+
+            if (sedeClaimId > 0) return sedeClaimId;
+
             throw new UnauthorizedAccessException("Debe especificar la Sede en Contexto.");
         }
 
@@ -55,12 +65,13 @@ namespace TesisInventory.API.Controllers
             [FromQuery] int? idFamilia = null,
             [FromQuery] bool? estado = null,
             [FromQuery] bool? bajoStock = null,
+            [FromQuery] int? idSedeQuery = null,
             [FromQuery] int page = 1,
             [FromQuery] int pageSize = 50)
         {
             try
             {
-                int idSede = GetCurrentSedeId();
+                int idSede = idSedeQuery ?? GetCurrentSedeId();
                 int skip = (page - 1) * pageSize;
 
                 var (items, totalCount) = await _stockService.GetStockAsync(

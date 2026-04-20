@@ -5,7 +5,9 @@ import { StockService } from '../../../services/stock.service';
 import { RubroService } from '../../../services/rubro.service';
 import { FamiliaService } from '../../../services/familia.service';
 import { UserService } from '../../../services/user.service';
+import { SedeContextService } from '../../../services/sede-context.service';
 import { Movimiento } from '../../../models/stock.model';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-historial-movimientos',
@@ -16,6 +18,7 @@ import { Movimiento } from '../../../models/stock.model';
 })
 export class HistorialMovimientosComponent implements OnInit {
 
+  private contextSub!: Subscription;
   movimientos: Movimiento[] = [];
   
   // Filters
@@ -37,6 +40,11 @@ export class HistorialMovimientosComponent implements OnInit {
   rubros: any[] = [];
   familias: any[] = [];
   usuarios: any[] = [];
+  
+  // Indicators
+  indicatorTotal: number = 0;
+  indicatorIngresos: number = 0;
+  indicatorEgresos: number = 0;
 
   // Modal Detail
   activeModal: string | null = null;
@@ -49,14 +57,24 @@ export class HistorialMovimientosComponent implements OnInit {
     private stockService: StockService,
     private rubroService: RubroService,
     private familiaService: FamiliaService,
-    private userService: UserService
+    private userService: UserService,
+    private sedeContextService: SedeContextService
   ) {}
 
   ngOnInit(): void {
     this.verifySedeContext();
     this.loadRubros();
     this.loadUsuarios();
-    this.search();
+    
+    this.contextSub = this.sedeContextService.sedeEnContexto$.subscribe(() => {
+      this.page = 1;
+      this.search();
+      this.loadIndicators();
+    });
+  }
+
+  ngOnDestroy(): void {
+    if (this.contextSub) this.contextSub.unsubscribe();
   }
 
   // Provisional check for Sede
@@ -124,6 +142,27 @@ export class HistorialMovimientosComponent implements OnInit {
         console.error('Error al cargar el historial', err);
         this.loading = false;
       }
+    });
+    this.loadIndicators();
+  }
+
+  loadIndicators() {
+    // Hoy
+    const hoy = new Date().toISOString().split('T')[0];
+
+    // Total hoy
+    this.stockService.getHistorialGlobal(undefined, undefined, undefined, undefined, undefined, hoy, hoy, 1, 1).subscribe(res => {
+      this.indicatorTotal = res.totalCount;
+    });
+
+    // Ingresos hoy
+    this.stockService.getHistorialGlobal(undefined, undefined, undefined, 'Ingreso', undefined, hoy, hoy, 1, 1).subscribe(res => {
+      this.indicatorIngresos = res.totalCount;
+    });
+
+    // Egresos hoy
+    this.stockService.getHistorialGlobal(undefined, undefined, undefined, 'Egreso', undefined, hoy, hoy, 1, 1).subscribe(res => {
+      this.indicatorEgresos = res.totalCount;
     });
   }
 

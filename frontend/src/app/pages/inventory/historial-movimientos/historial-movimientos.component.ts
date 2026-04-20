@@ -40,6 +40,11 @@ export class HistorialMovimientosComponent implements OnInit {
   rubros: any[] = [];
   familias: any[] = [];
   usuarios: any[] = [];
+  
+  // Indicators
+  indicatorTotal: number = 0;
+  indicatorIngresos: number = 0;
+  indicatorEgresos: number = 0;
 
   // Modal Detail
   activeModal: string | null = null;
@@ -64,6 +69,7 @@ export class HistorialMovimientosComponent implements OnInit {
     this.contextSub = this.sedeContextService.sedeEnContexto$.subscribe(() => {
       this.page = 1;
       this.search();
+      this.loadIndicators();
     });
   }
 
@@ -136,6 +142,27 @@ export class HistorialMovimientosComponent implements OnInit {
         console.error('Error al cargar el historial', err);
         this.loading = false;
       }
+    });
+    this.loadIndicators();
+  }
+
+  loadIndicators() {
+    // Hoy
+    const hoy = new Date().toISOString().split('T')[0];
+
+    // Total hoy
+    this.stockService.getHistorialGlobal(undefined, undefined, undefined, undefined, undefined, hoy, hoy, 1, 1).subscribe(res => {
+      this.indicatorTotal = res.totalCount;
+    });
+
+    // Ingresos hoy
+    this.stockService.getHistorialGlobal(undefined, undefined, undefined, 'Ingreso', undefined, hoy, hoy, 1, 1).subscribe(res => {
+      this.indicatorIngresos = res.totalCount;
+    });
+
+    // Egresos hoy
+    this.stockService.getHistorialGlobal(undefined, undefined, undefined, 'Egreso', undefined, hoy, hoy, 1, 1).subscribe(res => {
+      this.indicatorEgresos = res.totalCount;
     });
   }
 

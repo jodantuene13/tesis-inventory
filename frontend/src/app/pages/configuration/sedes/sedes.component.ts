@@ -22,6 +22,9 @@ export class SedesComponent implements OnInit {
         nombreSede: '',
         direccion: ''
     };
+    
+    // Indicators
+    indicatorTotal: number = 0;
 
     constructor(private sedeService: SedeService) { }
 
@@ -31,7 +34,10 @@ export class SedesComponent implements OnInit {
 
     loadSedes(): void {
         this.sedeService.getAll().subscribe({
-            next: (data) => this.sedes = data,
+            next: (data) => {
+                this.sedes = data;
+                this.indicatorTotal = this.sedes.length;
+            },
             error: (err) => console.error('Error loading sedes', err)
         });
     }

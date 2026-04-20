@@ -23,6 +23,11 @@ import Swal from 'sweetalert2';
 export class ProductosComponent implements OnInit {
     productos: Producto[] = [];
     loading = false;
+    
+    // Indicators
+    indicatorTotal: number = 0;
+    indicatorActivos: number = 0;
+    indicatorInactivos: number = 0;
 
     showModal = false;
     isEdit = false;
@@ -94,6 +99,7 @@ export class ProductosComponent implements OnInit {
         this.productoService.getAll(true).subscribe({
             next: (data) => {
                 this.productos = data;
+                this.calculateIndicators();
                 this.loading = false;
             },
             error: () => {
@@ -368,5 +374,11 @@ export class ProductosComponent implements OnInit {
                 });
             }
         });
+    }
+
+    calculateIndicators(): void {
+        this.indicatorTotal = this.productos.length;
+        this.indicatorActivos = this.productos.filter(p => p.activo).length;
+        this.indicatorInactivos = this.productos.filter(p => !p.activo).length;
     }
 }

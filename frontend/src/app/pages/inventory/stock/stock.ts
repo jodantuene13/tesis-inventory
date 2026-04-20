@@ -41,6 +41,10 @@ export class StockComponent implements OnInit {
   selectedBajoStock: string = '';
   hasSearched: boolean = false;
 
+  // Indicators
+  indicatorTotal: number = 0;
+  indicatorBajoStock: number = 0;
+
   // Modals state
   activeModal: 'consumo' | 'transferencia' | 'incremento' | 'historial' | 'detalle' | null = null;
   selectedStock: Stock | null = null;
@@ -82,6 +86,7 @@ export class StockComponent implements OnInit {
       this.hasSearched = false;
       this.page = 1;
       this.loadStocks();
+      this.loadIndicators();
     });
   }
 
@@ -123,6 +128,18 @@ export class StockComponent implements OnInit {
       this.totalCount = res.totalCount;
       this.page = res.page;
       this.totalPages = res.totalPages;
+    });
+  }
+
+  loadIndicators(): void {
+    // Traer total de productos activos en la sede
+    this.stockService.getStockSede(undefined, undefined, undefined, true, undefined, 1, 1).subscribe(res => {
+      this.indicatorTotal = res.totalCount;
+    });
+
+    // Traer total de productos con bajo stock (activos)
+    this.stockService.getStockSede(undefined, undefined, undefined, true, true, 1, 1).subscribe(res => {
+      this.indicatorBajoStock = res.totalCount;
     });
   }
 
@@ -191,6 +208,7 @@ export class StockComponent implements OnInit {
       next: () => {
         this.closeModal();
         this.loadStocks();
+        this.loadIndicators();
       },
       error: (err) => alert(err.error?.message || 'Error al registrar consumo')
     });
@@ -218,6 +236,7 @@ export class StockComponent implements OnInit {
       next: () => {
         this.closeModal();
         this.loadStocks();
+        this.loadIndicators();
       },
       error: (err) => alert(err.error?.message || 'Error al registrar transferencia')
     });
@@ -245,6 +264,7 @@ export class StockComponent implements OnInit {
       next: () => {
         this.closeModal();
         this.loadStocks();
+        this.loadIndicators();
       },
       error: (err) => alert(err.error?.message || 'Error al incrementar stock')
     });
@@ -263,7 +283,7 @@ export class StockComponent implements OnInit {
     if (!this.selectedStock) return;
     this.stockService.getMovimientos(this.selectedStock.idProducto, this.histFiltroTipo || undefined, this.histFiltroDesde || undefined, this.histFiltroHasta || undefined)
       .subscribe({
-        next: (data) => this.historial = data,
+        next: (data) => this.historial = data.slice(0, 6),
         error: (err) => alert('Error al cargar historial')
       });
   }

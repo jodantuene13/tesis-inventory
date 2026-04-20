@@ -24,6 +24,11 @@ export class RubrosFamiliasComponent implements OnInit {
     currentRubroForm: CreateRubro | UpdateRubro = { codigoRubro: '', nombre: '', activo: true };
     currentRubroId: number | null = null;
     errorRubro: string | null = null;
+    
+    // Indicators
+    indicatorTotalRubros: number = 0;
+    indicatorTotalFamilias: number = 0;
+    indicatorRubrosActivos: number = 0;
 
     // Familias state
     familias: Familia[] = [];
@@ -54,6 +59,7 @@ export class RubrosFamiliasComponent implements OnInit {
         this.rubroService.getAll(true).subscribe({
             next: (data) => {
                 this.rubros = data;
+                this.calculateIndicators();
                 this.loadingRubros = false;
             },
             error: () => {
@@ -160,6 +166,16 @@ export class RubrosFamiliasComponent implements OnInit {
                 this.loadingFamilias = false;
                 Swal.fire('Error', 'No se pudieron cargar las familias', 'error');
             }
+        });
+    }
+
+    calculateIndicators(): void {
+        this.indicatorTotalRubros = this.rubros.length;
+        this.indicatorRubrosActivos = this.rubros.filter(r => r.activo).length;
+        
+        // Cargar total de familias global
+        this.familiaService.getAll(true).subscribe(fams => {
+            this.indicatorTotalFamilias = fams.length;
         });
     }
 

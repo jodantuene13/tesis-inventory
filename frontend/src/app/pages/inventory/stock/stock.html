@@ -1,6 +1,15 @@
 <div class="container mx-auto p-4 relative">
     <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
         <h2 class="text-2xl font-bold text-gray-800">Stock Local</h2>
+        <div class="flex gap-2 w-full md:w-auto">
+            <button (click)="openMultipleModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 w-full flex items-center justify-center gap-2">
+                <i class="fa-solid fa-layer-group"></i> <!-- Requires FontAwesome -->
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                </svg>
+                Operaciones Múltiples
+            </button>
+        </div>
     </div>
 
     <!-- Quick Indicators -->
@@ -432,6 +441,168 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
                     </svg>
                 </a>
+            </div>
+        </div>
+
+        <!-- Multiple Operations Modal -->
+        <div *ngIf="activeModal === 'multiple'" class="bg-white rounded-xl shadow-2xl overflow-hidden w-full max-w-4xl transform transition-all relative z-10 flex flex-col max-h-[90vh]">
+            <!-- Modal Header -->
+            <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+                <h3 class="text-lg font-bold text-gray-800 flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                </svg>
+                Operaciones Múltiples de Stock
+                </h3>
+                <button (click)="closeModal()" class="text-gray-400 hover:text-gray-600 focus:outline-none transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+                </button>
+            </div>
+
+            <!-- Modal Body -->
+            <div class="p-6 flex-grow flex flex-col md:flex-row gap-6 overflow-y-auto">
+                <!-- Left Column: Form -->
+                <div class="w-full md:w-1/2 flex flex-col gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Tipo de Operación <span class="text-red-500">*</span></label>
+                        <select [(ngModel)]="multipleRequest.tipoOperacion" (change)="onTipoOperacionChange()" class="w-full border-gray-300 rounded-lg shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border">
+                            <option [ngValue]="0">Ingresar Stock</option>
+                            <option [ngValue]="1">Consumir Stock</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Motivo <span class="text-red-500">*</span></label>
+                        <select *ngIf="multipleRequest.tipoOperacion == 0" [(ngModel)]="multipleRequest.motivo" class="w-full border-gray-300 rounded-lg shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border">
+                            <option [ngValue]="3">Por Compra</option>
+                            <option [ngValue]="4">Ajustes varios</option>
+                        </select>
+                        <select *ngIf="multipleRequest.tipoOperacion == 1" [(ngModel)]="multipleRequest.motivo" class="w-full border-gray-300 rounded-lg shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border">
+                            <option [ngValue]="0">Consumo Interno</option>
+                            <option [ngValue]="1">Egreso por vencimiento</option>
+                            <option [ngValue]="2">Egreso por daño</option>
+                        </select>
+                    </div>
+
+                    <div *ngIf="multipleRequest.tipoOperacion == 0">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Orden de Compra</label>
+                        <input type="text" [(ngModel)]="multipleRequest.ordenCompra" class="w-full border-gray-300 rounded-lg shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border" placeholder="Nro OC...">
+                    </div>
+
+                    <div *ngIf="multipleRequest.tipoOperacion == 1">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Orden de Trabajo (OT)</label>
+                        <input type="text" [(ngModel)]="multipleRequest.ordenTrabajo" class="w-full border-gray-300 rounded-lg shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border" placeholder="Nro OT...">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Ticket de Solicitud (Opcional)</label>
+                        <input type="text" [(ngModel)]="multipleRequest.ticketSolicitud" class="w-full border-gray-300 rounded-lg shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border" placeholder="ID de ticket...">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Descripción / Tarea a realizar</label>
+                        <textarea [(ngModel)]="multipleRequest.observaciones" rows="2" class="w-full border-gray-300 rounded-lg shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border" placeholder="Justifique o añada detalles..."></textarea>
+                    </div>
+
+                    <div class="mt-2 bg-indigo-50 border border-indigo-100 rounded-lg p-4 flex flex-col justify-center items-center text-center">
+                        <p class="text-sm text-indigo-800 font-medium mb-3">Busca y añade productos a la operación.</p>
+                        <button (click)="openProductModal()" class="px-4 py-2 bg-white text-indigo-600 border border-indigo-200 rounded shadow-sm hover:bg-indigo-600 hover:text-white transition-colors font-semibold text-sm w-full">
+                            + Agregar Productos
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Right Column: Cart items -->
+                <div class="w-full md:w-1/2 flex flex-col bg-gray-50 rounded-xl p-4 border border-gray-200">
+                    <h4 class="font-bold text-gray-700 mb-2 border-b pb-2 flex justify-between items-center">
+                        <span>Listado de Productos</span>
+                        <span class="text-xs bg-indigo-100 text-indigo-800 px-2 rounded-full py-0.5">{{ multipleRequest.detalles.length }} items</span>
+                    </h4>
+
+                    <div *ngIf="multipleRequest.detalles.length === 0" class="flex flex-col items-center justify-center flex-grow text-gray-400">
+                        <p class="text-sm">Agrega productos utilizando el buscador</p>
+                    </div>
+
+                    <div *ngIf="multipleRequest.detalles.length > 0" class="overflow-y-auto pr-2 space-y-3 flex-grow">
+                        <div *ngFor="let item of multipleRequest.detalles; let i = index" class="bg-white p-3 rounded-lg shadow-sm border border-gray-100 relative group">
+                            <div class="flex justify-between items-start mb-2">
+                                <div class="pr-6">
+                                    <p class="text-sm font-bold text-gray-800"><span class="text-indigo-600 mr-1">{{ item.productoInfo.sku }}</span>{{ item.productoInfo.nombreProducto }}</p>
+                                    <p class="text-[10px] uppercase tracking-wider text-gray-500">Stock actual: {{ item.productoInfo.cantidadActual }}</p>
+                                </div>
+                                <button (click)="removeDetalle(i)" class="text-gray-300 hover:text-red-500 absolute top-3 right-3 transition-colors">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                    </svg>
+                                </button>
+                            </div>
+                            
+                            <div class="flex items-center gap-2 mt-2 bg-indigo-50 p-2 rounded-md border border-indigo-100/50">
+                                <label class="text-xs font-semibold text-indigo-900 w-16">Cantidad:</label>
+                                <input type="number" [(ngModel)]="item.cantidad" min="1" class="w-20 border-indigo-200 py-1 text-sm rounded shadow-sm text-center form-input">
+                                <span class="text-xs text-indigo-700">{{ item.productoInfo.unidadMedida }}</span>
+                            </div>
+                            <!-- Validation Msg -->
+                            <div *ngIf="multipleRequest.tipoOperacion === 1 && (item.productoInfo.cantidadActual - item.cantidad < 0)" class="mt-1 flex items-center text-[10px] text-red-600 font-medium">
+                                ¡Supera el stock actual disponible!
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="px-6 py-4 border-t border-gray-100 bg-gray-50 flex justify-end gap-3 rounded-b-xl">
+                <button (click)="closeModal()" class="px-4 py-2 bg-white text-gray-700 border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 font-medium transition-colors">
+                Cancelar
+                </button>
+                <button (click)="submitMultipleRequest()" [disabled]="multipleRequest.detalles.length === 0"
+                        class="px-5 py-2 bg-indigo-600 text-white rounded-lg shadow-md focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium outline-none transition-all flex items-center gap-2">
+                Procesar Operación
+                </button>
+            </div>
+        </div>
+
+        <!-- SECONDARY MODAL: Product Search Autocomplete for Multiple -->
+        <div *ngIf="isProductModalOpen" class="fixed inset-0 z-[60] flex items-center justify-center p-4">
+            <div class="fixed inset-0 bg-gray-900 bg-opacity-60 backdrop-blur-sm transition-opacity" (click)="closeProductModal()"></div>
+            
+            <div class="bg-white rounded-xl shadow-2xl overflow-hidden w-full max-w-lg transform transition-all relative z-[70] flex flex-col h-[500px]">
+                <div class="px-5 py-3 border-b border-gray-100 bg-indigo-600 flex justify-between items-center text-white">
+                    <h3 class="font-bold text-sm tracking-wide">Buscar Producto</h3>
+                    <button (click)="closeProductModal()" class="text-indigo-200 hover:text-white transition-colors">X</button>
+                </div>
+
+                <div class="p-4 flex flex-col h-full bg-gray-50">
+                    <div class="relative mb-3 flex-shrink-0">
+                        <input type="text" [(ngModel)]="searchProduct" (input)="onSearchProduct()"
+                                class="w-full border-gray-300 rounded-lg shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm py-2.5 px-3"
+                                placeholder="Escribe código SKU o nombre de producto..." autoFocus="true">
+                    </div>
+
+                    <div class="bg-white rounded-lg border border-gray-200 overflow-y-auto flex-grow">
+                        <ul class="divide-y divide-gray-100">
+                            <li *ngIf="filteredStock.length === 0" class="p-6 text-center text-gray-400">
+                                <p class="text-sm">No se encontraron productos.</p>
+                            </li>
+                            <li *ngFor="let item of filteredStock" 
+                                (click)="selectProduct(item)"
+                                class="px-4 py-3 hover:bg-indigo-50 cursor-pointer flex justify-between items-center group transition-colors">
+                                <div>
+                                <p class="text-sm font-bold text-gray-800"><span class="text-indigo-400 mr-1 text-xs">{{ item.sku }}</span> {{ item.nombreProducto }}</p>
+                                <p class="text-xs text-gray-500 font-medium mt-0.5">Stock: <span class="text-gray-700">{{ item.cantidadActual }} {{ item.unidadMedida }}</span></p>
+                                </div>
+                                <div class="flex gap-2">
+                                <button class="bg-indigo-100 text-indigo-700 hover:bg-indigo-600 hover:text-white px-3 py-1 rounded shadow-sm text-xs font-bold transition-colors">
+                                    Añadir
+                                </button>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
             </div>
         </div>
 

@@ -31,6 +31,7 @@ builder.Services.AddScoped<IFamiliaRepository, FamiliaRepository>();
 builder.Services.AddScoped<IAtributoRepository, AtributoRepository>();
 builder.Services.AddScoped<IProductoRepository, ProductoRepository>();
 builder.Services.AddScoped<IStockRepository, StockRepository>();
+builder.Services.AddScoped<IOperacionStockRepository, OperacionStockRepository>();
 builder.Services.AddScoped<IMovimientoRepository, MovimientoRepository>();
 builder.Services.AddScoped<ITransferenciaRepository, TransferenciaRepository>();
 

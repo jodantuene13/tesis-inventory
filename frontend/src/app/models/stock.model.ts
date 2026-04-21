@@ -54,3 +54,34 @@ export interface RegistrarTransferenciaDto {
     cantidad: number;
     observaciones?: string;
 }
+
+export interface DetalleOperacionStockDto {
+    idProducto: number;
+    cantidad: number;
+    productoInfo?: any; // Para uso en Frontend (carrito)
+}
+
+export interface OperacionStockMultipleDto {
+    tipoOperacion: number;
+    motivo: number;
+    ordenTrabajo?: string;
+    ordenCompra?: string;
+    ticketSolicitud?: string;
+    observaciones?: string;
+    detalles: DetalleOperacionStockDto[];
+}
+
+export interface OperacionStockResponseDto {
+    idOperacion: number;
+    idSede: number;
+    idUsuario: number;
+    nombreUsuario: string;
+    tipoOperacion: number;
+    fecha: string;
+    motivo: number;
+    ordenTrabajo?: string;
+    ordenCompra?: string;
+    ticketSolicitud?: string;
+    observaciones?: string;
+    detalles: Movimiento[];
+}

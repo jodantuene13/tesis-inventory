@@ -7,6 +7,75 @@
         </div>
     </div>
 
+    <!-- Quick Indicators -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
+        <!-- Total Card -->
+        <div class="bg-gradient-to-br from-indigo-500 to-indigo-700 rounded-2xl shadow-lg p-6 text-white transform hover:scale-105 transition-all duration-300">
+            <div class="flex justify-between items-center">
+                <div>
+                    <p class="text-indigo-100 text-sm font-medium uppercase tracking-wider">Total Atributos</p>
+                    <h3 class="text-4xl font-black mt-1">{{ indicatorTotal }}</h3>
+                </div>
+                <div class="bg-white/20 p-3 rounded-xl backdrop-blur-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h.01M7 11h.01M7 15h.01M7 19h.01M11 7h.01M11 3h.01M11 11h.01M11 15h.01M11 19h.01M15 7h.01M15 3h.01M15 11h.01M15 15h.01M15 19h.01M19 7h.01M19 3h.01M19 11h.01M19 15h.01M19 19h.01" />
+                    </svg>
+                </div>
+            </div>
+            <p class="mt-4 text-sm text-indigo-100">
+                {{ indicatorActivos }} Activos del sistema
+            </p>
+        </div>
+
+        <!-- Listas Card -->
+        <div class="bg-gradient-to-br from-purple-500 to-purple-700 rounded-2xl shadow-lg p-6 text-white transform hover:scale-105 transition-all duration-300">
+            <div class="flex justify-between items-center">
+                <div>
+                    <p class="text-purple-100 text-sm font-medium uppercase tracking-wider">Tipo Lista</p>
+                    <h3 class="text-4xl font-black mt-1">{{ indicatorTipos['LIST'] || 0 }}</h3>
+                </div>
+                <div class="bg-white/20 p-3 rounded-xl backdrop-blur-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+                    </svg>
+                </div>
+            </div>
+            <p class="mt-4 text-sm text-purple-100 italic">Desplegables dinámicos</p>
+        </div>
+
+        <!-- Numericos Card -->
+        <div class="bg-gradient-to-br from-blue-500 to-blue-700 rounded-2xl shadow-lg p-6 text-white transform hover:scale-105 transition-all duration-300">
+            <div class="flex justify-between items-center">
+                <div>
+                    <p class="text-blue-100 text-sm font-medium uppercase tracking-wider">Numéricos/Decimal</p>
+                    <h3 class="text-4xl font-black mt-1">{{ (indicatorTipos['NUMBER'] || 0) + (indicatorTipos['DECIMAL'] || 0) }}</h3>
+                </div>
+                <div class="bg-white/20 p-3 rounded-xl backdrop-blur-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
+                    </svg>
+                </div>
+            </div>
+            <p class="mt-4 text-sm text-blue-100">Medidas y valores técnicos</p>
+        </div>
+
+        <!-- Booleanos Card -->
+        <div class="bg-gradient-to-br from-emerald-500 to-emerald-700 rounded-2xl shadow-lg p-6 text-white transform hover:scale-105 transition-all duration-300">
+            <div class="flex justify-between items-center">
+                <div>
+                    <p class="text-emerald-100 text-sm font-medium uppercase tracking-wider">Switches/Boolean</p>
+                    <h3 class="text-4xl font-black mt-1">{{ indicatorTipos['BOOLEAN'] || 0 }}</h3>
+                </div>
+                <div class="bg-white/20 p-3 rounded-xl backdrop-blur-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                </div>
+            </div>
+            <p class="mt-4 text-sm text-emerald-100">Opciones Sí/No</p>
+        </div>
+    </div>
+
     <div class="flex flex-col lg:flex-row gap-6 flex-1 min-h-0">
         <!-- Panel Izquierdo: Maestros de Atributo -->
         <div class="flex-[2] floating-card flex flex-col overflow-hidden">

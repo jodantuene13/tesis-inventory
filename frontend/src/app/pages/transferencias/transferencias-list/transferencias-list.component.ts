@@ -31,6 +31,11 @@ export class TransferenciasListComponent implements OnInit, OnDestroy {
   isLoading = false;
   private contextSub!: Subscription;
 
+  // Indicators
+  indicatorEntrantes: number = 0;
+  indicatorSalientes: number = 0;
+  indicatorPendientes: number = 0;
+
   // Modal Properties
   isModalOpen = false;
   isProductModalOpen = false;
@@ -89,9 +94,20 @@ export class TransferenciasListComponent implements OnInit, OnDestroy {
     });
 
     this.transferenciaService.getSalientes().subscribe({
-      next: (res) => { this.salientes = res; this.isLoading = false; },
+      next: (res) => { 
+        this.salientes = res; 
+        this.isLoading = false; 
+        this.calculateIndicators();
+      },
       error: (err) => { console.error(err); this.isLoading = false; }
     });
+  }
+
+  calculateIndicators() {
+    this.indicatorEntrantes = this.entrantes.length;
+    this.indicatorSalientes = this.salientes.length;
+    this.indicatorPendientes = this.entrantes.filter(t => t.estado === 0).length + 
+                               this.salientes.filter(t => t.estado === 0).length;
   }
 
   // --- Modal Logic ---

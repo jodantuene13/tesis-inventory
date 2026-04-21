@@ -19,6 +19,11 @@ import Swal from 'sweetalert2';
 export class AtributosComponent implements OnInit {
     atributos: Atributo[] = [];
     loadingAtributos = false;
+    
+    // Indicators
+    indicatorTotal: number = 0;
+    indicatorActivos: number = 0;
+    indicatorTipos: { [key: string]: number } = {};
     selectedAtributo: Atributo | null = null;
 
     // Atributo Modal
@@ -68,6 +73,7 @@ export class AtributosComponent implements OnInit {
         this.atributoService.getAll(true).subscribe({
             next: (data) => {
                 this.atributos = data;
+                this.calculateIndicators();
                 this.loadingAtributos = false;
             },
             error: () => {
@@ -302,6 +308,16 @@ export class AtributosComponent implements OnInit {
                     error: (err) => Swal.fire('Error', err.error?.message, 'error')
                 });
             }
+        });
+    }
+
+    calculateIndicators(): void {
+        this.indicatorTotal = this.atributos.length;
+        this.indicatorActivos = this.atributos.filter(a => a.activo).length;
+        
+        this.indicatorTipos = {};
+        this.atributos.forEach(a => {
+            this.indicatorTipos[a.tipoDato] = (this.indicatorTipos[a.tipoDato] || 0) + 1;
         });
     }
 }

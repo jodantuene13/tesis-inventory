@@ -25,6 +25,7 @@ namespace TesisInventory.Infrastructure.Persistence
         public DbSet<Stock> Stock { get; set; }
         public DbSet<Movimiento> Movimiento { get; set; }
         public DbSet<Transferencia> Transferencia { get; set; }
+        public DbSet<TransferenciaDetalle> TransferenciaDetalle { get; set; }
         public DbSet<HistorialTransferencia> HistorialTransferencia { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -174,22 +175,14 @@ namespace TesisInventory.Infrastructure.Persistence
             modelBuilder.Entity<Transferencia>().ToTable("Transferencia");
             modelBuilder.Entity<Transferencia>().HasKey(t => t.IdTransferencia);
             modelBuilder.Entity<Transferencia>().Property(t => t.IdTransferencia).HasColumnName("idTransferencia");
-            modelBuilder.Entity<Transferencia>().Property(t => t.IdProducto).HasColumnName("idProducto");
             modelBuilder.Entity<Transferencia>().Property(t => t.IdSedeOrigen).HasColumnName("idSedeOrigen");
             modelBuilder.Entity<Transferencia>().Property(t => t.IdSedeDestino).HasColumnName("idSedeDestino");
-            modelBuilder.Entity<Transferencia>().Property(t => t.Cantidad).HasColumnName("cantidad");
-            modelBuilder.Entity<Transferencia>().Property(t => t.StockOrigenSnapshot).HasColumnName("stockOrigenSnapshot");
             modelBuilder.Entity<Transferencia>().Property(t => t.FechaSolicitud).HasColumnName("fechaSolicitud");
             modelBuilder.Entity<Transferencia>().Property(t => t.Estado).HasColumnName("estado");
             modelBuilder.Entity<Transferencia>().Property(t => t.Motivo).HasColumnName("motivo");
             modelBuilder.Entity<Transferencia>().Property(t => t.IdUsuarioSolicita).HasColumnName("idUsuarioSolicita");
             modelBuilder.Entity<Transferencia>().Property(t => t.Observaciones).HasColumnName("observaciones");
 
-            modelBuilder.Entity<Transferencia>()
-                .HasOne(t => t.Producto)
-                .WithMany(p => p.Transferencias)
-                .HasForeignKey(t => t.IdProducto)
-                .OnDelete(DeleteBehavior.Restrict);
             modelBuilder.Entity<Transferencia>()
                 .HasOne(t => t.SedeOrigen)
                 .WithMany(s => s.TransferenciasOrigen)
@@ -204,6 +197,27 @@ namespace TesisInventory.Infrastructure.Persistence
                 .HasOne(t => t.UsuarioSolicita)
                 .WithMany(u => u.TransferenciasSolicitadas)
                 .HasForeignKey(t => t.IdUsuarioSolicita)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // TransferenciaDetalle
+            modelBuilder.Entity<TransferenciaDetalle>().ToTable("TransferenciaDetalle");
+            modelBuilder.Entity<TransferenciaDetalle>().HasKey(td => td.IdTransferenciaDetalle);
+            modelBuilder.Entity<TransferenciaDetalle>().Property(td => td.IdTransferenciaDetalle).HasColumnName("idTransferenciaDetalle");
+            modelBuilder.Entity<TransferenciaDetalle>().Property(td => td.IdTransferencia).HasColumnName("idTransferencia");
+            modelBuilder.Entity<TransferenciaDetalle>().Property(td => td.IdProducto).HasColumnName("idProducto");
+            modelBuilder.Entity<TransferenciaDetalle>().Property(td => td.Cantidad).HasColumnName("cantidad");
+            modelBuilder.Entity<TransferenciaDetalle>().Property(td => td.StockOrigenSnapshot).HasColumnName("stockOrigenSnapshot");
+
+            modelBuilder.Entity<TransferenciaDetalle>()
+                .HasOne(td => td.Transferencia)
+                .WithMany(t => t.Detalles)
+                .HasForeignKey(td => td.IdTransferencia)
+                .OnDelete(DeleteBehavior.Cascade);
+                
+            modelBuilder.Entity<TransferenciaDetalle>()
+                .HasOne(td => td.Producto)
+                .WithMany(p => p.TransferenciaDetalles)
+                .HasForeignKey(td => td.IdProducto)
                 .OnDelete(DeleteBehavior.Restrict);
 
             // HistorialTransferencia

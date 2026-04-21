@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using TesisInventory.Domain.Enums;
 
 namespace TesisInventory.Application.DTOs.Transferencias
@@ -6,14 +7,12 @@ namespace TesisInventory.Application.DTOs.Transferencias
     public class TransferenciaDto
     {
         public int IdTransferencia { get; set; }
-        public int IdProducto { get; set; }
-        public string NombreProducto { get; set; } = string.Empty;
+        public string CodigoTracking => $"TR-{FechaSolicitud:ddMMyy}-{IdTransferencia}";
         public int IdSedeOrigen { get; set; }
         public string NombreSedeOrigen { get; set; } = string.Empty;
         public int IdSedeDestino { get; set; }
         public string NombreSedeDestino { get; set; } = string.Empty;
-        public int Cantidad { get; set; }
-        public int? StockOrigenSnapshot { get; set; }
+        public List<TransferenciaDetalleDto> Detalles { get; set; } = new List<TransferenciaDetalleDto>();
         public DateTime FechaSolicitud { get; set; }
         public EstadoTransferencia Estado { get; set; }
         public MotivoTransferencia Motivo { get; set; }

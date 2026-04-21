@@ -31,7 +31,8 @@ namespace TesisInventory.Infrastructure.Repositories
         public async Task<Transferencia?> GetTransferenciaByIdAsync(int id)
         {
             return await _context.Transferencia
-                .Include(t => t.Producto)
+                .Include(t => t.Detalles)
+                    .ThenInclude(d => d.Producto)
                 .Include(t => t.SedeOrigen)
                 .Include(t => t.SedeDestino)
                 .Include(t => t.UsuarioSolicita)
@@ -43,7 +44,8 @@ namespace TesisInventory.Infrastructure.Repositories
         public async Task<System.Collections.Generic.IEnumerable<Transferencia>> GetEntrantesAsync(int idSede)
         {
             return await _context.Transferencia
-                .Include(t => t.Producto)
+                .Include(t => t.Detalles)
+                    .ThenInclude(d => d.Producto)
                 .Include(t => t.SedeOrigen)
                 .Include(t => t.SedeDestino)
                 .Include(t => t.UsuarioSolicita)
@@ -55,7 +57,8 @@ namespace TesisInventory.Infrastructure.Repositories
         public async Task<System.Collections.Generic.IEnumerable<Transferencia>> GetSalientesAsync(int idSede)
         {
             return await _context.Transferencia
-                .Include(t => t.Producto)
+                .Include(t => t.Detalles)
+                    .ThenInclude(d => d.Producto)
                 .Include(t => t.SedeOrigen)
                 .Include(t => t.SedeDestino)
                 .Include(t => t.UsuarioSolicita)

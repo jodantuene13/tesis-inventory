@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TransferenciaService } from '../../../services/transferencia.service';
@@ -6,50 +6,56 @@ import { SedeService } from '../../../services/sede.service';
 import { StockService } from '../../../services/stock.service';
 import { ProductoService } from '../../../services/producto.service';
 import { AuthService } from '../../../services/auth';
-import { Transferencia, MotivoTransferencia } from '../../../models/transferencia.model';
+import { Transferencia, MotivoTransferencia, CreateTransferenciaDetalleDto } from '../../../models/transferencia.model';
 import { TransferenciaCardComponent } from '../transferencia-card/transferencia-card.component';
 import { SedeContextService } from '../../../services/sede-context.service';
-import { Subscription } from 'rxjs';
+import { Subscription, lastValueFrom } from 'rxjs';
+import { FichaProductoModalComponent } from '../../../shared/components/ficha-producto-modal/ficha-producto-modal.component';
 import Swal from 'sweetalert2';
+
+interface CartItem extends CreateTransferenciaDetalleDto {
+  productoInfo: any;
+}
 
 @Component({
   selector: 'app-transferencias-list',
   standalone: true,
-  imports: [CommonModule, FormsModule, TransferenciaCardComponent],
+  imports: [CommonModule, FormsModule, TransferenciaCardComponent, FichaProductoModalComponent],
   templateUrl: './transferencias-list.component.html',
   styleUrls: []
 })
-export class TransferenciasListComponent implements OnInit {
+export class TransferenciasListComponent implements OnInit, OnDestroy {
   activeTab: 'entrantes' | 'salientes' = 'entrantes';
   entrantes: Transferencia[] = [];
   salientes: Transferencia[] = [];
   isLoading = false;
-  isCreatorSede = false; 
   private contextSub!: Subscription;
 
   // Modal Properties
   isModalOpen = false;
+  isProductModalOpen = false;
   sedes: any[] = [];
   stockList: any[] = [];
   filteredStock: any[] = [];
   searchProduct = '';
-  showDropdown = false;
   MotivoEnum = MotivoTransferencia;
 
   newRequest = {
     idSedeOrigen: null as number | null,
-    idProducto: null as number | null,
-    cantidad: 1,
     motivo: MotivoTransferencia.Definitiva,
-    observaciones: ''
+    observaciones: '',
+    detalles: [] as CartItem[]
   };
-  selectedProductoStock: any = null;
 
-  // View Details
+  // View Details (Cards)
   isViewModalOpen = false;
   selectedViewTransferencia: Transferencia | null = null;
-  selectedViewStockResult: any = null;
+  selectedViewStockResults: any[] = [];
   isLoadingViewStock = false;
+
+  // Shared Modal: Ficha de Producto
+  isFichaProductoOpen = false;
+  selectedFichaStock: any = null;
 
   constructor(
     private transferenciaService: TransferenciaService,
@@ -61,7 +67,6 @@ export class TransferenciasListComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    // Suscribirse a cambios de sede para recargar
     this.contextSub = this.sedeContextService.sedeEnContexto$.subscribe(() => {
       this.cargarDatos();
     });
@@ -94,25 +99,43 @@ export class TransferenciasListComponent implements OnInit {
     this.isModalOpen = true;
     this.resetForm();
     this.loadSedes();
-    // No cargar stock hasta elegir Sede Origen
     this.stockList = [];
     this.filteredStock = [];
   }
 
   closeModal() {
     this.isModalOpen = false;
+    this.isProductModalOpen = false;
+  }
+
+  openProductModal() {
+    this.isProductModalOpen = true;
+    this.searchProduct = '';
+    this.filteredStock = [...this.stockList];
+  }
+
+  closeProductModal() {
+    this.isProductModalOpen = false;
+  }
+
+  openFichaProducto(item: any) {
+    this.selectedFichaStock = item;
+    this.isFichaProductoOpen = true;
+  }
+
+  closeFichaProducto() {
+    this.isFichaProductoOpen = false;
+    this.selectedFichaStock = null;
   }
 
   resetForm() {
     this.newRequest = {
       idSedeOrigen: null,
-      idProducto: null,
-      cantidad: 1,
       motivo: MotivoTransferencia.Definitiva,
-      observaciones: ''
+      observaciones: '',
+      detalles: []
     };
     this.searchProduct = '';
-    this.selectedProductoStock = null;
   }
 
   loadSedes() {
@@ -120,14 +143,13 @@ export class TransferenciasListComponent implements OnInit {
     this.authService.user$.subscribe(u => { if(u?.idSede) userSedeId = u.idSede; }).unsubscribe();
 
     this.sedeService.getAll().subscribe(res => {
-      // Exclude my Sede
       this.sedes = res.filter(s => s.idSede !== userSedeId);
     });
   }
 
   onSedeChange() {
     this.searchProduct = '';
-    this.selectedProductoStock = null;
+    this.newRequest.detalles = []; // Limpiar carrito si cambia la sede
     
     if (!this.newRequest.idSedeOrigen) {
         this.stockList = [];
@@ -135,24 +157,27 @@ export class TransferenciasListComponent implements OnInit {
         return;
     }
 
-    // Cargar todos los productos activos y el stock en paralelo
     Promise.all([
-      this.productoService.getAll(false).toPromise(),
-      this.stockService.getStockSede('', undefined, undefined, true, undefined, 1, 1000, this.newRequest.idSedeOrigen).toPromise()
+      lastValueFrom(this.productoService.getAll(false)),
+      lastValueFrom(this.stockService.getStockSede('', undefined, undefined, true, undefined, 1, 1000, this.newRequest.idSedeOrigen))
     ]).then(([productosRes, stockRes]: [any, any]) => {
       const allProductos = productosRes || [];
       const stockArray = stockRes?.data || stockRes || [];
 
-      // Mapear productos e inyectar stock de la sede si lo tiene, sino Cantidad = 0
       this.stockList = allProductos.map((p: any) => {
         const matchingStock = stockArray.find((s: any) => s.idProducto === p.idProducto);
         return {
           idProducto: p.idProducto,
           sku: p.sku,
           nombreProducto: p.nombre,
+          rubroProducto: matchingStock?.rubroProducto || 'N/A',
+          familiaProducto: p.nombreFamilia || matchingStock?.familiaProducto || 'N/A',
           unidadMedida: p.unidadMedida || 'Unidades',
           cantidadActual: matchingStock ? matchingStock.cantidadActual : 0,
-          conBajoStock: matchingStock ? (matchingStock.cantidadActual <= matchingStock.puntoReposicion) : true
+          puntoReposicion: matchingStock ? matchingStock.puntoReposicion : 0,
+          estadoProducto: typeof p.activo === 'boolean' ? p.activo : (matchingStock?.estadoProducto ?? false),
+          conBajoStock: matchingStock ? (matchingStock.cantidadActual <= matchingStock.puntoReposicion) : true,
+          atributos: p.atributos || matchingStock?.atributos || []
         };
       });
 
@@ -169,34 +194,78 @@ export class TransferenciasListComponent implements OnInit {
   }
 
   selectProduct(stockItem: any) {
-    this.selectedProductoStock = stockItem;
-    this.newRequest.idProducto = stockItem.idProducto;
-    this.searchProduct = `${stockItem.sku} - ${stockItem.nombreProducto}`;
-    this.showDropdown = false;
+    const alreadyExists = this.newRequest.detalles.find(d => d.idProducto === stockItem.idProducto);
+    if (alreadyExists) {
+      alreadyExists.cantidad += 1;
+    } else {
+      this.newRequest.detalles.push({
+        idProducto: stockItem.idProducto,
+        cantidad: 1,
+        productoInfo: stockItem // Guardamos info para renderizar la tabla
+      });
+    }
+    
+    this.searchProduct = '';
+    this.isProductModalOpen = false; // Como acordado, devolvemos al carrito tras seleccionar
+  }
+
+  removeDetalle(index: number) {
+    this.newRequest.detalles.splice(index, 1);
   }
 
   submitRequest() {
-    if (!this.newRequest.idSedeOrigen || !this.newRequest.idProducto || this.newRequest.cantidad <= 0) {
-      Swal.fire('Error', 'Debe completar los campos obligatorios.', 'error');
+    if (!this.newRequest.idSedeOrigen || this.newRequest.detalles.length === 0) {
+      Swal.fire('Error', 'Debe seleccionar una Sede Origen y al menos un producto.', 'error');
+      return;
+    }
+
+    const hasInvalidQuantities = this.newRequest.detalles.some(d => d.cantidad <= 0);
+    if (hasInvalidQuantities) {
+      Swal.fire('Error', 'Todos los productos deben tener una cantidad mayor a 0.', 'error');
       return;
     }
 
     const sedeOrigenStr = this.sedes.find(s => s.idSede == this.newRequest.idSedeOrigen)?.nombreSede || 'Desconocida';
     const motivoStr = this.newRequest.motivo == MotivoTransferencia.Prestamo ? 'Préstamo' : 'Definitiva';
-    const stockResultante = this.selectedProductoStock.cantidadActual - this.newRequest.cantidad;
-    const warning = stockResultante < 0 ? '<br><p class="text-yellow-600 font-bold mt-2">¡Advertencia! La Sede seleccionada no tiene stock físico suficiente para cubrir este pedido ahora mismo.</p>' : '';
+
+    // Generar tabla HTML para el sweet alert
+    let tableRows = '';
+    let hasStockWarnings = false;
+
+    this.newRequest.detalles.forEach(d => {
+      const remaining = d.productoInfo.cantidadActual - d.cantidad;
+      if (remaining < 0) hasStockWarnings = true;
+      
+      tableRows += `
+        <tr>
+          <td style="text-align: left; border-bottom: 1px solid #eee; padding: 4px;">${d.productoInfo.sku} - ${d.productoInfo.nombreProducto}</td>
+          <td style="text-align: center; border-bottom: 1px solid #eee; padding: 4px;">${d.productoInfo.cantidadActual}</td>
+          <td style="text-align: center; border-bottom: 1px solid #eee; padding: 4px; font-weight: bold; color: #ef4444;">+${d.cantidad}</td>
+        </tr>
+      `;
+    });
+
+    const warningInfo = hasStockWarnings ? '<p style="color: #d97706; font-size: 12px; margin-top: 10px; font-weight: bold;">⚠️ Advertencia: Algunos productos solicitados superan el stock actual en la Sede origen.</p>' : '';
 
     Swal.fire({
       title: 'Confirmar Solicitud',
       html: `
-        <div class="text-left space-y-2 text-sm mt-3">
+        <div style="font-size: 14px; text-align: left;">
           <p><strong>Solicitar a Sede:</strong> ${sedeOrigenStr}</p>
-          <p><strong>Producto:</strong> ${this.selectedProductoStock.sku} - ${this.selectedProductoStock.nombreProducto} (${this.selectedProductoStock.unidadMedida || 'Unidades'})</p>
           <p><strong>Motivo:</strong> ${motivoStr}</p>
-          <div class="border-t my-2 pt-2"></div>
-          <p><strong>Stock en Destino:</strong> ${this.selectedProductoStock.cantidadActual}</p>
-          <p><strong>Cantidad Pedida:</strong>  <span class="text-red-500 font-bold">+ ${this.newRequest.cantidad}</span></p>
-          ${warning}
+          <table style="width: 100%; margin-top: 15px; border-collapse: collapse; font-size: 13px;">
+            <thead>
+              <tr style="background-color: #f3f4f6;">
+                <th style="padding: 5px;">Producto</th>
+                <th style="padding: 5px;">Stock Sede</th>
+                <th style="padding: 5px;">Pedir</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${tableRows}
+            </tbody>
+          </table>
+          ${warningInfo}
         </div>
       `,
       icon: 'question',
@@ -204,32 +273,37 @@ export class TransferenciasListComponent implements OnInit {
       confirmButtonText: 'Enviar Solicitud',
       cancelButtonText: 'Cancelar',
       confirmButtonColor: '#4f46e5',
-      cancelButtonColor: '#9ca3af'
+      cancelButtonColor: '#9ca3af',
+      width: '600px'
     }).then((result) => {
       if (result.isConfirmed) {
-        // Enviar
         let userSedeId = 1; 
         this.authService.user$.subscribe(u => { if(u?.idSede) userSedeId = u.idSede; }).unsubscribe();
 
+        // Mapeo simple de detalles
+        const payloadDetalles = this.newRequest.detalles.map(d => ({
+          idProducto: d.idProducto,
+          cantidad: d.cantidad
+        }));
+
         this.transferenciaService.create({
-          idProducto: this.newRequest.idProducto!,
-          idSedeDestino: userSedeId, // Yo soy el destino, lo pido para mí
-          idSedeOrigen: this.newRequest.idSedeOrigen!, // Ellos me lo dan
-          cantidad: this.newRequest.cantidad,
+          idSedeDestino: userSedeId,
+          idSedeOrigen: this.newRequest.idSedeOrigen!,
+          detalles: payloadDetalles,
           motivo: Number(this.newRequest.motivo),
           observaciones: this.newRequest.observaciones
         }).subscribe({
           next: () => {
             Swal.fire('Completado', 'Solicitud creada con éxito', 'success');
             this.closeModal();
-            this.cargarDatos(); // Refresh lists
-            this.activeTab = 'salientes'; // Because we created a outgoing request
+            this.cargarDatos(); 
+            this.activeTab = 'salientes';
           },
           error: (err) => {
             console.error(err);
             const backendMsg = err.error?.message || err.message;
             const backendDetails = err.error?.details || '';
-            Swal.fire('Error', `<p>No se pudo crear la solicitud.</p><br><p class="text-sm text-red-600">${backendMsg}</p><br><textarea class="w-full text-xs text-gray-500 font-mono h-24" readonly>${backendDetails}</textarea>`, 'error');
+            Swal.fire('Error', `<p>No se pudo crear la solicitud.</p><br><p class="text-sm text-red-600">${backendMsg}</p>`, 'error');
           }
         });
       }
@@ -238,7 +312,7 @@ export class TransferenciasListComponent implements OnInit {
 
   // --- Actions Logic ---
   aceptar(t: Transferencia) {
-    if(confirm(`¿Desea aceptar la transferencia de ${t.cantidad} ${t.nombreProducto}?`)) {
+    if(confirm(`¿Desea aceptar la transferencia de ${t.detalles.length} productos hacia ${t.nombreSedeDestino}?`)) {
       this.transferenciaService.aceptar(t.idTransferencia, 'Aceptado desde listado').subscribe({
         next: () => {
           Swal.fire('Aceptada', 'La solicitud pasó a En Tránsito', 'success');
@@ -260,7 +334,7 @@ export class TransferenciasListComponent implements OnInit {
   }
 
   recibir(t: Transferencia) {
-    if(confirm(`¿Confirma la recepción de ${t.cantidad} ${t.nombreProducto}? Esto impactará el stock.`)) {
+    if(confirm(`¿Confirma la recepción de ${t.detalles.length} productos? Esto impactará el stock.`)) {
       this.transferenciaService.confirmarRecepcion(t.idTransferencia, 'Recibido').subscribe({
         next: () => {
           Swal.fire('Recibido', 'Stock actualizado en destino', 'success');
@@ -272,7 +346,7 @@ export class TransferenciasListComponent implements OnInit {
   }
 
   devolver(t: Transferencia) {
-    if(confirm(`¿Desea devolver el préstamo de ${t.cantidad} ${t.nombreProducto}?`)) {
+    if(confirm(`¿Desea devolver el préstamo asignado a la transferencia ${t.codigoTracking}?`)) {
       this.transferenciaService.devolver(t.idTransferencia, 'Devolución').subscribe({
         next: () => {
           Swal.fire('Devuelto', 'Se ha devuelto el stock a la sede origen', 'success');
@@ -286,21 +360,39 @@ export class TransferenciasListComponent implements OnInit {
   verDetalles(t: Transferencia) {
     this.selectedViewTransferencia = t;
     this.isViewModalOpen = true;
-    this.selectedViewStockResult = null;
+    this.selectedViewStockResults = [];
     this.isLoadingViewStock = true;
 
-    // Buscar en el stock en vivo de la Sede Origen
+    // Buscar en el stock en vivo de la Sede Origen para MÚLTIPLES productos
     this.stockService.getStockSede('', undefined, undefined, true, undefined, 1, 1000, t.idSedeOrigen).subscribe({
       next: (res) => {
         const list = res.data || res;
-        this.selectedViewStockResult = list.find((s: any) => s.idProducto === t.idProducto) || { cantidadActual: 0 };
+        this.selectedViewStockResults = t.detalles.map(detalle => {
+           const infoVivo = list.find((s: any) => s.idProducto === detalle.idProducto);
+           return {
+             idProducto: detalle.idProducto,
+             sku: detalle.sku,
+             nombreProducto: detalle.nombreProducto,
+             cantidadActual: infoVivo ? infoVivo.cantidadActual : 0,
+             cantidadPedido: detalle.cantidad,
+             stockSnapshot: detalle.stockOrigenSnapshot
+           };
+        });
         this.isLoadingViewStock = false;
       },
       error: () => {
-        this.selectedViewStockResult = { cantidadActual: '?' };
+        this.selectedViewStockResults = t.detalles.map(detalle => ({
+           idProducto: detalle.idProducto,
+           sku: detalle.sku,
+           nombreProducto: detalle.nombreProducto,
+           cantidadActual: '?',
+           cantidadPedido: detalle.cantidad,
+           stockSnapshot: detalle.stockOrigenSnapshot
+        }));
         this.isLoadingViewStock = false;
       }
     });
+
   }
 
   closeViewModal() {

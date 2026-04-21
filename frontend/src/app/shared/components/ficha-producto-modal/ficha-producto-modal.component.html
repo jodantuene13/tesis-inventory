@@ -32,23 +32,31 @@
     <div class="mt-6 border-t pt-4">
       <h4 class="font-bold mb-3 text-indigo-700"><i class="fa-solid fa-list text-xs mr-2"></i>Atributos del Producto</h4>
       
-      <div *ngIf="stock?.atributos?.length; else noAtributos" class="grid grid-cols-2 gap-4 bg-gray-50 p-4 rounded border border-gray-100">
-        <div *ngFor="let attr of stock.atributos" class="text-sm">
-          <span class="font-bold text-gray-600 block">{{ attr.nombreAtributo }}</span>
-          <span class="text-gray-800">
-             <ng-container [ngSwitch]="attr.tipoDatoAtributo">
-                <span *ngSwitchCase="'Texto'">{{ attr.valorTexto || '-' }}</span>
-                <span *ngSwitchCase="'Numero'">{{ attr.valorNumero != null ? attr.valorNumero : '-' }}</span>
-                <span *ngSwitchCase="'Decimal'">{{ attr.valorDecimal != null ? attr.valorDecimal : '-' }}</span>
-                <span *ngSwitchCase="'Booleano'">{{ attr.valorBool ? 'Sí' : 'No' }}</span>
-                <span *ngSwitchCase="'Lista'">{{ attr.valorLista || '-' }}</span>
-                <span *ngSwitchDefault>-</span >
-             </ng-container>
-          </span>
+      <ng-container *ngIf="isLoadingAtributos; else atributosReady">
+        <div class="flex items-center text-sm text-gray-500 italic py-2">
+            <i class="fa-solid fa-circle-notch fa-spin mr-2"></i> Consultando atributos actualizados...
         </div>
-      </div>
-      <ng-template #noAtributos>
-        <p class="text-sm text-gray-400 italic">No hay atributos adicionales registrados para este producto.</p>
+      </ng-container>
+
+      <ng-template #atributosReady>
+          <div *ngIf="stock?.atributos?.length; else noAtributos" class="grid grid-cols-2 gap-4 bg-gray-50 p-4 rounded border border-gray-100">
+            <div *ngFor="let attr of stock.atributos" class="text-sm">
+              <span class="font-bold text-gray-600 block">{{ attr.nombreAtributo }}</span>
+              <span class="text-gray-800">
+                 <ng-container [ngSwitch]="attr.tipoDatoAtributo">
+                    <span *ngSwitchCase="'Texto'">{{ attr.valorTexto || '-' }}</span>
+                    <span *ngSwitchCase="'Numero'">{{ attr.valorNumero != null ? attr.valorNumero : '-' }}</span>
+                    <span *ngSwitchCase="'Decimal'">{{ attr.valorDecimal != null ? attr.valorDecimal : '-' }}</span>
+                    <span *ngSwitchCase="'Booleano'">{{ attr.valorBool ? 'Sí' : 'No' }}</span>
+                    <span *ngSwitchCase="'Lista'">{{ attr.valorLista || '-' }}</span>
+                    <span *ngSwitchDefault>-</span >
+                 </ng-container>
+              </span>
+            </div>
+          </div>
+          <ng-template #noAtributos>
+            <p class="text-sm text-gray-400 italic">No hay atributos adicionales registrados para este producto.</p>
+          </ng-template>
       </ng-template>
     </div>
   </div>

@@ -33,6 +33,7 @@ builder.Services.AddScoped<IProductoRepository, ProductoRepository>();
 builder.Services.AddScoped<IStockRepository, StockRepository>();
 builder.Services.AddScoped<IMovimientoRepository, MovimientoRepository>();
 builder.Services.AddScoped<ITransferenciaRepository, TransferenciaRepository>();
+builder.Services.AddScoped<ISolicitudCompraRepository, SolicitudCompraRepository>();
 
 // Services
 builder.Services.AddScoped<IAuthService, AuthService>();
@@ -48,6 +49,7 @@ builder.Services.AddScoped<IAtributosService, AtributosService>();
 builder.Services.AddScoped<IProductosService, ProductosService>();
 builder.Services.AddScoped<IStockService, StockService>();
 builder.Services.AddScoped<ITransferenciaService, TransferenciaService>();
+builder.Services.AddScoped<ISolicitudCompraService, SolicitudCompraService>();
 
 builder.Services.AddHttpContextAccessor();
 
@@ -90,7 +92,7 @@ using (var scope = app.Services.CreateScope())
     {
         var context = services.GetRequiredService<TesisInventory.Infrastructure.Persistence.InventoryDbContext>();
         // Ensure database is created/migrated before seeding
-        // context.Database.Migrate(); // Optional: if using migrations exclusively
+        context.Database.Migrate(); 
         TesisInventory.Infrastructure.Data.DbInitializer.Initialize(context);
     }
     catch (Exception ex)

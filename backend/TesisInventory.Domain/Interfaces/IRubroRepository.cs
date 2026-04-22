@@ -12,5 +12,6 @@ namespace TesisInventory.Domain.Interfaces
         Task<Rubro> AddAsync(Rubro rubro);
         Task UpdateAsync(Rubro rubro);
         Task DeleteAsync(Rubro rubro); // Baja Lógica
+        Task ActivateFamiliesAsync(int idRubro);
     }
 }

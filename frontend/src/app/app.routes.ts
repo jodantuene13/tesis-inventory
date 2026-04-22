@@ -32,6 +32,11 @@ export const routes: Routes = [
                     { path: '', redirectTo: 'productos', pathMatch: 'full' }
                 ]
             },
+            // Solicitudes de Compra Module
+            {
+                path: 'solicitudes-compra',
+                loadComponent: () => import('./pages/inventory/solicitudes-compra/solicitudes-compra.component').then(m => m.SolicitudesCompraComponent)
+            },
             // Transferencias Module
             {
                 path: 'transferencias',

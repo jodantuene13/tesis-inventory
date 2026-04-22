@@ -15,4 +15,5 @@ export interface UpdateRubro {
     codigoRubro: string;
     nombre: string;
     activo: boolean;
+    activarFamilias?: boolean;
 }

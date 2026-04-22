@@ -102,6 +102,11 @@ namespace TesisInventory.Application.Services
             {
                 await _rubroRepository.DeleteAsync(rubro); // El método DeleteAsync ya maneja la desactivación de familias en cascada
             }
+            // RF004: Si se activó el rubro y se solicitó activar familias
+            else if (!wasActive && rubro.Activo && updateRubroDto.ActivarFamilias)
+            {
+                await _rubroRepository.ActivateFamiliesAsync(rubro.IdRubro);
+            }
 
             return new RubroDto
             {

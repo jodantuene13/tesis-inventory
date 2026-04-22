@@ -62,7 +62,8 @@ namespace TesisInventory.Infrastructure.Repositories
 
         public async Task DeleteAsync(Familia familia)
         {
-            _context.Familia.Remove(familia);
+            familia.Activo = false;
+            _context.Familia.Update(familia);
             await _context.SaveChangesAsync();
         }
 

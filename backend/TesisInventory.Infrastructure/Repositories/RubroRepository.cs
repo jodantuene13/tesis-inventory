@@ -64,5 +64,15 @@ namespace TesisInventory.Infrastructure.Repositories
             _context.Rubro.Update(rubro);
             await _context.SaveChangesAsync();
         }
+
+        public async Task ActivateFamiliesAsync(int idRubro)
+        {
+            var familias = await _context.Familia.Where(f => f.IdRubro == idRubro).ToListAsync();
+            foreach (var familia in familias)
+            {
+                familia.Activo = true;
+            }
+            await _context.SaveChangesAsync();
+        }
     }
 }

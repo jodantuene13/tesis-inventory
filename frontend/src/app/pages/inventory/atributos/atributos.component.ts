@@ -320,4 +320,24 @@ export class AtributosComponent implements OnInit {
             this.indicatorTipos[a.tipoDato] = (this.indicatorTipos[a.tipoDato] || 0) + 1;
         });
     }
+
+    filterByType(type: string | null): void {
+        this.loadingAtributos = true;
+        this.atributoService.getAll(true).subscribe({
+            next: (data) => {
+                if (type === null) {
+                    this.atributos = data;
+                } else if (type === 'NUMERIC') {
+                    this.atributos = data.filter(a => a.tipoDato === 'NUMBER' || a.tipoDato === 'DECIMAL');
+                } else {
+                    this.atributos = data.filter(a => a.tipoDato === type);
+                }
+                this.loadingAtributos = false;
+            }
+        });
+    }
+
+    filterAll(): void {
+        this.loadAtributos();
+    }
 }

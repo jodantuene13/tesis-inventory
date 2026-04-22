@@ -11,5 +11,6 @@ namespace TesisInventory.Application.DTOs.Rubros
         public string Nombre { get; set; } = string.Empty;
 
         public bool Activo { get; set; }
+        public bool ActivarFamilias { get; set; } = false;
     }
 }

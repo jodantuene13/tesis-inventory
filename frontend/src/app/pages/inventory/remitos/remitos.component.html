@@ -1,0 +1,321 @@
+<div class="container mx-auto p-4 relative">
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+        <h2 class="text-2xl font-bold text-gray-800">
+            <i class="fa-solid fa-file-invoice mr-2 text-indigo-600"></i> Remitos de Operaciones
+        </h2>
+    </div>
+
+    <!-- Filters Area -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
+        <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+            <div>
+                <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Buscar (ID, OC, OT, Tk)</label>
+                <input type="text" [(ngModel)]="searchTerm" (keyup.enter)="searchFormChange()" placeholder="Ej. OC-123"
+                       class="w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm py-2">
+            </div>
+            
+            <div>
+                <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Tipo de Op.</label>
+                <select [(ngModel)]="selectedTipoOperacion" (change)="searchFormChange()"
+                        class="w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm py-2">
+                    <option value="">Todas</option>
+                    <option value="Ingreso">Ingreso</option>
+                    <option value="Egreso">Egreso</option>
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Usuario</label>
+                <select [(ngModel)]="selectedUsuarioId" (change)="searchFormChange()"
+                        class="w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm py-2">
+                    <option [ngValue]="null">Todos los usuarios</option>
+                    <option *ngFor="let u of usuarios" [value]="u.idUsuario">{{ u.nombreUsuario }}</option>
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Fecha Desde</label>
+                <input type="date" [(ngModel)]="fechaDesde" (change)="searchFormChange()"
+                       class="w-full border-gray-300 rounded-md shadow-sm text-sm py-2">
+            </div>
+
+            <div class="flex items-end gap-2">
+                <div class="flex-grow">
+                    <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Fecha Hasta</label>
+                    <input type="date" [(ngModel)]="fechaHasta" (change)="searchFormChange()"
+                           class="w-full border-gray-300 rounded-md shadow-sm text-sm py-2">
+                </div>
+                <!-- Buttons inside last column for compact -->
+                <button (click)="searchFormChange()" class="bg-indigo-600 text-white rounded-md p-2 hover:bg-indigo-700 h-[38px]" title="Buscar">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                </button>
+                <button (click)="clearFilters()" *ngIf="hasSearched" class="bg-gray-100 text-gray-600 rounded-md p-2 hover:bg-gray-200 border border-gray-300 h-[38px]" title="Limpiar">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Results Table -->
+    <div class="bg-white rounded-lg shadow overflow-hidden relative min-h-[400px]">
+        
+        <!-- Loading overlay -->
+        <div *ngIf="loading" class="absolute inset-0 bg-white/60 backdrop-blur-sm z-10 flex items-center justify-center">
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID Operación</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha / Tipo</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Motivo / Tarea</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Doc. Referencia</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Usuario</th>
+                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    <tr *ngIf="operaciones.length === 0 && !loading">
+                        <td colspan="6" class="px-6 py-12 text-center text-gray-500">
+                            No se encontraron operaciones con los filtros aplicados.
+                        </td>
+                    </tr>
+                    
+                    <tr *ngFor="let op of operaciones" class="hover:bg-gray-50 transition-colors">
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="font-mono text-sm font-bold text-gray-900 border border-gray-200 bg-gray-100 rounded px-2 py-1">
+                                #{{ op.idOperacion }}
+                            </span>
+                            <div class="text-xs text-gray-500 mt-1">
+                                {{ op.detalles?.length || 0 }} productos
+                            </div>
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="text-sm font-semibold text-gray-800">
+                                {{ op.fecha | date:'dd/MM/yyyy HH:mm' }}
+                            </div>
+                            <div class="mt-1">
+                                <span *ngIf="op.tipoOperacion === 0" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                    INGRESO
+                                </span>
+                                <span *ngIf="op.tipoOperacion === 1" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                    EGRESO
+                                </span>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4">
+                            <!-- Helper for Motivos: 0 Consumo Int, 1 E Venc, 2 E Daño, 3 Por Compra, 4 Ajustes -->
+                            <div class="text-sm font-medium text-gray-900">
+                                <span *ngIf="op.motivo === 0">Consumo Interno</span>
+                                <span *ngIf="op.motivo === 1">Egreso por Vencimiento</span>
+                                <span *ngIf="op.motivo === 2">Egreso por Daño</span>
+                                <span *ngIf="op.motivo === 3">Por Compra</span>
+                                <span *ngIf="op.motivo === 4">Ajustes varios</span>
+                            </div>
+                            <div class="text-xs text-gray-500 line-clamp-2 max-w-xs mt-1" [title]="op.observaciones">
+                                {{ op.observaciones || '---' }}
+                            </div>
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="text-xs space-y-1">
+                                <div *ngIf="op.ordenCompra" class="bg-blue-50 text-blue-700 px-2 py-0.5 rounded border border-blue-100 inline-block font-mono">
+                                    OC: {{ op.ordenCompra }}
+                                </div>
+                                <div *ngIf="op.ordenTrabajo" class="bg-purple-50 text-purple-700 px-2 py-0.5 rounded border border-purple-100 inline-block font-mono">
+                                    OT: {{ op.ordenTrabajo }}
+                                </div>
+                                <div *ngIf="op.ticketSolicitud" class="bg-gray-100 text-gray-700 px-2 py-0.5 rounded border border-gray-200 inline-block font-mono block mt-1">
+                                    TK: {{ op.ticketSolicitud }}
+                                </div>
+                                <div *ngIf="!op.ordenCompra && !op.ordenTrabajo && !op.ticketSolicitud" class="text-gray-400">
+                                    N/A
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="flex items-center">
+                                <div class="h-6 w-6 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold text-xs mr-2">
+                                    {{ op.nombreUsuario.charAt(0) | uppercase }}
+                                </div>
+                                <span class="text-sm text-gray-900 font-medium">{{ op.nombreUsuario }}</span>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                            <button (click)="openDetalleModal(op)" 
+                                    class="text-indigo-600 hover:text-white bg-indigo-50 hover:bg-indigo-600 px-3 py-1.5 rounded transition-colors font-bold shadow-sm">
+                                Visualizar
+                            </button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Pagination -->
+        <div class="bg-gray-50 px-6 py-3 flex items-center justify-between border-t border-gray-200">
+            <div class="flex-1 flex justify-between sm:hidden">
+                <button (click)="prevPage()" [disabled]="page === 1" class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50">Anterior</button>
+                <button (click)="nextPage()" [disabled]="page >= totalPages" class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50">Siguiente</button>
+            </div>
+            <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                <div>
+                    <p class="text-sm text-gray-700">
+                        Mostrando página <span class="font-medium">{{ page }}</span> de <span class="font-medium">{{ totalPages }}</span>
+                        ({{ totalCount }} resultados en total)
+                    </p>
+                </div>
+                <div>
+                    <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                        <button (click)="prevPage()" [disabled]="page === 1" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50">
+                            <span>Anterior</span>
+                        </button>
+                        <button (click)="nextPage()" [disabled]="page >= totalPages" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50">
+                            <span>Siguiente</span>
+                        </button>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- REMITO MODAL (Printable view) -->
+    <div *ngIf="activeModal === 'detalle' && selectedOperacion" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div class="fixed inset-0 bg-gray-900 bg-opacity-75 backdrop-blur-sm transition-opacity no-print" (click)="closeModal()"></div>
+        
+        <div class="bg-gray-100 rounded-xl shadow-2xl overflow-hidden w-full max-w-4xl transform transition-all relative z-10 flex flex-col max-h-[95vh] print-area">
+            
+            <!-- Toolbar No Print -->
+            <div class="bg-gray-800 text-white px-4 py-3 flex justify-between items-center no-print">
+                <h3 class="font-bold text-sm">Visor de Remito</h3>
+                <div class="flex gap-2">
+                    <button (click)="printRemito()" class="bg-indigo-500 hover:bg-indigo-600 px-4 py-1.5 rounded text-sm font-bold shadow flex items-center transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                        </svg> Exportar PDF / Imprimir
+                    </button>
+                    <button (click)="closeModal()" class="text-gray-300 hover:text-white bg-gray-700 hover:bg-gray-600 px-3 py-1.5 rounded text-sm font-bold transition-colors">Cerrar</button>
+                </div>
+            </div>
+
+            <!-- Printable Paper Area -->
+            <div class="p-8 bg-white overflow-y-auto flex-grow" id="remitoContent">
+                
+                <!-- Remito Header -->
+                <div class="flex justify-between items-start border-b-2 border-gray-800 pb-6 mb-6">
+                    <div>
+                        <h1 class="text-3xl font-black text-gray-900 tracking-tight uppercase">Remito <span class="text-indigo-600">#{{ selectedOperacion.idOperacion }}</span></h1>
+                        <p class="text-gray-500 mt-1 font-medium">Sistema de Gestión de Inventario</p>
+                    </div>
+                    <div class="text-right">
+                        <div class="inline-block border-4 border-gray-900 p-2 text-center ml-auto">
+                            <div class="text-4xl font-black" [ngClass]="{'text-green-600': selectedOperacion.tipoOperacion === 0, 'text-red-600': selectedOperacion.tipoOperacion === 1}">
+                                {{ selectedOperacion.tipoOperacion === 0 ? 'INGRESO' : 'EGRESO' }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Info Grid -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 bg-gray-50 p-4 rounded-lg border border-gray-200 mb-8">
+                    <div>
+                        <p class="text-xs uppercase font-bold text-gray-500">Fecha Operación</p>
+                        <p class="font-bold text-gray-900">{{ selectedOperacion.fecha | date:'dd/MM/yyyy HH:mm' }}</p>
+                    </div>
+                    <div>
+                        <p class="text-xs uppercase font-bold text-gray-500">Usuario Emisor</p>
+                        <p class="font-bold text-gray-900">{{ selectedOperacion.nombreUsuario }}</p>
+                    </div>
+                    <div>
+                        <p class="text-xs uppercase font-bold text-gray-500">Sede</p>
+                        <!-- Provisional display of id for Sede given current obj. Ideally SedeName. -->
+                        <p class="font-bold text-gray-900">Nro. {{ selectedOperacion.idSede }}</p> 
+                    </div>
+                    <div>
+                        <p class="text-xs uppercase font-bold text-gray-500">Motivo</p>
+                        <p class="font-bold text-gray-900">
+                            <span *ngIf="selectedOperacion.motivo === 0">Consumo Interno</span>
+                            <span *ngIf="selectedOperacion.motivo === 1">Egreso por Vencimiento</span>
+                            <span *ngIf="selectedOperacion.motivo === 2">Egreso por Daño</span>
+                            <span *ngIf="selectedOperacion.motivo === 3">Por Compra</span>
+                            <span *ngIf="selectedOperacion.motivo === 4">Ajustes varios</span>
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Ref Documents -->
+                <div class="mb-8" *ngIf="selectedOperacion.ordenCompra || selectedOperacion.ordenTrabajo || selectedOperacion.ticketSolicitud || selectedOperacion.observaciones">
+                    <h4 class="text-sm uppercase font-bold text-gray-400 border-b pb-1 mb-3">Documentos y Tareas de Referencia</h4>
+                    <div class="flex flex-wrap gap-6">
+                        <div *ngIf="selectedOperacion.ordenCompra">
+                            <span class="text-xs uppercase font-bold text-gray-500 block">Orden Compra (OC)</span>
+                            <span class="font-mono bg-blue-50 text-blue-800 px-2 py-1 rounded">{{ selectedOperacion.ordenCompra }}</span>
+                        </div>
+                        <div *ngIf="selectedOperacion.ordenTrabajo">
+                            <span class="text-xs uppercase font-bold text-gray-500 block">Orden Trabajo (OT)</span>
+                            <span class="font-mono bg-purple-50 text-purple-800 px-2 py-1 rounded">{{ selectedOperacion.ordenTrabajo }}</span>
+                        </div>
+                        <div *ngIf="selectedOperacion.ticketSolicitud">
+                            <span class="text-xs uppercase font-bold text-gray-500 block">Ticket Solicitud</span>
+                            <span class="font-mono bg-gray-100 text-gray-800 px-2 py-1 rounded">{{ selectedOperacion.ticketSolicitud }}</span>
+                        </div>
+                    </div>
+                    <div *ngIf="selectedOperacion.observaciones" class="mt-4 bg-yellow-50 p-3 rounded text-sm text-yellow-900 border border-yellow-100">
+                        <span class="font-bold uppercase tracking-wider text-xs block mb-1">Observaciones / Tarea:</span>
+                        {{ selectedOperacion.observaciones }}
+                    </div>
+                </div>
+
+                <!-- Products Table -->
+                <h4 class="text-sm uppercase font-bold text-gray-400 border-b pb-1 mb-3">Detalle de Artículos</h4>
+                <div class="border border-gray-300 rounded-lg overflow-hidden">
+                    <table class="min-w-full text-sm text-left">
+                        <thead class="bg-gray-100 text-gray-700 uppercase font-bold border-b border-gray-300">
+                            <tr>
+                                <th scope="col" class="px-4 py-3 w-20">SKU</th>
+                                <th scope="col" class="px-4 py-3">Descripción / Producto</th>
+                                <th scope="col" class="px-4 py-3 text-center border-l border-gray-300 bg-gray-50 w-32">U. MEDIDA</th>
+                                <th scope="col" class="px-4 py-3 text-center border-l border-gray-300 bg-gray-200 w-32 tracking-wider">CANTIDAD</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200">
+                            <tr *ngFor="let item of selectedOperacion.detalles" class="hover:bg-gray-50">
+                                <td class="px-4 py-2 font-mono text-gray-500">{{ item.sku }}</td>
+                                <td class="px-4 py-2 font-bold text-gray-900">{{ item.nombreProducto }}</td>
+                                <td class="px-4 py-2 text-center border-l border-gray-200 bg-gray-50 text-gray-600">{{ item.unidadMedida }}</td>
+                                <td class="px-4 py-2 text-center border-l border-gray-200 bg-gray-100 font-bold text-lg" 
+                                    [ngClass]="{'text-green-700': selectedOperacion.tipoOperacion === 0, 'text-red-700': selectedOperacion.tipoOperacion === 1}">
+                                    {{ selectedOperacion.tipoOperacion === 0 ? '+' : '-' }}{{ item.cantidad }}
+                                </td>
+                            </tr>
+                        </tbody>
+                        <tfoot class="bg-gray-800 text-white font-bold">
+                            <tr>
+                                <td colspan="3" class="px-4 py-3 text-right">TOTAL ITEMS DISTINTOS:</td>
+                                <td class="px-4 py-3 text-center text-xl">{{ selectedOperacion.detalles.length }}</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+
+                <!-- Signatures -->
+                <div class="mt-20 pt-10 flex justify-between px-10 border-t border-dashed border-gray-300">
+                    <div class="text-center w-48">
+                        <div class="border-b border-gray-400 mb-2 h-10"></div>
+                        <p class="text-xs font-bold text-gray-500 uppercase">Firma Emisor</p>
+                        <p class="text-sm font-bold">{{ selectedOperacion.nombreUsuario }}</p>
+                    </div>
+                    <div class="text-center w-48">
+                        <div class="border-b border-gray-400 mb-2 h-10"></div>
+                        <p class="text-xs font-bold text-gray-500 uppercase">Firma Receptor / Encargado</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

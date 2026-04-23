@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TesisInventory.Infrastructure.Persistence;
 
@@ -11,9 +12,11 @@ using TesisInventory.Infrastructure.Persistence;
 namespace TesisInventory.Infrastructure.Migrations
 {
     [DbContext(typeof(InventoryDbContext))]
-    partial class InventoryDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260421204741_AddOperacionStockEntity")]
+    partial class AddOperacionStockEntity
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -538,57 +541,6 @@ namespace TesisInventory.Infrastructure.Migrations
                     b.ToTable("Sede", (string)null);
                 });
 
-            modelBuilder.Entity("TesisInventory.Domain.Entities.SolicitudCompra", b =>
-                {
-                    b.Property<int>("IdSolicitudCompra")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("IdSolicitudCompra"));
-
-                    b.Property<int>("Cantidad")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Estado")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("FechaDecision")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<DateTime>("FechaSolicitud")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<int>("IdProducto")
-                        .HasColumnType("int");
-
-                    b.Property<int>("IdSede")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("IdUsuarioAprobador")
-                        .HasColumnType("int");
-
-                    b.Property<int>("IdUsuarioSolicitante")
-                        .HasColumnType("int");
-
-                    b.Property<string>("MotivoRechazo")
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("Observaciones")
-                        .HasColumnType("longtext");
-
-                    b.HasKey("IdSolicitudCompra");
-
-                    b.HasIndex("IdProducto");
-
-                    b.HasIndex("IdSede");
-
-                    b.HasIndex("IdUsuarioAprobador");
-
-                    b.HasIndex("IdUsuarioSolicitante");
-
-                    b.ToTable("SolicitudCompra", (string)null);
-                });
-
             modelBuilder.Entity("TesisInventory.Domain.Entities.Stock", b =>
                 {
                     b.Property<int>("IdStock")
@@ -897,40 +849,6 @@ namespace TesisInventory.Infrastructure.Migrations
                     b.Navigation("Atributo");
 
                     b.Navigation("Producto");
-                });
-
-            modelBuilder.Entity("TesisInventory.Domain.Entities.SolicitudCompra", b =>
-                {
-                    b.HasOne("TesisInventory.Domain.Entities.Producto", "Producto")
-                        .WithMany()
-                        .HasForeignKey("IdProducto")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("TesisInventory.Domain.Entities.Sede", "Sede")
-                        .WithMany()
-                        .HasForeignKey("IdSede")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("TesisInventory.Domain.Entities.Usuario", "UsuarioAprobador")
-                        .WithMany()
-                        .HasForeignKey("IdUsuarioAprobador")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("TesisInventory.Domain.Entities.Usuario", "UsuarioSolicitante")
-                        .WithMany()
-                        .HasForeignKey("IdUsuarioSolicitante")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Producto");
-
-                    b.Navigation("Sede");
-
-                    b.Navigation("UsuarioAprobador");
-
-                    b.Navigation("UsuarioSolicitante");
                 });
 
             modelBuilder.Entity("TesisInventory.Domain.Entities.Stock", b =>

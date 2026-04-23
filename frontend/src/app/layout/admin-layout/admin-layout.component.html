@@ -46,6 +46,14 @@
                         </li>
                         <li>
                             <a routerLink="/inventory/historial-movimientos" routerLinkActive="active">Historial Movimientos</a>
+                            <a routerLink="/inventory/remitos" routerLinkActive="active">
+                                Remitos / Op. Múltiples
+                            </a>
+                        </li>
+                        <li>
+                            <a routerLink="/inventory/historial-movimientos" routerLinkActive="active">
+                                Historial de Movimientos
+                            </a>
                         </li>
                     </ul>
                 </li>
@@ -66,7 +74,24 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
                         </svg>
                         Transferencias
+                <!-- Transferencias Module -->
+                <li class="nav-item-group">
+                    <a (click)="toggleTransferenciasMenu()" [class.active]="isTransferenciasMenuOpen" class="nav-group-toggle">
+                        <i class="icon-transfer"></i> Transferencias
+                        <span class="arrow" [class.rotated]="isTransferenciasMenuOpen">▼</span>
                     </a>
+                    <ul class="submenu" [class.open]="isTransferenciasMenuOpen">
+                        <li>
+                            <a routerLink="/transferencias/gestionar" routerLinkActive="active">
+                                Gestionar
+                            </a>
+                        </li>
+                        <li>
+                            <a routerLink="/transferencias/historico" routerLinkActive="active">
+                                Histórico
+                            </a>
+                        </li>
+                    </ul>
                 </li>
 
                 <!-- Configuration Module -->

@@ -48,7 +48,6 @@ export class StockComponent implements OnInit {
   indicatorBajoStock: number = 0;
 
   // Modals state
-  activeModal: 'consumo' | 'incremento' | 'historial' | 'detalle' | null = null;
   activeModal: 'consumo' | 'transferencia' | 'incremento' | 'historial' | 'detalle' | 'multiple' | null = null;
   selectedStock: Stock | null = null;
 
@@ -315,6 +314,10 @@ export class StockComponent implements OnInit {
           },
           error: (err) => Swal.fire('Error', err.error?.message || 'Error al procesar la baja', 'error')
         });
+      }
+    });
+  }
+
   // Multi-operation Logic
   openMultipleModal(): void {
     this.resetMultipleForm();

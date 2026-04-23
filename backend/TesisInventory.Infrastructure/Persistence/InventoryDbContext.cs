@@ -28,6 +28,7 @@ namespace TesisInventory.Infrastructure.Persistence
         public DbSet<Transferencia> Transferencia { get; set; }
         public DbSet<TransferenciaDetalle> TransferenciaDetalle { get; set; }
         public DbSet<HistorialTransferencia> HistorialTransferencia { get; set; }
+        public DbSet<SolicitudCompra> SolicitudCompra { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -267,10 +268,35 @@ namespace TesisInventory.Infrastructure.Persistence
                 .WithMany(t => t.HistorialTransferencias)
                 .HasForeignKey(h => h.IdTransferencia)
                 .OnDelete(DeleteBehavior.Cascade);
+            // HistorialTransferencia
             modelBuilder.Entity<HistorialTransferencia>()
                 .HasOne(h => h.Usuario)
                 .WithMany(u => u.HistorialTransferencias)
                 .HasForeignKey(h => h.IdUsuario)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // SolicitudCompra
+            modelBuilder.Entity<SolicitudCompra>().ToTable("SolicitudCompra");
+            modelBuilder.Entity<SolicitudCompra>().HasKey(s => s.IdSolicitudCompra);
+            modelBuilder.Entity<SolicitudCompra>()
+                .HasOne(s => s.Producto)
+                .WithMany()
+                .HasForeignKey(s => s.IdProducto)
+                .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<SolicitudCompra>()
+                .HasOne(s => s.Sede)
+                .WithMany()
+                .HasForeignKey(s => s.IdSede)
+                .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<SolicitudCompra>()
+                .HasOne(s => s.UsuarioSolicitante)
+                .WithMany()
+                .HasForeignKey(s => s.IdUsuarioSolicitante)
+                .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<SolicitudCompra>()
+                .HasOne(s => s.UsuarioAprobador)
+                .WithMany()
+                .HasForeignKey(s => s.IdUsuarioAprobador)
                 .OnDelete(DeleteBehavior.Restrict);
         }
     }

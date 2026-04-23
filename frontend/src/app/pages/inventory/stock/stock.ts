@@ -5,12 +5,14 @@ import { RouterModule } from '@angular/router';
 import { StockService } from '../../../services/stock.service';
 import { RubroService } from '../../../services/rubro.service';
 import { FamiliaService } from '../../../services/familia.service';
+import { ProductoService } from '../../../services/producto.service';
 import { SedeService } from '../../../services/sede.service';
 import { SedeContextService } from '../../../services/sede-context.service';
 import { Subscription } from 'rxjs';
 import { IncrementarStockDto, RegistrarConsumoDto, RegistrarTransferenciaDto, Stock, OperacionStockMultipleDto } from '../../../models/stock.model';
 import { Rubro } from '../../../models/rubro.model';
 import { Familia } from '../../../models/familia.model';
+import Swal from 'sweetalert2';
 import { FichaProductoModalComponent } from '../../../shared/components/ficha-producto-modal/ficha-producto-modal.component';
 
 @Component({
@@ -24,7 +26,6 @@ export class StockComponent implements OnInit {
   stocks: Stock[] = [];
   rubros: Rubro[] = [];
   familias: Familia[] = [];
-  sedes: any[] = [];
   
   private contextSub!: Subscription;
 
@@ -47,6 +48,7 @@ export class StockComponent implements OnInit {
   indicatorBajoStock: number = 0;
 
   // Modals state
+  activeModal: 'consumo' | 'incremento' | 'historial' | 'detalle' | null = null;
   activeModal: 'consumo' | 'transferencia' | 'incremento' | 'historial' | 'detalle' | 'multiple' | null = null;
   selectedStock: Stock | null = null;
 
@@ -59,11 +61,6 @@ export class StockComponent implements OnInit {
   incrementoCantidad: number = 1;
   incrementoMotivo: number = 3; // 3=Compra, 4=Ajustes
   incrementoObs: string = '';
-
-  // Transferencia state
-  transferenciaSedeDestino: number | null = null;
-  transferenciaCantidad: number = 1;
-  transferenciaObs: string = '';
 
   // Historial state
   historial: any[] = [];
@@ -90,13 +87,12 @@ export class StockComponent implements OnInit {
     private stockService: StockService,
     private rubroService: RubroService,
     private familiaService: FamiliaService,
-    private sedeService: SedeService,
+    private productoService: ProductoService,
     private sedeContextService: SedeContextService
   ) { }
 
   ngOnInit(): void {
     this.loadRubros();
-    this.loadSedes();
     // Suscribirse a cambios de sede para recargar
     this.contextSub = this.sedeContextService.sedeEnContexto$.subscribe(() => {
       this.hasSearched = false;
@@ -112,10 +108,6 @@ export class StockComponent implements OnInit {
 
   loadRubros(): void {
     this.rubroService.getAll(true).subscribe(data => this.rubros = data);
-  }
-
-  loadSedes(): void {
-    this.sedeService.getAll().subscribe(data => this.sedes = data);
   }
 
   onRubroChange(): void {
@@ -177,6 +169,16 @@ export class StockComponent implements OnInit {
     this.loadStocks();
   }
 
+  filterByBajoStock(): void {
+    this.clearFilters();
+    this.selectedBajoStock = 'true';
+    this.search();
+  }
+
+  filterAll(): void {
+    this.clearFilters();
+  }
+
   nextPage(): void {
     if (this.page < this.totalPages) {
       this.page++;
@@ -228,34 +230,6 @@ export class StockComponent implements OnInit {
         this.loadIndicators();
       },
       error: (err) => alert(err.error?.message || 'Error al registrar consumo')
-    });
-  }
-
-  openTransferenciaModal(stock: Stock): void {
-    this.selectedStock = stock;
-    this.transferenciaSedeDestino = null;
-    this.transferenciaCantidad = 1;
-    this.transferenciaObs = '';
-    this.activeModal = 'transferencia';
-  }
-
-  saveTransferencia(): void {
-    if (!this.selectedStock || !this.transferenciaSedeDestino) return;
-
-    const dto: RegistrarTransferenciaDto = {
-      idProducto: this.selectedStock.idProducto,
-      idSedeDestino: this.transferenciaSedeDestino,
-      cantidad: this.transferenciaCantidad,
-      observaciones: this.transferenciaObs
-    };
-
-    this.stockService.registrarTransferencia(dto).subscribe({
-      next: () => {
-        this.closeModal();
-        this.loadStocks();
-        this.loadIndicators();
-      },
-      error: (err) => alert(err.error?.message || 'Error al registrar transferencia')
     });
   }
 
@@ -311,6 +285,36 @@ export class StockComponent implements OnInit {
     // Lógica de atributos puede ir aquí
   }
 
+  deleteStock(idStock: number, event: Event): void {
+    event.stopPropagation();
+    const stockItem = this.stocks.find(s => s.idStock === idStock);
+    if (!stockItem) return;
+
+    Swal.fire({
+      title: 'Validación de Seguridad',
+      html: `Para dar de baja este producto, escriba textualmente su nombre:<br/><br/><b>${stockItem.nombreProducto}</b>`,
+      input: 'text',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Dar de baja',
+      cancelButtonText: 'Cancelar',
+      preConfirm: (inputValue) => {
+        if (inputValue !== stockItem.nombreProducto) {
+          Swal.showValidationMessage('El nombre no coincide.');
+          return false;
+        }
+        return true;
+      }
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.productoService.delete(stockItem.idProducto, stockItem.nombreProducto).subscribe({
+          next: () => {
+            this.loadStocks();
+            this.loadIndicators();
+            Swal.fire('Baja Exitosa', 'El producto ha sido dado de baja (Lógica).', 'success');
+          },
+          error: (err) => Swal.fire('Error', err.error?.message || 'Error al procesar la baja', 'error')
+        });
   // Multi-operation Logic
   openMultipleModal(): void {
     this.resetMultipleForm();

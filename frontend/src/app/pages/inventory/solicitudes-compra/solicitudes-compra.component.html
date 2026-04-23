@@ -1,0 +1,459 @@
+<div class="container mx-auto p-4 flex flex-col h-full min-h-screen">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+        <div>
+            <h2 class="text-3xl font-extrabold text-gray-900 tracking-tight">Solicitudes de Compra</h2>
+            <p class="text-gray-500 mt-1">Gestión y aprobación de requerimientos de adquisición.</p>
+        </div>
+        <button (click)="openCreateModal()"
+            class="bg-gradient-to-r from-blue-600 to-indigo-700 text-white px-6 py-3 rounded-xl shadow-lg hover:shadow-indigo-200 hover:-translate-y-1 transition-all duration-300 flex items-center gap-2 font-bold uppercase tracking-wider text-sm">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+            </svg>
+            Nueva Solicitud
+        </button>
+    </div>
+
+    <!-- KPI Cards -->
+    <div class="kpi-grid" style="grid-template-columns: repeat(4,1fr);">
+        <div class="kpi-card kpi-card--primary" (click)="filterByEstado(null)">
+            <div class="kpi-card__icon">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                </svg>
+            </div>
+            <div class="kpi-card__body">
+                <div class="kpi-card__label">Total</div>
+                <div class="kpi-card__value">{{ indicatorTotal }}</div>
+            </div>
+        </div>
+
+        <div class="kpi-card kpi-card--amber" (click)="filterByEstado(EstadoEnum.Pendiente)">
+            <div class="kpi-card__icon">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+            </div>
+            <div class="kpi-card__body">
+                <div class="kpi-card__label">Pendientes</div>
+                <div class="kpi-card__value">{{ indicatorPendientes }}</div>
+            </div>
+        </div>
+
+        <div class="kpi-card kpi-card--emerald" (click)="filterByEstado(EstadoEnum.Aprobada)">
+            <div class="kpi-card__icon">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+            </div>
+            <div class="kpi-card__body">
+                <div class="kpi-card__label">Aprobadas</div>
+                <div class="kpi-card__value">{{ indicatorAprobadas }}</div>
+            </div>
+        </div>
+
+        <div class="kpi-card kpi-card--rose" (click)="filterByEstado(EstadoEnum.Rechazada)">
+            <div class="kpi-card__icon">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+            </div>
+            <div class="kpi-card__body">
+                <div class="kpi-card__label">Rechazadas</div>
+                <div class="kpi-card__value">{{ indicatorRechazadas }}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="bg-white/70 backdrop-blur-md p-6 rounded-3xl shadow-xl mb-8 flex flex-wrap gap-6 items-end border border-white/50">
+        <div class="flex-1 min-w-[250px]">
+            <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2 ml-1">Buscar Producto</label>
+            <div class="relative">
+                <input type="text" [(ngModel)]="searchTerm" (keyup.enter)="search()" placeholder="SKU o Nombre..."
+                    class="modern-input pl-10">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 absolute left-3 top-3 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+            </div>
+        </div>
+
+        <div class="w-full md:w-auto">
+            <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2 ml-1">Estado</label>
+            <select [(ngModel)]="estadoFiltro" (change)="search()" class="modern-input">
+                <option [ngValue]="null">Todos los estados</option>
+                <option [ngValue]="EstadoEnum.Pendiente">Pendientes</option>
+                <option [ngValue]="EstadoEnum.Aprobada">Aprobadas</option>
+                <option [ngValue]="EstadoEnum.Rechazada">Rechazadas</option>
+            </select>
+        </div>
+
+        <button (click)="search()" class="bg-gray-900 text-white px-8 py-3 rounded-xl hover:bg-black transition-all shadow-lg font-bold flex items-center gap-2">
+            Filtrar
+        </button>
+    </div>
+
+    <!-- Table -->
+    <div class="flex-1 bg-white/40 backdrop-blur-sm rounded-3xl shadow-2xl overflow-hidden border border-white/40">
+        <div class="overflow-x-auto">
+            <table class="w-full border-collapse text-left">
+                <thead>
+                    <tr class="bg-gray-900/5 text-gray-600 uppercase text-xs font-black tracking-widest">
+                        <th class="py-5 px-6">Solicitud / Fecha</th>
+                        <th class="py-5 px-6">Producto</th>
+                        <th class="py-5 px-6 text-center">Cantidad</th>
+                        <th class="py-5 px-6 text-center">Estado</th>
+                        <th class="py-5 px-6">Solicitante</th>
+                        <th class="py-5 px-6 text-right">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200">
+                    <tr *ngFor="let s of solicitudes" class="hover:bg-white/60 transition-colors">
+                        <td class="py-4 px-6">
+                            <div class="font-bold text-gray-900">#{{ s.idSolicitudCompra }}</div>
+                            <div class="text-xs text-gray-400 font-medium">{{ s.fechaSolicitud | date:'dd/MM/yyyy HH:mm' }}</div>
+                        </td>
+                        <td class="py-4 px-6 text-gray-700">
+                            <div class="font-bold">{{ s.nombreProducto }}</div>
+                            <div class="text-xs text-blue-600 font-black tracking-tighter">{{ s.skuProducto }}</div>
+                        </td>
+                        <td class="py-4 px-6 text-center">
+                            <span class="inline-block px-3 py-1 bg-gray-100 rounded-lg font-black text-gray-900">{{ s.cantidad }}</span>
+                        </td>
+                        <td class="py-4 px-6 text-center">
+                            <span class="px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-sm"
+                                [ngClass]="{
+                                    'bg-amber-100 text-amber-700 border border-amber-200': s.estado === EstadoEnum.Pendiente,
+                                    'bg-blue-100 text-blue-700 border border-blue-200': s.estado === EstadoEnum.Aprobada,
+                                    'bg-orange-100 text-orange-700 border border-orange-200': s.estado === EstadoEnum.Rechazada
+                                }">
+                                {{ s.estado === EstadoEnum.Pendiente ? 'Pendiente' : s.estado === EstadoEnum.Aprobada ? 'Aprobada' : 'Rechazada' }}
+                            </span>
+                            <div *ngIf="s.fechaDecision" class="text-[9px] text-gray-400 mt-1 uppercase font-bold">
+                                {{ s.fechaDecision | date:'short' }}
+                            </div>
+                        </td>
+                        <td class="py-4 px-6">
+                            <div class="flex flex-col gap-2">
+                                <div class="flex items-center gap-2 text-gray-600">
+                                    <div class="w-7 h-7 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-black text-[10px] border border-blue-200 shadow-sm">
+                                        {{ s.nombreSolicitante.substring(0,2).toUpperCase() }}
+                                    </div>
+                                    <span class="font-bold text-xs">{{ s.nombreSolicitante }}</span>
+                                </div>
+                                <div *ngIf="s.nombreAprobador" class="flex items-center gap-2 text-gray-500 ml-2 border-l-2 border-gray-100 pl-2">
+                                    <div class="w-6 h-6 rounded-full bg-gray-100 text-gray-500 flex items-center justify-center font-black text-[9px]">
+                                        {{ s.nombreAprobador.substring(0,2).toUpperCase() }}
+                                    </div>
+                                    <span class="text-[10px] font-medium italic">Aprobó: {{ s.nombreAprobador }}</span>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="py-4 px-6 text-right">
+                            <div class="flex justify-end gap-2">
+                                <button (click)="openDetailModal(s)" 
+                                    class="p-2 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition shadow-sm" title="Ver Detalle">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                    </svg>
+                                </button>
+                                
+                                <button *ngIf="s.estado !== EstadoEnum.Pendiente" (click)="openPrintModal(s)" 
+                                    class="p-2 bg-indigo-100 text-indigo-600 rounded-lg hover:bg-indigo-200 transition shadow-sm" title="Imprimir Comprobante">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                                    </svg>
+                                </button>
+
+                                <button *ngIf="s.estado === EstadoEnum.Pendiente" (click)="procesarSolicitud(s, EstadoEnum.Aprobada)" 
+                                    class="p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition shadow-sm" title="Aprobar">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                    </svg>
+                                </button>
+                                <button *ngIf="s.estado === EstadoEnum.Pendiente" (click)="procesarSolicitud(s, EstadoEnum.Rechazada)" 
+                                    class="p-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition shadow-sm" title="Rechazar">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr *ngIf="solicitudes.length === 0">
+                        <td colspan="6" class="py-20 text-center">
+                            <div class="flex flex-col items-center opacity-30">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                                </svg>
+                                <p class="text-xl font-black uppercase tracking-tighter">No hay solicitudes registradas</p>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Pagination -->
+        <div class="p-6 bg-gray-50/50 flex justify-between items-center border-t border-gray-100">
+            <span class="text-xs font-bold text-gray-400 uppercase tracking-widest">
+                Página {{ page }} de {{ totalPages }} ({{ totalCount }} resultados)
+            </span>
+            <div class="flex gap-2">
+                <button (click)="prevPage()" [disabled]="page === 1" class="modern-pagination-btn">Anterior</button>
+                <button (click)="nextPage()" [disabled]="page === totalPages" class="modern-pagination-btn">Siguiente</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Crear Solicitud -->
+<div *ngIf="showCreateModal" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div class="absolute inset-0 bg-gray-900/60 backdrop-blur-sm" (click)="closeCreateModal()"></div>
+    
+    <div class="relative bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden border border-white/20 animate__animated animate__fadeInUp">
+        <div class="bg-gray-900 p-6 text-white flex justify-between items-center">
+            <div>
+                <h3 class="text-xl font-black uppercase tracking-tighter">Nueva Solicitud de Compra</h3>
+                <p class="text-gray-400 text-xs mt-1 font-bold">Complete los datos para enviar a aprobación.</p>
+            </div>
+            <button (click)="closeCreateModal()" class="text-gray-400 hover:text-white transition">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+
+        <div class="p-8">
+            <form [formGroup]="solicitudForm" (ngSubmit)="saveSolicitud()" class="space-y-6">
+                <div>
+                    <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2 ml-1">Producto a solicitar</label>
+                    <select formControlName="idProducto" class="modern-input">
+                        <option value="">Seleccione un producto...</option>
+                        <option *ngFor="let p of productos" [value]="p.idProducto">
+                            {{ p.nombreProducto }} ({{ p.sku }}) - Stock: {{ p.cantidadActual }}
+                        </option>
+                    </select>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2 ml-1">Cantidad</label>
+                        <input type="number" formControlName="cantidad" class="modern-input" min="1">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2 ml-1">Observaciones / Justificación</label>
+                    <textarea formControlName="observaciones" rows="3" class="modern-input py-3" placeholder="Indique el motivo de la compra..."></textarea>
+                </div>
+
+                <div class="flex gap-4 pt-4">
+                    <button type="button" (click)="closeCreateModal()" class="flex-1 py-4 bg-gray-100 text-gray-600 rounded-2xl font-bold uppercase tracking-widest text-xs hover:bg-gray-200 transition">
+                        Cancelar
+                    </button>
+                    <button type="submit" [disabled]="solicitudForm.invalid" class="flex-1 py-4 bg-gradient-to-r from-blue-600 to-indigo-700 text-white rounded-2xl font-bold uppercase tracking-widest text-xs shadow-lg hover:shadow-indigo-200 transition">
+                        Enviar Solicitud
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Detalle Solicitud -->
+<div *ngIf="showDetailModal && selectedSolicitud" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div class="absolute inset-0 bg-gray-900/60 backdrop-blur-sm" (click)="closeDetailModal()"></div>
+    
+    <div class="relative bg-white rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden border border-white/20 animate__animated animate__fadeInUp">
+        <div class="bg-gradient-to-r from-gray-800 to-gray-900 p-8 text-white">
+            <div class="flex justify-between items-start">
+                <div>
+                    <h3 class="text-2xl font-black uppercase tracking-tighter">Detalle de Solicitud #{{ selectedSolicitud.idSolicitudCompra }}</h3>
+                    <div class="flex gap-4 mt-2">
+                        <span class="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-1">
+                            Solicitada: {{ selectedSolicitud.fechaSolicitud | date:'short' }}
+                        </span>
+                        <span class="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-1" *ngIf="selectedSolicitud.fechaDecision">
+                            Decisión: {{ selectedSolicitud.fechaDecision | date:'short' }}
+                        </span>
+                    </div>
+                </div>
+                <span class="px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest shadow-lg"
+                    [ngClass]="{
+                        'bg-amber-500 text-white': selectedSolicitud.estado === EstadoEnum.Pendiente,
+                        'bg-blue-600 text-white': selectedSolicitud.estado === EstadoEnum.Aprobada,
+                        'bg-orange-600 text-white': selectedSolicitud.estado === EstadoEnum.Rechazada
+                    }">
+                    {{ selectedSolicitud.estado === EstadoEnum.Pendiente ? 'Pendiente' : selectedSolicitud.estado === EstadoEnum.Aprobada ? 'Aprobada' : 'Rechazada' }}
+                </span>
+            </div>
+        </div>
+
+        <div class="p-8 space-y-8">
+            <!-- Info Principal -->
+            <div class="grid grid-cols-2 gap-8">
+                <div class="bg-gray-50 p-6 rounded-2xl border border-gray-100">
+                    <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Información del Producto</p>
+                    <h4 class="text-lg font-bold text-gray-900">{{ selectedSolicitud.nombreProducto }}</h4>
+                    <p class="text-blue-600 font-black text-sm tracking-widest mt-1">{{ selectedSolicitud.skuProducto }}</p>
+                    <div class="mt-4 flex items-baseline gap-2">
+                        <span class="text-3xl font-black text-gray-900">{{ selectedSolicitud.cantidad }}</span>
+                        <span class="text-gray-500 font-bold uppercase text-xs">Unidades</span>
+                    </div>
+                </div>
+
+                <div class="space-y-6">
+                    <div>
+                        <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Solicitante</p>
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-black text-sm border-2 border-white shadow-md">
+                                {{ selectedSolicitud.nombreSolicitante.substring(0,2).toUpperCase() }}
+                            </div>
+                            <div>
+                                <p class="font-bold text-gray-900">{{ selectedSolicitud.nombreSolicitante }}</p>
+                                <p class="text-[10px] text-gray-400 font-bold uppercase">{{ selectedSolicitud.nombreSede }}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div *ngIf="selectedSolicitud.nombreAprobador">
+                        <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Procesada por</p>
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center font-black text-sm border-2 border-white shadow-md">
+                                {{ selectedSolicitud.nombreAprobador.substring(0,2).toUpperCase() }}
+                            </div>
+                            <div>
+                                <p class="font-bold text-gray-900">{{ selectedSolicitud.nombreAprobador }}</p>
+                                <p class="text-[10px] text-gray-400 font-bold uppercase tracking-tighter">Administrador</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Notas -->
+            <div class="space-y-4">
+                <div *ngIf="selectedSolicitud.observaciones">
+                    <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Observaciones de la Solicitud</p>
+                    <div class="bg-gray-50 p-4 rounded-xl text-gray-700 italic border-l-4 border-gray-300">
+                        "{{ selectedSolicitud.observaciones }}"
+                    </div>
+                </div>
+
+                <div *ngIf="selectedSolicitud.motivoRechazo">
+                    <p class="text-[10px] font-black text-orange-400 uppercase tracking-widest mb-2">Motivo del Rechazo</p>
+                    <div class="bg-orange-50 p-4 rounded-xl text-orange-700 font-medium border-l-4 border-orange-500">
+                        {{ selectedSolicitud.motivoRechazo }}
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex gap-4 pt-4 no-print">
+                <button (click)="closeDetailModal()" class="flex-1 py-4 bg-gray-900 text-white rounded-2xl font-bold uppercase tracking-widest text-xs hover:bg-black transition shadow-xl">
+                    Cerrar Detalle
+                </button>
+                <button *ngIf="selectedSolicitud.estado !== EstadoEnum.Pendiente" (click)="openPrintModal(selectedSolicitud)" class="py-4 px-8 bg-indigo-600 text-white rounded-2xl font-bold uppercase tracking-widest text-xs hover:bg-indigo-700 transition shadow-xl flex items-center gap-2">
+                    Comprobante
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Comprobante (Diseño para Impresión) -->
+<div *ngIf="showPrintModal && selectedSolicitud" class="fixed inset-0 z-[60] flex items-center justify-center p-4 no-print">
+    <div class="absolute inset-0 bg-gray-900/80 backdrop-blur-md" (click)="closePrintModal()"></div>
+    
+    <div class="relative bg-white rounded-none shadow-2xl w-full max-w-4xl overflow-hidden animate__animated animate__zoomIn">
+        <!-- Botones de control del modal (ocultos al imprimir) -->
+        <div class="p-4 bg-gray-100 flex justify-end gap-4 no-print">
+            <button (click)="printVoucher()" class="bg-blue-600 text-white px-6 py-2 rounded-lg font-bold flex items-center gap-2 shadow-lg">
+                Imprimir Ahora
+            </button>
+            <button (click)="closePrintModal()" class="bg-gray-500 text-white px-6 py-2 rounded-lg font-bold">
+                Cerrar Previsualización
+            </button>
+        </div>
+
+        <!-- Área de Impresión -->
+        <div id="printable-voucher" class="p-12 text-black bg-white printable-area">
+            <div class="flex justify-between items-start border-b-4 border-black pb-8 mb-8">
+                <div>
+                    <h1 class="text-4xl font-black uppercase tracking-tighter mb-2">Comprobante de Solicitud</h1>
+                    <p class="text-lg font-bold text-gray-500 tracking-widest uppercase">Sistema de Inventario - TESIS</p>
+                </div>
+                <div class="text-right">
+                    <div class="text-2xl font-black mb-1">ID: #{{ selectedSolicitud.idSolicitudCompra }}</div>
+                    <div class="text-sm font-bold uppercase tracking-widest">{{ selectedSolicitud.fechaDecision | date:'dd/MM/yyyy' }}</div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-12 mb-12">
+                <div>
+                    <h5 class="text-xs font-black uppercase tracking-widest text-gray-400 mb-4 border-b pb-2">Información de Origen</h5>
+                    <div class="space-y-2">
+                        <p><span class="font-black uppercase text-[10px] w-24 inline-block text-gray-400">Sede:</span> <span class="font-bold">{{ selectedSolicitud.nombreSede }}</span></p>
+                        <p><span class="font-black uppercase text-[10px] w-24 inline-block text-gray-400">Solicitante:</span> <span class="font-bold">{{ selectedSolicitud.nombreSolicitante }}</span></p>
+                        <p><span class="font-black uppercase text-[10px] w-24 inline-block text-gray-400">Fecha Solicitud:</span> <span>{{ selectedSolicitud.fechaSolicitud | date:'short' }}</span></p>
+                    </div>
+                </div>
+                <div>
+                    <h5 class="text-xs font-black uppercase tracking-widest text-gray-400 mb-4 border-b pb-2">Estado y Resolución</h5>
+                    <div class="space-y-2">
+                        <p><span class="font-black uppercase text-[10px] w-24 inline-block text-gray-400">Estado:</span> <span class="font-black uppercase">{{ selectedSolicitud.estado === EstadoEnum.Aprobada ? 'APROBADA' : 'RECHAZADA' }}</span></p>
+                        <p><span class="font-black uppercase text-[10px] w-24 inline-block text-gray-400">Autorizado por:</span> <span class="font-bold">{{ selectedSolicitud.nombreAprobador }}</span></p>
+                        <p><span class="font-black uppercase text-[10px] w-24 inline-block text-gray-400">Fecha Decisión:</span> <span>{{ selectedSolicitud.fechaDecision | date:'short' }}</span></p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-12">
+                <h5 class="text-xs font-black uppercase tracking-widest text-gray-400 mb-4 border-b pb-2">Detalle de Productos</h5>
+                <table class="w-full border-collapse border-2 border-black">
+                    <thead class="bg-gray-100">
+                        <tr>
+                            <th class="border-2 border-black p-4 text-left uppercase text-xs font-black">SKU</th>
+                            <th class="border-2 border-black p-4 text-left uppercase text-xs font-black">Descripción</th>
+                            <th class="border-2 border-black p-4 text-center uppercase text-xs font-black">Cantidad</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="border-2 border-black p-4 font-bold">{{ selectedSolicitud.skuProducto }}</td>
+                            <td class="border-2 border-black p-4">{{ selectedSolicitud.nombreProducto }}</td>
+                            <td class="border-2 border-black p-4 text-center text-xl font-black">{{ selectedSolicitud.cantidad }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="grid grid-cols-1 gap-8">
+                <div *ngIf="selectedSolicitud.observaciones" class="border-2 border-black p-6 bg-gray-50">
+                    <h5 class="text-[10px] font-black uppercase tracking-widest mb-2">Observaciones:</h5>
+                    <p class="text-sm italic">{{ selectedSolicitud.observaciones }}</p>
+                </div>
+                <div *ngIf="selectedSolicitud.motivoRechazo" class="border-2 border-black p-6 bg-gray-50">
+                    <h5 class="text-[10px] font-black uppercase tracking-widest mb-2">Motivo de Rechazo:</h5>
+                    <p class="text-sm font-bold">{{ selectedSolicitud.motivoRechazo }}</p>
+                </div>
+            </div>
+
+            <div class="mt-32 flex justify-between gap-20">
+                <div class="flex-1 border-t-2 border-black pt-4 text-center">
+                    <p class="text-[10px] font-black uppercase tracking-widest mb-1">{{ selectedSolicitud.nombreSolicitante }}</p>
+                    <p class="text-[8px] font-bold text-gray-400 uppercase tracking-tighter">Firma Solicitante</p>
+                </div>
+                <div class="flex-1 border-t-2 border-black pt-4 text-center">
+                    <p class="text-[10px] font-black uppercase tracking-widest mb-1">{{ selectedSolicitud.nombreAprobador }}</p>
+                    <p class="text-[8px] font-bold text-gray-400 uppercase tracking-tighter">Firma Autorizante</p>
+                </div>
+            </div>
+
+            <div class="mt-20 text-center text-[9px] text-gray-400 uppercase font-black tracking-[0.2em]">
+                Documento generado electrónicamente - Validez Interna
+            </div>
+        </div>
+    </div>
+</div>

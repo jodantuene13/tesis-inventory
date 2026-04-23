@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TesisInventory.Infrastructure.Persistence;
 
@@ -11,9 +12,11 @@ using TesisInventory.Infrastructure.Persistence;
 namespace TesisInventory.Infrastructure.Migrations
 {
     [DbContext(typeof(InventoryDbContext))]
-    partial class InventoryDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260422003943_AddSolicitudCompra")]
+    partial class AddSolicitudCompra
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -279,9 +282,6 @@ namespace TesisInventory.Infrastructure.Migrations
                     b.Property<DateTime>("Fecha")
                         .HasColumnType("datetime(6)");
 
-                    b.Property<int?>("IdOperacion")
-                        .HasColumnType("int");
-
                     b.Property<int>("IdProducto")
                         .HasColumnType("int");
 
@@ -302,8 +302,6 @@ namespace TesisInventory.Infrastructure.Migrations
 
                     b.HasKey("IdMovimiento");
 
-                    b.HasIndex("IdOperacion");
-
                     b.HasIndex("IdProducto");
 
                     b.HasIndex("IdSede");
@@ -311,60 +309,6 @@ namespace TesisInventory.Infrastructure.Migrations
                     b.HasIndex("IdUsuario");
 
                     b.ToTable("Movimiento", (string)null);
-                });
-
-            modelBuilder.Entity("TesisInventory.Domain.Entities.OperacionStock", b =>
-                {
-                    b.Property<int>("IdOperacion")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasColumnName("idOperacion");
-
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("IdOperacion"));
-
-                    b.Property<DateTime>("Fecha")
-                        .HasColumnType("datetime(6)")
-                        .HasColumnName("fecha");
-
-                    b.Property<int>("IdSede")
-                        .HasColumnType("int")
-                        .HasColumnName("idSede");
-
-                    b.Property<int>("IdUsuario")
-                        .HasColumnType("int")
-                        .HasColumnName("idUsuario");
-
-                    b.Property<int>("Motivo")
-                        .HasColumnType("int")
-                        .HasColumnName("motivo");
-
-                    b.Property<string>("Observaciones")
-                        .HasColumnType("longtext")
-                        .HasColumnName("observaciones");
-
-                    b.Property<string>("OrdenCompra")
-                        .HasColumnType("longtext")
-                        .HasColumnName("ordenCompra");
-
-                    b.Property<string>("OrdenTrabajo")
-                        .HasColumnType("longtext")
-                        .HasColumnName("ordenTrabajo");
-
-                    b.Property<string>("TicketSolicitud")
-                        .HasColumnType("longtext")
-                        .HasColumnName("ticketSolicitud");
-
-                    b.Property<int>("TipoOperacion")
-                        .HasColumnType("int")
-                        .HasColumnName("tipoOperacion");
-
-                    b.HasKey("IdOperacion");
-
-                    b.HasIndex("IdSede");
-
-                    b.HasIndex("IdUsuario");
-
-                    b.ToTable("OperacionStock", (string)null);
                 });
 
             modelBuilder.Entity("TesisInventory.Domain.Entities.Producto", b =>
@@ -631,6 +575,10 @@ namespace TesisInventory.Infrastructure.Migrations
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("IdTransferencia"));
 
+                    b.Property<int>("Cantidad")
+                        .HasColumnType("int")
+                        .HasColumnName("cantidad");
+
                     b.Property<int>("Estado")
                         .HasColumnType("int")
                         .HasColumnName("estado");
@@ -638,6 +586,10 @@ namespace TesisInventory.Infrastructure.Migrations
                     b.Property<DateTime>("FechaSolicitud")
                         .HasColumnType("datetime(6)")
                         .HasColumnName("fechaSolicitud");
+
+                    b.Property<int>("IdProducto")
+                        .HasColumnType("int")
+                        .HasColumnName("idProducto");
 
                     b.Property<int>("IdSedeDestino")
                         .HasColumnType("int")
@@ -659,7 +611,13 @@ namespace TesisInventory.Infrastructure.Migrations
                         .HasColumnType("longtext")
                         .HasColumnName("observaciones");
 
+                    b.Property<int?>("StockOrigenSnapshot")
+                        .HasColumnType("int")
+                        .HasColumnName("stockOrigenSnapshot");
+
                     b.HasKey("IdTransferencia");
+
+                    b.HasIndex("IdProducto");
 
                     b.HasIndex("IdSedeDestino");
 
@@ -668,40 +626,6 @@ namespace TesisInventory.Infrastructure.Migrations
                     b.HasIndex("IdUsuarioSolicita");
 
                     b.ToTable("Transferencia", (string)null);
-                });
-
-            modelBuilder.Entity("TesisInventory.Domain.Entities.TransferenciaDetalle", b =>
-                {
-                    b.Property<int>("IdTransferenciaDetalle")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasColumnName("idTransferenciaDetalle");
-
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("IdTransferenciaDetalle"));
-
-                    b.Property<int>("Cantidad")
-                        .HasColumnType("int")
-                        .HasColumnName("cantidad");
-
-                    b.Property<int>("IdProducto")
-                        .HasColumnType("int")
-                        .HasColumnName("idProducto");
-
-                    b.Property<int>("IdTransferencia")
-                        .HasColumnType("int")
-                        .HasColumnName("idTransferencia");
-
-                    b.Property<int?>("StockOrigenSnapshot")
-                        .HasColumnType("int")
-                        .HasColumnName("stockOrigenSnapshot");
-
-                    b.HasKey("IdTransferenciaDetalle");
-
-                    b.HasIndex("IdProducto");
-
-                    b.HasIndex("IdTransferencia");
-
-                    b.ToTable("TransferenciaDetalle", (string)null);
                 });
 
             modelBuilder.Entity("TesisInventory.Domain.Entities.Usuario", b =>
@@ -818,11 +742,6 @@ namespace TesisInventory.Infrastructure.Migrations
 
             modelBuilder.Entity("TesisInventory.Domain.Entities.Movimiento", b =>
                 {
-                    b.HasOne("TesisInventory.Domain.Entities.OperacionStock", "OperacionStock")
-                        .WithMany("Movimientos")
-                        .HasForeignKey("IdOperacion")
-                        .OnDelete(DeleteBehavior.Cascade);
-
                     b.HasOne("TesisInventory.Domain.Entities.Producto", "Producto")
                         .WithMany("Movimientos")
                         .HasForeignKey("IdProducto")
@@ -841,28 +760,7 @@ namespace TesisInventory.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.Navigation("OperacionStock");
-
                     b.Navigation("Producto");
-
-                    b.Navigation("Sede");
-
-                    b.Navigation("Usuario");
-                });
-
-            modelBuilder.Entity("TesisInventory.Domain.Entities.OperacionStock", b =>
-                {
-                    b.HasOne("TesisInventory.Domain.Entities.Sede", "Sede")
-                        .WithMany("OperacionesStock")
-                        .HasForeignKey("IdSede")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("TesisInventory.Domain.Entities.Usuario", "Usuario")
-                        .WithMany("OperacionesStock")
-                        .HasForeignKey("IdUsuario")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
 
                     b.Navigation("Sede");
 
@@ -954,6 +852,12 @@ namespace TesisInventory.Infrastructure.Migrations
 
             modelBuilder.Entity("TesisInventory.Domain.Entities.Transferencia", b =>
                 {
+                    b.HasOne("TesisInventory.Domain.Entities.Producto", "Producto")
+                        .WithMany("Transferencias")
+                        .HasForeignKey("IdProducto")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("TesisInventory.Domain.Entities.Sede", "SedeDestino")
                         .WithMany("TransferenciasDestino")
                         .HasForeignKey("IdSedeDestino")
@@ -972,30 +876,13 @@ namespace TesisInventory.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.Navigation("Producto");
+
                     b.Navigation("SedeDestino");
 
                     b.Navigation("SedeOrigen");
 
                     b.Navigation("UsuarioSolicita");
-                });
-
-            modelBuilder.Entity("TesisInventory.Domain.Entities.TransferenciaDetalle", b =>
-                {
-                    b.HasOne("TesisInventory.Domain.Entities.Producto", "Producto")
-                        .WithMany("TransferenciaDetalles")
-                        .HasForeignKey("IdProducto")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("TesisInventory.Domain.Entities.Transferencia", "Transferencia")
-                        .WithMany("Detalles")
-                        .HasForeignKey("IdTransferencia")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Producto");
-
-                    b.Navigation("Transferencia");
                 });
 
             modelBuilder.Entity("TesisInventory.Domain.Entities.Usuario", b =>
@@ -1031,11 +918,6 @@ namespace TesisInventory.Infrastructure.Migrations
                     b.Navigation("Productos");
                 });
 
-            modelBuilder.Entity("TesisInventory.Domain.Entities.OperacionStock", b =>
-                {
-                    b.Navigation("Movimientos");
-                });
-
             modelBuilder.Entity("TesisInventory.Domain.Entities.Producto", b =>
                 {
                     b.Navigation("Movimientos");
@@ -1044,7 +926,7 @@ namespace TesisInventory.Infrastructure.Migrations
 
                     b.Navigation("Stocks");
 
-                    b.Navigation("TransferenciaDetalles");
+                    b.Navigation("Transferencias");
                 });
 
             modelBuilder.Entity("TesisInventory.Domain.Entities.Rol", b =>
@@ -1061,8 +943,6 @@ namespace TesisInventory.Infrastructure.Migrations
                 {
                     b.Navigation("Movimientos");
 
-                    b.Navigation("OperacionesStock");
-
                     b.Navigation("Stocks");
 
                     b.Navigation("TransferenciasDestino");
@@ -1074,8 +954,6 @@ namespace TesisInventory.Infrastructure.Migrations
 
             modelBuilder.Entity("TesisInventory.Domain.Entities.Transferencia", b =>
                 {
-                    b.Navigation("Detalles");
-
                     b.Navigation("HistorialTransferencias");
                 });
 
@@ -1084,8 +962,6 @@ namespace TesisInventory.Infrastructure.Migrations
                     b.Navigation("HistorialTransferencias");
 
                     b.Navigation("Movimientos");
-
-                    b.Navigation("OperacionesStock");
 
                     b.Navigation("TransferenciasSolicitadas");
                 });

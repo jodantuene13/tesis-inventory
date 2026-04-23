@@ -1,3 +1,18 @@
+<div class="animate-fade-in">
+
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="page-header__titles">
+            <h1 class="page-header__title">Stock Local</h1>
+            <p class="page-header__subtitle">Control de existencias por sede — Ingresos, egresos y auditoría de movimientos.</p>
+        </div>
+        <div class="page-header__actions">
+            <a routerLink="/inventory/historial-movimientos" class="btn btn-secondary">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Historial
+            </a>
 <div class="container mx-auto p-4 relative">
     <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
         <h2 class="text-2xl font-bold text-gray-800">Stock Local</h2>
@@ -12,438 +27,321 @@
         </div>
     </div>
 
-    <!-- Quick Indicators -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <!-- Total Products Card -->
-        <div class="bg-gradient-to-br from-blue-500 to-blue-700 rounded-2xl shadow-lg p-6 text-white transform hover:scale-105 transition-all duration-300">
-            <div class="flex justify-between items-center">
-                <div>
-                    <p class="text-blue-100 text-sm font-medium uppercase tracking-wider">Total Productos</p>
-                    <h3 class="text-4xl font-black mt-1">{{ indicatorTotal }}</h3>
-                </div>
-                <div class="bg-white/20 p-3 rounded-xl backdrop-blur-sm">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                    </svg>
-                </div>
-            </div>
-            <div class="mt-4 flex items-center text-sm text-blue-100">
-                <span class="bg-blue-400/30 px-2 py-0.5 rounded-full mr-2">Sede actual</span>
-                <span>Catálogo completo</span>
-            </div>
-        </div>
-
-        <!-- Low Stock Card -->
-        <div class="bg-gradient-to-br from-rose-500 to-rose-700 rounded-2xl shadow-lg p-6 text-white transform hover:scale-105 transition-all duration-300">
-            <div class="flex justify-between items-center">
-                <div>
-                    <p class="text-rose-100 text-sm font-medium uppercase tracking-wider">Alertas Bajo Stock</p>
-                    <h3 class="text-4xl font-black mt-1">{{ indicatorBajoStock }}</h3>
-                </div>
-                <div class="bg-white/20 p-3 rounded-xl backdrop-blur-sm">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                    </svg>
-                </div>
-            </div>
-            <div class="mt-4 flex items-center text-sm text-rose-100">
-                <span class="bg-rose-400/30 px-2 py-0.5 rounded-full mr-2">Crítico</span>
-                <span>Requiere reposición</span>
-            </div>
-        </div>
-
-        <!-- Movemement Hint Card -->
-        <div class="bg-gradient-to-br from-amber-400 to-orange-600 rounded-2xl shadow-lg p-6 text-white transform hover:scale-105 transition-all duration-300 cursor-pointer" routerLink="/inventory/historial-movimientos">
-            <div class="flex justify-between items-center">
-                <div>
-                    <p class="text-amber-100 text-sm font-medium uppercase tracking-wider">Gestión de Stock</p>
-                    <h3 class="text-2xl font-bold mt-1">Movimientos</h3>
-                </div>
-                <div class="bg-white/20 p-3 rounded-xl backdrop-blur-sm">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
-                    </svg>
-                </div>
-            </div>
-            <div class="mt-4 flex items-center text-sm text-amber-100">
-                <span>Ir al historial completo</span>
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+    <!-- KPI Cards -->
+    <div class="kpi-grid" style="grid-template-columns: repeat(3, 1fr);">
+        <div class="kpi-card kpi-card--primary" (click)="filterAll()">
+            <div class="kpi-card__icon kpi-card__icon--primary">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                 </svg>
+            </div>
+            <div class="kpi-card__body">
+                <div class="kpi-card__label">Total Productos</div>
+                <div class="kpi-card__value">{{ indicatorTotal }}</div>
+            </div>
+        </div>
+
+        <div class="kpi-card kpi-card--amber" (click)="filterByBajoStock()">
+            <div class="kpi-card__icon kpi-card__icon--warning">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+            </div>
+            <div class="kpi-card__body">
+                <div class="kpi-card__label">Alertas Bajo Stock</div>
+                <div class="kpi-card__value" [ngClass]="indicatorBajoStock > 0 ? 'kpi-card__value--warning' : ''">{{ indicatorBajoStock }}</div>
+            </div>
+        </div>
+
+        <div class="kpi-card kpi-card--slate" routerLink="/inventory/historial-movimientos">
+            <div class="kpi-card__icon kpi-card__icon--info">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                </svg>
+            </div>
+            <div class="kpi-card__body">
+                <div class="kpi-card__label">Historial</div>
+                <div class="kpi-card__value" style="font-size:1rem; font-weight:600; color: var(--color-info-600);">Ver movimientos →</div>
             </div>
         </div>
     </div>
 
-    <!-- Filters -->
-    <div class="bg-white p-4 rounded-lg shadow mb-6 flex flex-wrap gap-4 items-end">
-        <div class="flex-1 min-w-[200px]">
-            <label class="block text-sm font-medium text-gray-700 mb-1">Buscar (SKU / Nombre)</label>
-            <input type="text" [(ngModel)]="searchTerm" (keyup.enter)="search()" placeholder="SKU o Nombre..."
-                class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm p-2 border">
+    <!-- Filter Bar -->
+    <div class="filter-bar">
+        <div class="filter-group filter-group--grow">
+            <label class="filter-label">Buscar</label>
+            <input type="text" class="ds-input" [(ngModel)]="searchTerm" (keyup.enter)="search()" placeholder="SKU o nombre del producto...">
         </div>
-
-        <div class="w-full md:w-auto">
-            <label class="block text-sm font-medium text-gray-700 mb-1">Rubro</label>
-            <select [(ngModel)]="selectedRubroId" (change)="onRubroChange()"
-                class="w-full md:w-48 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm p-2 border">
-                <option [ngValue]="null">Todos los Rubros</option>
+        <div class="filter-group">
+            <label class="filter-label">Rubro</label>
+            <select class="ds-input" [(ngModel)]="selectedRubroId" (change)="onRubroChange()" style="width:160px">
+                <option [ngValue]="null">Todos los rubros</option>
                 <option *ngFor="let r of rubros" [ngValue]="r.idRubro">{{ r.nombre }}</option>
             </select>
         </div>
-
-        <div class="w-full md:w-auto">
-            <label class="block text-sm font-medium text-gray-700 mb-1">Familia</label>
-            <select [(ngModel)]="selectedFamiliaId" (change)="search()" [disabled]="!selectedRubroId"
-                class="w-full md:w-48 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm p-2 border disabled:bg-gray-100 disabled:text-gray-400">
-                <option [ngValue]="null">Todas las Familias</option>
+        <div class="filter-group">
+            <label class="filter-label">Familia</label>
+            <select class="ds-input" [(ngModel)]="selectedFamiliaId" (change)="search()" [disabled]="!selectedRubroId" style="width:160px">
+                <option [ngValue]="null">Todas las familias</option>
                 <option *ngFor="let f of familias" [ngValue]="f.idFamilia">{{ f.nombre }}</option>
             </select>
         </div>
-
-        <div class="w-full md:w-auto">
-            <label class="block text-sm font-medium text-gray-700 mb-1">Estado</label>
-            <select [(ngModel)]="selectedEstado" (change)="search()"
-                class="w-full md:w-32 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm p-2 border">
+        <div class="filter-group">
+            <label class="filter-label">Estado</label>
+            <select class="ds-input" [(ngModel)]="selectedEstado" (change)="search()" style="width:120px">
                 <option value="">Todos</option>
                 <option value="true">Activo</option>
                 <option value="false">Inactivo</option>
             </select>
         </div>
-
-        <div class="w-full md:w-auto">
-            <label class="block text-sm font-medium text-gray-700 mb-1">Stock</label>
-            <select [(ngModel)]="selectedBajoStock" (change)="search()"
-                class="w-full md:w-32 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm p-2 border">
+        <div class="filter-group">
+            <label class="filter-label">Stock</label>
+            <select class="ds-input" [(ngModel)]="selectedBajoStock" (change)="search()" style="width:130px">
                 <option value="">Todos</option>
-                <option value="true">Bajo Stock</option>
+                <option value="true">Bajo stock</option>
             </select>
         </div>
-
-        <div class="flex gap-2">
-            <button (click)="search()"
-                class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition flex items-center gap-1">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
-                    stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-                Buscar
-            </button>
-            <button *ngIf="hasSearched" (click)="clearFilters()"
-                class="text-gray-600 hover:text-gray-800 px-3 py-2 rounded border border-gray-300 hover:bg-gray-50 transition">
-                Limpiar
-            </button>
+        <div class="filter-group" style="justify-content:flex-end">
+            <label class="filter-label">&nbsp;</label>
+            <div class="flex gap-2">
+                <button class="btn btn-primary" (click)="search()">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                    Buscar
+                </button>
+                <button *ngIf="hasSearched" class="btn btn-ghost" (click)="clearFilters()">Limpiar</button>
+            </div>
         </div>
     </div>
 
     <!-- Table -->
-    <div class="overflow-x-auto">
-        <table class="min-w-full bg-white border border-gray-300">
+    <div class="ds-table-wrapper">
+        <table class="ds-table">
             <thead>
-                <tr class="bg-gray-100 text-gray-600 uppercase text-sm leading-normal">
-                    <th class="py-3 px-6 text-left">SKU</th>
-                    <th class="py-3 px-6 text-left">Nombre</th>
-                    <th class="py-3 px-6 text-left">Rubro / Familia</th>
-                    <th class="py-3 px-6 text-center">Cant. / UM</th>
-                    <th class="py-3 px-6 text-center">Estado</th>
-                    <th class="py-3 px-6 text-center">Acciones</th>
+                <tr>
+                    <th>SKU / Producto</th>
+                    <th>Clasificación</th>
+                    <th style="text-align:center">Stock</th>
+                    <th style="text-align:center">Estado</th>
+                    <th style="text-align:right">Acciones</th>
                 </tr>
             </thead>
-            <tbody class="text-gray-600 text-sm font-light">
-                <tr *ngFor="let s of stocks" class="border-b border-gray-200 hover:bg-gray-100"
-                    [ngClass]="{'bg-red-50': s.conBajoStock}">
-                    <td class="py-3 px-6 text-left whitespace-nowrap font-medium">{{ s.sku }}</td>
-                    <td class="py-3 px-6 text-left whitespace-nowrap">{{ s.nombreProducto }}</td>
-                    <td class="py-3 px-6 text-left">{{ s.rubroProducto }} / {{ s.familiaProducto }}</td>
-                    <td class="py-3 px-6 text-center font-bold"
-                        [ngClass]="{'text-red-600': s.conBajoStock, 'text-green-600': !s.conBajoStock}">
-                        {{ s.cantidadActual }} <span class="text-xs font-normal text-gray-500">{{ s.unidadMedida
-                            }}</span>
-                        <div class="text-[10px] font-normal text-gray-400 mt-1"
-                            title="Alerta configurada de stock mínimo">Min: {{ s.puntoReposicion }}</div>
+            <tbody>
+                <tr *ngFor="let s of stocks" [style.background]="s.conBajoStock ? 'var(--color-warning-50)' : ''">
+                    <td>
+                        <div class="cell-primary">{{ s.nombreProducto }}</div>
+                        <div class="cell-mono">{{ s.sku }}</div>
                     </td>
-                    <td class="py-3 px-6 text-center">
-                        <span class="py-1 px-3 rounded-full text-xs font-semibold"
-                            [class]="s.estadoProducto ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'">
+                    <td>
+                        <div class="cell-primary" style="font-weight:500">{{ s.rubroProducto }}</div>
+                        <div class="cell-muted">{{ s.familiaProducto }}</div>
+                    </td>
+                    <td style="text-align:center">
+                        <div style="display:flex;align-items:center;justify-content:center;gap:6px;">
+                            <span style="font-size:1.1rem;font-weight:800;color: {{ s.conBajoStock ? 'var(--color-warning-600)' : 'var(--color-gray-900)' }}">{{ s.cantidadActual }}</span>
+                            <span style="font-size:0.7rem;color:var(--color-gray-400);font-weight:600">{{ s.unidadMedida }}</span>
+                        </div>
+                        <div *ngIf="s.conBajoStock" class="badge badge-warning" style="margin-top:4px;font-size:0.6rem">Min: {{ s.puntoReposicion }}</div>
+                    </td>
+                    <td style="text-align:center">
+                        <span class="badge" [ngClass]="s.estadoProducto ? 'badge-success' : 'badge-neutral'">
                             {{ s.estadoProducto ? 'Activo' : 'Inactivo' }}
                         </span>
                     </td>
-                    <td class="py-3 px-6 text-center">
-                        <div class="flex item-center justify-center space-x-3">
-                            <!-- Registrar Consumo -->
-                            <button (click)="openConsumoModal(s)"
-                                class="transform hover:text-orange-500 hover:scale-110 transition duration-150 ease-in-out"
-                                title="Registrar Consumo">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                    stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 12h-15M12 4.5v15" />
-                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                        d="M15.75 17.25 12 21m0 0-3.75-3.75M12 21V3" />
+                    <td class="cell-actions">
+                        <div class="flex items-center justify-end gap-1">
+                            <button class="btn btn--sm btn--icon btn-ghost" (click)="openConsumoModal(s)" title="Registrar Consumo">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" />
                                 </svg>
                             </button>
-                            <!-- Incrementar Stock -->
-                            <button (click)="openIncrementoModal(s)"
-                                class="transform hover:text-green-500 hover:scale-110 transition duration-150 ease-in-out"
-                                title="Incrementar Stock">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                    stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                            <button class="btn btn--sm btn--icon btn-ghost" (click)="openIncrementoModal(s)" title="Incrementar Stock">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                                 </svg>
                             </button>
-                            <!-- Registrar Transferencia -->
-                            <button (click)="openTransferenciaModal(s)"
-                                class="transform hover:text-blue-500 hover:scale-110 transition duration-150 ease-in-out"
-                                title="Registrar Transferencia">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                    stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
-                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                        d="M7.5 21 3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5" />
+                            <button class="btn btn--sm btn--icon btn-ghost" (click)="openHistorialModal(s)" title="Historial">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                                 </svg>
                             </button>
-                            <!-- Historial Consumos/Movimientos -->
-                            <button (click)="openHistorialModal(s)"
-                                class="transform hover:text-gray-500 hover:scale-110 transition duration-150 ease-in-out"
-                                title="Historial Movimientos">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                    stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
-                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                        d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                            <button class="btn btn--sm btn--icon btn-ghost" (click)="openDetalleModal(s)" title="Ver Ficha">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0zM2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                                 </svg>
                             </button>
-                            <!-- Ver Ficha -->
-                            <button (click)="openDetalleModal(s)"
-                                class="transform hover:text-purple-500 hover:scale-110 transition duration-150 ease-in-out"
-                                title="Ver Ficha de Producto">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                    stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
-                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                        d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
-                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                        d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                            <button class="btn btn--sm btn--icon btn-danger" (click)="deleteStock(s.idStock, $event)" [disabled]="!s.estadoProducto" title="Dar de baja">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
                                 </svg>
                             </button>
                         </div>
                     </td>
                 </tr>
-                <tr *ngIf="stocks.length === 0">
-                    <td colspan="6" class="py-4 text-center text-gray-500">No hay productos en stock que coincidan con
-                        la búsqueda.</td>
-                </tr>
             </tbody>
         </table>
-    </div>
 
-    <!-- Pagination -->
-    <div class="flex justify-between items-center mt-4">
-        <span class="text-sm text-gray-600">Mostrando página {{ page }} de {{ totalPages }} ({{ totalCount }}
-            resultados)</span>
-        <div class="flex space-x-2">
-            <button (click)="prevPage()" [disabled]="page === 1"
-                class="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition disabled:opacity-50 disabled:cursor-not-allowed">
-                Anterior
+        <div *ngIf="stocks.length === 0" class="ds-table-empty">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+            </svg>
+            <p>No hay productos que coincidan con los filtros aplicados.</p>
+        </div>
+
+        <div class="ds-table-footer">
+            <span>Página {{ page }} de {{ totalPages }} · {{ totalCount }} resultados</span>
+            <div class="flex gap-2">
+                <button class="btn btn--sm btn-secondary" (click)="prevPage()" [disabled]="page === 1">Anterior</button>
+                <button class="btn btn--sm btn-secondary" (click)="nextPage()" [disabled]="page === totalPages">Siguiente</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modals -->
+<div *ngIf="activeModal !== null" class="modal-backdrop" (click)="closeModal()">
+
+    <!-- Consumo Modal -->
+    <div *ngIf="activeModal === 'consumo'" class="modal-box" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+            <h2 class="modal-title">Registrar Consumo / Egreso</h2>
+            <button class="modal-close" (click)="closeModal()">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
             </button>
-            <button (click)="nextPage()" [disabled]="page === totalPages"
-                class="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition disabled:opacity-50 disabled:cursor-not-allowed">
-                Siguiente
+        </div>
+        <div class="modal-body">
+            <p style="font-size:0.875rem;color:var(--color-gray-600);margin-bottom:1.25rem;">
+                <strong style="color:var(--color-gray-900)">{{ selectedStock?.nombreProducto }}</strong> · Stock actual: <strong>{{ selectedStock?.cantidadActual }}</strong> {{ selectedStock?.unidadMedida }}
+            </p>
+            <div *ngIf="!consumoConfirm">
+                <div class="form-row">
+                    <div class="form-field">
+                        <label>Cantidad a descontar</label>
+                        <input type="number" class="ds-input" [(ngModel)]="consumoCantidad" min="1" [max]="selectedStock ? selectedStock.cantidadActual : null">
+                    </div>
+                    <div class="form-field">
+                        <label>Motivo</label>
+                        <select class="ds-input" [(ngModel)]="consumoMotivo">
+                            <option [ngValue]="0">Consumo Interno</option>
+                            <option [ngValue]="1">Egreso por vencimiento</option>
+                            <option [ngValue]="2">Egreso por daño</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div *ngIf="consumoConfirm" class="badge badge-warning" style="padding:0.75rem;border-radius:8px;width:100%;display:block;font-size:0.875rem;font-weight:500">
+                ¿Confirmar egreso de <strong>{{ consumoCantidad }}</strong> unidades de <strong>{{ selectedStock?.nombreProducto }}</strong>?
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" (click)="consumoConfirm ? consumoConfirm = false : closeModal()">{{ consumoConfirm ? 'Volver' : 'Cancelar' }}</button>
+            <button class="btn btn-primary" (click)="confirmConsumo()" [disabled]="consumoCantidad < 1 || consumoCantidad > (selectedStock?.cantidadActual || 0)">
+                {{ consumoConfirm ? 'Confirmar Egreso' : 'Continuar' }}
             </button>
         </div>
     </div>
 
-
-    <!-- Modals Backdrop -->
-    <div *ngIf="activeModal !== null"
-        class="fixed inset-0 bg-black bg-opacity-50 z-40 flex justify-center items-center">
-        <!-- Registrar Consumo Modal -->
-        <div *ngIf="activeModal === 'consumo'" class="bg-white rounded-lg shadow-xl w-11/12 md:w-1/3 p-6 z-50">
-            <h3 class="text-xl font-bold mb-4">Registrar Consumo</h3>
-            <p class="mb-4 text-gray-600">Producto: <span class="font-bold">{{ selectedStock?.nombreProducto }}</span>
-                (Stock: {{ selectedStock?.cantidadActual }})</p>
-
-            <div *ngIf="!consumoConfirm">
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Cantidad a descontar</label>
-                    <input type="number" [(ngModel)]="consumoCantidad" min="1"
-                        [max]="selectedStock ? selectedStock.cantidadActual : null"
-                        class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm p-2 border">
+    <!-- Incremento Modal -->
+    <div *ngIf="activeModal === 'incremento'" class="modal-box" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+            <h2 class="modal-title">Registrar Ingreso</h2>
+            <button class="modal-close" (click)="closeModal()">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
+            </button>
+        </div>
+        <div class="modal-body">
+            <p style="font-size:0.875rem;color:var(--color-gray-600);margin-bottom:1.25rem;">
+                <strong style="color:var(--color-gray-900)">{{ selectedStock?.nombreProducto }}</strong>
+            </p>
+            <div class="form-row">
+                <div class="form-field">
+                    <label>Cantidad a ingresar</label>
+                    <input type="number" class="ds-input" [(ngModel)]="incrementoCantidad" min="1">
                 </div>
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Motivo</label>
-                    <select [(ngModel)]="consumoMotivo"
-                        class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm p-2 border">
-                        <option [ngValue]="0">Consumo Interno</option>
-                        <option [ngValue]="1">Egreso por vencimiento</option>
-                        <option [ngValue]="2">Egreso por daño</option>
+                <div class="form-field">
+                    <label>Motivo</label>
+                    <select class="ds-input" [(ngModel)]="incrementoMotivo">
+                        <option [ngValue]="3">Por Compra</option>
+                        <option [ngValue]="4">Ajustes varios</option>
                     </select>
                 </div>
-                <div class="flex justify-end gap-2 mt-6">
-                    <button (click)="closeModal()"
-                        class="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300">Cancelar</button>
-                    <button (click)="confirmConsumo()"
-                        [disabled]="consumoCantidad < 1 || consumoCantidad > (selectedStock?.cantidadActual || 0)"
-                        class="px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600">Continuar</button>
-                </div>
             </div>
-
-            <!-- Confirmation step for consumo -->
-            <div *ngIf="consumoConfirm">
-                <div
-                    class="bg-yellow-50 border border-yellow-200 p-4 rounded text-yellow-800 mb-4 text-sm whitespace-pre-line">
-                    ¿Confirmar {{ consumoMotivo === 0 ? 'Consumo' : consumoMotivo === 1 ? 'Egreso por Vencimiento' :
-                    'Egreso por Daño' }}
-                    de <span class="font-bold">{{ consumoCantidad }}</span> unidades de <span class="font-bold">{{
-                        selectedStock?.nombreProducto }}</span>?
-                </div>
-                <div class="flex justify-end gap-2 mt-6">
-                    <button (click)="consumoConfirm = false"
-                        class="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300">Volver</button>
-                    <button (click)="confirmConsumo()"
-                        class="px-4 py-2 bg-orange-600 text-white font-bold rounded hover:bg-orange-700 shadow">Confirmar
-                        Egreso</button>
-                </div>
+            <div class="form-field">
+                <label>Observaciones</label>
+                <input type="text" class="ds-input" [(ngModel)]="incrementoObs" placeholder="Opcional...">
             </div>
         </div>
-
-        <!-- Incrementar Stock Modal -->
-        <div *ngIf="activeModal === 'incremento'" class="bg-white rounded-lg shadow-xl w-11/12 md:w-1/3 p-6 z-50">
-            <h3 class="text-xl font-bold mb-4 text-green-700">Incrementar Stock</h3>
-            <p class="mb-4 text-gray-600">Producto: <span class="font-bold">{{ selectedStock?.nombreProducto }}</span>
-            </p>
-
-            <div class="mb-4">
-                <label class="block text-sm font-medium text-gray-700 mb-1">Cantidad a ingresar</label>
-                <input type="number" [(ngModel)]="incrementoCantidad" min="1"
-                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 text-sm p-2 border">
-            </div>
-            <div class="mb-4">
-                <label class="block text-sm font-medium text-gray-700 mb-1">Motivo</label>
-                <select [(ngModel)]="incrementoMotivo"
-                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 text-sm p-2 border">
-                    <option [ngValue]="3">Por Compra</option>
-                    <option [ngValue]="4">Ajustes varios</option>
-                </select>
-            </div>
-            <div class="mb-4">
-                <label class="block text-sm font-medium text-gray-700 mb-1">Observaciones</label>
-                <input type="text" [(ngModel)]="incrementoObs"
-                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 text-sm p-2 border">
-            </div>
-
-            <div class="flex justify-end gap-2 mt-6">
-                <button (click)="closeModal()"
-                    class="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300">Cancelar</button>
-                <button (click)="saveIncremento()" [disabled]="incrementoCantidad < 1"
-                    class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 shadow">Registrar
-                    Ingreso</button>
-            </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" (click)="closeModal()">Cancelar</button>
+            <button class="btn btn-success" (click)="saveIncremento()" [disabled]="incrementoCantidad < 1">Registrar Ingreso</button>
         </div>
+    </div>
 
-        <!-- Transferencia Modal -->
-        <div *ngIf="activeModal === 'transferencia'" class="bg-white rounded-lg shadow-xl w-11/12 md:w-1/3 p-6 z-50">
-            <h3 class="text-xl font-bold mb-4 text-blue-700">Registrar Transferencia</h3>
-            <p class="mb-4 text-gray-600">Producto: <span class="font-bold">{{ selectedStock?.nombreProducto }}</span>
-                (Stock: {{ selectedStock?.cantidadActual }})</p>
-
-            <div class="mb-4">
-                <label class="block text-sm font-medium text-gray-700 mb-1">Sede Destino</label>
-                <select [(ngModel)]="transferenciaSedeDestino"
-                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm p-2 border">
-                    <!-- Evitar listarse a sí mismo si fuera posible en memoria. TODO: omitir sede origen si se conoce ID -->
-                    <option *ngFor="let s of sedes" [ngValue]="s.idSede">{{ s.nombreSede }}</option>
-                </select>
-            </div>
-            <div class="mb-4">
-                <label class="block text-sm font-medium text-gray-700 mb-1">Cantidad a transferir</label>
-                <input type="number" [(ngModel)]="transferenciaCantidad" min="1"
-                    [max]="selectedStock ? selectedStock.cantidadActual : null"
-                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm p-2 border">
-            </div>
-            <div class="mb-4">
-                <label class="block text-sm font-medium text-gray-700 mb-1">Observaciones</label>
-                <input type="text" [(ngModel)]="transferenciaObs"
-                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm p-2 border">
-            </div>
-
-            <div class="flex justify-end gap-2 mt-6">
-                <button (click)="closeModal()"
-                    class="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300">Cancelar</button>
-                <button (click)="saveTransferencia()"
-                    [disabled]="transferenciaCantidad < 1 || !transferenciaSedeDestino || transferenciaCantidad > (selectedStock?.cantidadActual || 0)"
-                    class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 shadow">Registrar
-                    Transferencia</button>
-            </div>
+    <!-- Historial Modal -->
+    <div *ngIf="activeModal === 'historial'" class="modal-box modal-box--wide" (click)="$event.stopPropagation()" style="max-height:85vh;">
+        <div class="modal-header">
+            <h2 class="modal-title">Historial — {{ selectedStock?.nombreProducto }}</h2>
+            <button class="modal-close" (click)="closeModal()">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
+            </button>
         </div>
-
-        <!-- Historial Modal -->
-        <div *ngIf="activeModal === 'historial'"
-            class="bg-white rounded-lg shadow-xl w-11/12 md:w-3/4 p-6 z-50 max-h-[90vh] overflow-y-auto">
-            <div class="flex justify-between items-start mb-4">
-                <h3 class="text-xl font-bold">Historial de Movimientos</h3>
-                <button (click)="closeModal()"
-                    class="text-gray-500 hover:text-gray-800 scale-125 rounded-full bg-gray-100 p-1"><svg
-                        xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd"
-                            d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-                            clip-rule="evenodd" />
-                    </svg></button>
-            </div>
-            <p class="mb-4 text-gray-600">Producto: <span class="font-bold">{{ selectedStock?.nombreProducto }}</span>
-            </p>
-
-            <div class="flex flex-wrap gap-2 mb-4 bg-gray-50 p-2 rounded">
-                <select [(ngModel)]="histFiltroTipo" (change)="loadHistorial()" class="text-sm border p-1 rounded">
-                    <option value="">Todos (Ingresos y Egresos)</option>
+        <div class="modal-body" style="padding-top:1rem;">
+            <div style="margin-bottom:0.75rem;">
+                <select class="ds-input" [(ngModel)]="histFiltroTipo" (change)="loadHistorial()" style="width:220px">
+                    <option value="">Todos los movimientos</option>
                     <option value="Ingreso">Solo Ingresos</option>
                     <option value="Egreso">Solo Egresos</option>
                 </select>
             </div>
-
-            <table class="min-w-full bg-white border border-gray-300 mb-4">
-                <thead class="bg-gray-100 text-gray-600 text-xs">
-                    <tr>
-                        <th class="py-2 px-3 text-left">Fecha</th>
-                        <th class="py-2 px-3 text-left">Tipo</th>
-                        <th class="py-2 px-3 text-center">Cantidad</th>
-                        <th class="py-2 px-3 text-left">Motivo</th>
-                        <th class="py-2 px-3 text-left">Usuario</th>
-                        <th class="py-2 px-3 text-left">Observaciones</th>
-                    </tr>
-                </thead>
-                <tbody class="text-sm font-light">
-                    <tr *ngFor="let m of historial" class="border-b"
-                        [ngClass]="{'bg-green-50': m.tipoMovimiento === 0, 'bg-red-50': m.tipoMovimiento === 1}">
-                        <td class="py-2 px-3 text-left">{{ m.fecha | date }}</td>
-                        <td class="py-2 px-3 text-left font-bold"
-                            [ngClass]="{'text-green-600': m.tipoMovimiento === 0, 'text-red-600': m.tipoMovimiento === 1}">
-                            {{ m.tipoMovimiento === 0 ? 'INGRESO' : 'EGRESO' }}
-                        </td>
-                        <td class="py-2 px-3 text-center">{{ m.cantidad }}</td>
-                        <td class="py-2 px-3 text-left">{{ m.motivoDescripcion }}</td>
-                        <td class="py-2 px-3 text-left">{{ m.nombreUsuario }}</td>
-                        <td class="py-2 px-3 text-left text-xs">{{ m.observaciones }}</td>
-                    </tr>
-                    <tr *ngIf="historial.length === 0">
-                        <td colspan="6" class="py-4 text-center text-gray-500">No hay movimientos registrados para este
-                            filtro.</td>
-                    </tr>
-                </tbody>
-            </table>
-
-            <div class="bg-blue-50 p-4 rounded-lg flex justify-between items-center mt-2 border border-blue-100">
-                <p class="text-sm text-blue-700 italic">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    Se muestran solo los últimos 6 movimientos para una vista rápida.
-                </p>
-                <a routerLink="/inventory/historial-movimientos" (click)="closeModal()" class="text-blue-600 hover:text-blue-800 text-sm font-bold flex items-center gap-1 transition">
-                    Ver historial completo 
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                    </svg>
-                </a>
+            <div class="ds-table-wrapper">
+                <table class="ds-table">
+                    <thead><tr>
+                        <th>Fecha</th><th>Tipo</th><th style="text-align:center">Cantidad</th><th>Motivo</th><th>Usuario</th><th>Observaciones</th>
+                    </tr></thead>
+                    <tbody>
+                        <tr *ngFor="let m of historial">
+                            <td class="cell-muted" style="white-space:nowrap">{{ m.fecha | date:'dd/MM/yy HH:mm' }}</td>
+                            <td><span class="badge" [ngClass]="m.tipoMovimiento === 0 ? 'badge-success' : 'badge-danger'">{{ m.tipoMovimiento === 0 ? 'INGRESO' : 'EGRESO' }}</span></td>
+                            <td style="text-align:center;font-weight:700">{{ m.cantidad }}</td>
+                            <td>{{ m.motivoDescripcion }}</td>
+                            <td>{{ m.nombreUsuario }}</td>
+                            <td class="cell-muted">{{ m.observaciones }}</td>
+                        </tr>
+                        <tr *ngIf="historial.length === 0"><td colspan="6" style="padding:2rem;text-align:center;color:var(--color-gray-400)">Sin movimientos para este filtro.</td></tr>
+                    </tbody>
+                </table>
             </div>
         </div>
+        <div class="modal-footer" style="justify-content:space-between;">
+            <a routerLink="/inventory/historial-movimientos" (click)="closeModal()" style="font-size:0.8rem;color:var(--color-primary-600);font-weight:600">Ver historial completo →</a>
+            <button class="btn btn-secondary" (click)="closeModal()">Cerrar</button>
+        </div>
+    </div>
 
+    <!-- Ficha Detalle Modal -->
+    <div *ngIf="activeModal === 'detalle'" class="modal-box" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+            <h2 class="modal-title">Ficha de Producto</h2>
+            <button class="modal-close" (click)="closeModal()">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
+            </button>
+        </div>
+        <div class="modal-body">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;">
+                <div><div class="section-title">SKU</div><div style="font-weight:700;font-family:monospace;color:var(--color-primary-600)">{{ selectedStock?.sku }}</div></div>
+                <div><div class="section-title">Estado</div><span class="badge" [ngClass]="selectedStock?.estadoProducto ? 'badge-success' : 'badge-neutral'">{{ selectedStock?.estadoProducto ? 'Activo' : 'Inactivo' }}</span></div>
+                <div style="grid-column:1/-1"><div class="section-title">Nombre del Producto</div><div style="font-weight:600;color:var(--color-gray-900)">{{ selectedStock?.nombreProducto }}</div></div>
+                <div><div class="section-title">Rubro</div><div>{{ selectedStock?.rubroProducto }}</div></div>
+                <div><div class="section-title">Familia</div><div>{{ selectedStock?.familiaProducto }}</div></div>
+                <div><div class="section-title">Unidad de Medida</div><div>{{ selectedStock?.unidadMedida }}</div></div>
+                <div><div class="section-title">Stock Actual</div><div style="font-size:1.5rem;font-weight:800;color:var(--color-gray-900)">{{ selectedStock?.cantidadActual }}</div></div>
+                <div><div class="section-title">Punto de Reposición</div><div style="font-size:1.5rem;font-weight:800;color:var(--color-warning-600)">{{ selectedStock?.puntoReposicion }}</div></div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" (click)="closeModal()">Cerrar</button>
+        </div>
         <!-- Multiple Operations Modal -->
         <div *ngIf="activeModal === 'multiple'" class="bg-white rounded-xl shadow-2xl overflow-hidden w-full max-w-4xl transform transition-all relative z-10 flex flex-col max-h-[90vh]">
             <!-- Modal Header -->

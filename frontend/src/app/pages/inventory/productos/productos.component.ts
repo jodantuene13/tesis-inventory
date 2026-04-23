@@ -381,4 +381,22 @@ export class ProductosComponent implements OnInit {
         this.indicatorActivos = this.productos.filter(p => p.activo).length;
         this.indicatorInactivos = this.productos.filter(p => !p.activo).length;
     }
+
+    filterByStatus(activos: boolean | null): void {
+        this.loading = true;
+        this.productoService.getAll(true).subscribe({
+            next: (data) => {
+                if (activos === null) {
+                    this.productos = data;
+                } else {
+                    this.productos = data.filter(p => p.activo === activos);
+                }
+                this.loading = false;
+            }
+        });
+    }
+
+    filterAll(): void {
+        this.loadProductos();
+    }
 }

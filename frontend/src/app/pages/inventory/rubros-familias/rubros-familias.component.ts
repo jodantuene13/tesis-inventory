@@ -43,6 +43,9 @@ export class RubrosFamiliasComponent implements OnInit {
     loadingAsociaciones = false;
     currentAsociaciones: FamiliaAsociaciones | null = null;
     currentFamiliaName = '';
+    
+    // Original state for comparison
+    private rubroOriginalActivo: boolean = true;
 
     constructor(
         private rubroService: RubroService,
@@ -85,6 +88,7 @@ export class RubrosFamiliasComponent implements OnInit {
         event.stopPropagation();
         this.isEditRubro = true;
         this.currentRubroId = r.idRubro;
+        this.rubroOriginalActivo = r.activo;
         this.currentRubroForm = { codigoRubro: r.codigoRubro, nombre: r.nombre, activo: r.activo };
         this.errorRubro = null;
         this.showRubroModal = true;
@@ -100,28 +104,52 @@ export class RubrosFamiliasComponent implements OnInit {
             return;
         }
 
-        if (this.isEditRubro && this.currentRubroId) {
-            this.rubroService.update(this.currentRubroId, this.currentRubroForm as UpdateRubro).subscribe({
-                next: () => {
-                    this.loadRubros();
-                    this.closeRubroModal();
-                    Swal.fire('Éxito', 'Rubro actualizado', 'success');
-                },
-                error: (err) => {
-                    this.errorRubro = err.error?.message || 'Error al actualizar rubro';
-                }
+        const proceedSave = (activarFamilias: boolean = false) => {
+            if (this.isEditRubro && this.currentRubroId) {
+                const updateDto = { ...this.currentRubroForm, activarFamilias } as UpdateRubro;
+                this.rubroService.update(this.currentRubroId, updateDto).subscribe({
+                    next: () => {
+                        this.loadRubros();
+                        this.closeRubroModal();
+                        Swal.fire('Éxito', 'Rubro actualizado', 'success');
+                        if (this.selectedRubroId === this.currentRubroId && this.selectedRubroId) {
+                            this.loadFamilias(this.selectedRubroId);
+                        }
+                    },
+                    error: (err) => {
+                        this.errorRubro = err.error?.message || 'Error al actualizar rubro';
+                    }
+                });
+            } else {
+                this.rubroService.create(this.currentRubroForm as CreateRubro).subscribe({
+                    next: () => {
+                        this.loadRubros();
+                        this.closeRubroModal();
+                        Swal.fire('Éxito', 'Rubro creado', 'success');
+                    },
+                    error: (err) => {
+                        this.errorRubro = err.error?.message || 'Error al crear rubro';
+                    }
+                });
+            }
+        };
+
+        // Check if activating
+        if (this.isEditRubro && !this.rubroOriginalActivo && this.currentRubroForm.activo) {
+            Swal.fire({
+                title: 'Activación de Rubro',
+                text: "¿Quiere activar todas las familias asociadas?",
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Sí, activar todo',
+                cancelButtonText: 'No, solo el rubro',
+                confirmButtonColor: '#3C6090',
+                cancelButtonColor: '#735C0C'
+            }).then((result) => {
+                proceedSave(result.isConfirmed);
             });
         } else {
-            this.rubroService.create(this.currentRubroForm as CreateRubro).subscribe({
-                next: () => {
-                    this.loadRubros();
-                    this.closeRubroModal();
-                    Swal.fire('Éxito', 'Rubro creado', 'success');
-                },
-                error: (err) => {
-                    this.errorRubro = err.error?.message || 'Error al crear rubro';
-                }
-            });
+            proceedSave(false);
         }
     }
 
@@ -235,18 +263,18 @@ export class RubrosFamiliasComponent implements OnInit {
 
     deleteFamilia(id: number): void {
         Swal.fire({
-            title: '¿Eliminar físicamente esta familia?',
-            text: "Se borrará de forma permanente. Esta operación fallará si hay productos o atributos asociados.",
+            title: '¿Dar de baja esta familia?',
+            text: "Se marcará como inactiva (Baja lógica). Esta operación fallará si hay productos o atributos activos asociados.",
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonText: 'Sí, eliminar',
+            confirmButtonText: 'Sí, dar de baja',
             cancelButtonText: 'Cancelar'
         }).then((result) => {
             if (result.isConfirmed) {
                 this.familiaService.delete(id).subscribe({
                     next: () => {
                         if (this.selectedRubroId) this.loadFamilias(this.selectedRubroId);
-                        Swal.fire('Eliminación Exitosa', 'La familia ha sido eliminada permanentemente.', 'success');
+                        Swal.fire('Baja Exitosa', 'La familia ha sido desactivada.', 'success');
                     },
                     error: (err) => {
                         Swal.fire('Error', err.error?.message || 'No se pudo eliminar la familia.', 'error');
@@ -279,5 +307,27 @@ export class RubrosFamiliasComponent implements OnInit {
     closeAsociacionesModal(): void {
         this.showAsociacionesModal = false;
         this.currentAsociaciones = null;
+    }
+
+    // Indicator actions
+    filterRubros(activos: boolean | null): void {
+        this.loadingRubros = true;
+        this.rubroService.getAll(true).subscribe({
+            next: (data) => {
+                if (activos === null) {
+                    this.rubros = data;
+                } else {
+                    this.rubros = data.filter(r => r.activo === activos);
+                }
+                this.loadingRubros = false;
+            }
+        });
+    }
+
+    filterFamilias(): void {
+        // Just reload rubros to clear filters
+        this.loadRubros();
+        this.selectedRubroId = null;
+        this.familias = [];
     }
 }

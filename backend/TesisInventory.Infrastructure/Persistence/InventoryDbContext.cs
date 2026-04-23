@@ -24,6 +24,7 @@ namespace TesisInventory.Infrastructure.Persistence
         public DbSet<ProductoAtributoValor> ProductoAtributoValor { get; set; }
         public DbSet<Stock> Stock { get; set; }
         public DbSet<Movimiento> Movimiento { get; set; }
+        public DbSet<OperacionStock> OperacionStock { get; set; }
         public DbSet<Transferencia> Transferencia { get; set; }
         public DbSet<TransferenciaDetalle> TransferenciaDetalle { get; set; }
         public DbSet<HistorialTransferencia> HistorialTransferencia { get; set; }
@@ -169,6 +170,36 @@ namespace TesisInventory.Infrastructure.Persistence
                 .HasOne(m => m.Usuario)
                 .WithMany(u => u.Movimientos)
                 .HasForeignKey(m => m.IdUsuario)
+                .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<Movimiento>()
+                .HasOne(m => m.OperacionStock)
+                .WithMany(o => o.Movimientos)
+                .HasForeignKey(m => m.IdOperacion)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // OperacionStock
+            modelBuilder.Entity<OperacionStock>().ToTable("OperacionStock");
+            modelBuilder.Entity<OperacionStock>().HasKey(o => o.IdOperacion);
+            modelBuilder.Entity<OperacionStock>().Property(o => o.IdOperacion).HasColumnName("idOperacion");
+            modelBuilder.Entity<OperacionStock>().Property(o => o.IdSede).HasColumnName("idSede");
+            modelBuilder.Entity<OperacionStock>().Property(o => o.IdUsuario).HasColumnName("idUsuario");
+            modelBuilder.Entity<OperacionStock>().Property(o => o.TipoOperacion).HasColumnName("tipoOperacion");
+            modelBuilder.Entity<OperacionStock>().Property(o => o.Fecha).HasColumnName("fecha");
+            modelBuilder.Entity<OperacionStock>().Property(o => o.Motivo).HasColumnName("motivo");
+            modelBuilder.Entity<OperacionStock>().Property(o => o.OrdenTrabajo).HasColumnName("ordenTrabajo");
+            modelBuilder.Entity<OperacionStock>().Property(o => o.OrdenCompra).HasColumnName("ordenCompra");
+            modelBuilder.Entity<OperacionStock>().Property(o => o.TicketSolicitud).HasColumnName("ticketSolicitud");
+            modelBuilder.Entity<OperacionStock>().Property(o => o.Observaciones).HasColumnName("observaciones");
+
+            modelBuilder.Entity<OperacionStock>()
+                .HasOne(o => o.Sede)
+                .WithMany(s => s.OperacionesStock)
+                .HasForeignKey(o => o.IdSede)
+                .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<OperacionStock>()
+                .HasOne(o => o.Usuario)
+                .WithMany(u => u.OperacionesStock)
+                .HasForeignKey(o => o.IdUsuario)
                 .OnDelete(DeleteBehavior.Restrict);
 
             // Transferencia

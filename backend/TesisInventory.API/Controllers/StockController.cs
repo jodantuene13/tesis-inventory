@@ -155,6 +155,56 @@ namespace TesisInventory.API.Controllers
             }
         }
 
+        [HttpPost("operacion-multiple")]
+        public async Task<IActionResult> ProcesarOperacionMultiple([FromBody] OperacionStockMultipleDto dto)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            try
+            {
+                int idUsuario = GetCurrentUserId();
+                int idSede = GetCurrentSedeId();
+
+                var operacion = await _stockService.ProcesarOperacionMultipleAsync(idSede, idUsuario, dto);
+                return Ok(new { Message = "Operación múltiple procesada con éxito", Data = operacion });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { Message = ex.Message });
+            }
+        }
+
+        [HttpGet("operaciones-multiples")]
+        public async Task<IActionResult> GetOperaciones(
+            [FromQuery] string? search = null,
+            [FromQuery] string? tipoOperacion = null,
+            [FromQuery] int? idUsuario = null,
+            [FromQuery] string? fechaDesde = null,
+            [FromQuery] string? fechaHasta = null,
+            [FromQuery] int skip = 0,
+            [FromQuery] int take = 50)
+        {
+            try
+            {
+                int idSede = GetCurrentSedeId();
+                var (items, totalCount) = await _stockService.GetOperacionesAsync(
+                    idSede, search, tipoOperacion, idUsuario, fechaDesde, fechaHasta, skip, take);
+
+                return Ok(new
+                {
+                    Data = items,
+                    TotalCount = totalCount,
+                    Skip = skip,
+                    Take = take
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { Message = ex.Message });
+            }
+        }
+
         [HttpGet("{idProducto}/movimientos")]
         public async Task<IActionResult> GetMovimientos(
             int idProducto,

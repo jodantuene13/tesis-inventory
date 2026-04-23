@@ -17,19 +17,22 @@ namespace TesisInventory.Application.Services
         private readonly ITransferenciaRepository _transferenciaRepository;
         private readonly IProductoRepository _productoRepository;
         private readonly ISedeRepository _sedeRepository;
+        private readonly IOperacionStockRepository _operacionStockRepository;
 
         public StockService(
             IStockRepository stockRepository,
             IMovimientoRepository movimientoRepository,
             ITransferenciaRepository transferenciaRepository,
             IProductoRepository productoRepository,
-            ISedeRepository sedeRepository)
+            ISedeRepository sedeRepository,
+            IOperacionStockRepository operacionStockRepository)
         {
             _stockRepository = stockRepository;
             _movimientoRepository = movimientoRepository;
             _transferenciaRepository = transferenciaRepository;
             _productoRepository = productoRepository;
             _sedeRepository = sedeRepository;
+            _operacionStockRepository = operacionStockRepository;
         }
 
         public async Task<(IEnumerable<StockDto> Items, int TotalCount)> GetStockAsync(
@@ -283,6 +286,114 @@ namespace TesisInventory.Application.Services
         public Task<IEnumerable<TransferenciaDto>> GetTransferenciasSedeAsync(int idSede)
         {
             throw new NotImplementedException();
+        }
+
+        public async Task<OperacionStockMultipleDto> ProcesarOperacionMultipleAsync(int idSede, int idUsuario, OperacionStockMultipleDto dto)
+        {
+            if (dto.Detalles == null || !dto.Detalles.Any())
+                throw new InvalidOperationException("La operación debe contener al menos un producto.");
+
+            var operacion = new OperacionStock
+            {
+                IdSede = idSede,
+                IdUsuario = idUsuario,
+                TipoOperacion = dto.TipoOperacion,
+                Motivo = dto.Motivo,
+                Fecha = DateTime.UtcNow,
+                OrdenTrabajo = dto.OrdenTrabajo,
+                OrdenCompra = dto.OrdenCompra,
+                TicketSolicitud = dto.TicketSolicitud,
+                Observaciones = dto.Observaciones,
+                Movimientos = new List<Movimiento>()
+            };
+
+            foreach (var detalle in dto.Detalles)
+            {
+                var stock = await _stockRepository.GetStockAsync(detalle.IdProducto, idSede);
+
+                if (dto.TipoOperacion == TipoMovimiento.Ingreso)
+                {
+                    if (stock == null)
+                    {
+                        stock = new Stock
+                        {
+                            IdProducto = detalle.IdProducto,
+                            IdSede = idSede,
+                            CantidadActual = 0,
+                            PuntoReposicion = 10,
+                            FechaActualizacion = DateTime.UtcNow
+                        };
+                        await _stockRepository.AddStockAsync(stock);
+                    }
+
+                    stock.CantidadActual += detalle.Cantidad;
+                    stock.FechaActualizacion = DateTime.UtcNow;
+                    await _stockRepository.UpdateStockAsync(stock);
+                }
+                else if (dto.TipoOperacion == TipoMovimiento.Egreso)
+                {
+                    if (stock == null || stock.CantidadActual < detalle.Cantidad)
+                    {
+                        throw new InvalidOperationException($"No hay stock suficiente para realizar este consumo del producto {detalle.IdProducto}.");
+                    }
+
+                    stock.CantidadActual -= detalle.Cantidad;
+                    stock.FechaActualizacion = DateTime.UtcNow;
+                    await _stockRepository.UpdateStockAsync(stock);
+                }
+
+                var movimiento = new Movimiento
+                {
+                    IdProducto = detalle.IdProducto,
+                    IdSede = idSede,
+                    TipoMovimiento = dto.TipoOperacion,
+                    Cantidad = detalle.Cantidad,
+                    CantidadRestante = stock.CantidadActual,
+                    Motivo = dto.Motivo,
+                    IdUsuario = idUsuario,
+                    Observaciones = dto.Observaciones,
+                    Fecha = DateTime.UtcNow
+                };
+
+                operacion.Movimientos.Add(movimiento);
+            }
+
+            await _operacionStockRepository.AddOperacionStockAsync(operacion);
+
+            return dto;
+        }
+
+        public async Task<(IEnumerable<OperacionStockResponseDto> Items, int TotalCount)> GetOperacionesAsync(int idSede, string? search, string? tipoOperacion, int? idUsuario, string? fechaDesde, string? fechaHasta, int skip, int take)
+        {
+            var (operaciones, totalCount) = await _operacionStockRepository.GetOperacionesPaginadasAsync(
+                idSede, search, tipoOperacion, idUsuario, fechaDesde, fechaHasta, skip, take);
+
+            var items = operaciones.Select(o => new OperacionStockResponseDto
+            {
+                IdOperacion = o.IdOperacion,
+                IdSede = o.IdSede,
+                IdUsuario = o.IdUsuario,
+                NombreUsuario = o.Usuario?.NombreUsuario ?? "Usuario Desconocido",
+                TipoOperacion = o.TipoOperacion,
+                Fecha = o.Fecha,
+                Motivo = o.Motivo,
+                OrdenTrabajo = o.OrdenTrabajo,
+                OrdenCompra = o.OrdenCompra,
+                TicketSolicitud = o.TicketSolicitud,
+                Observaciones = o.Observaciones,
+                Detalles = o.Movimientos.Select(m => new MovimientoDto
+                {
+                    IdMovimiento = m.IdMovimiento,
+                    IdProducto = m.IdProducto,
+                    Sku = m.Producto?.Sku ?? string.Empty,
+                    NombreProducto = m.Producto?.Nombre ?? string.Empty,
+                    UnidadMedida = m.Producto?.UnidadMedida ?? string.Empty,
+                    Cantidad = m.Cantidad,
+                    CantidadRestante = m.CantidadRestante
+                }).ToList()
+            });
+
+            return (items, totalCount);
         }
     }
 }

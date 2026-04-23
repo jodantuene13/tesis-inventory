@@ -13,13 +13,8 @@
                 </svg>
                 Historial
             </a>
-<div class="container mx-auto p-4 relative">
-    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-        <h2 class="text-2xl font-bold text-gray-800">Stock Local</h2>
-        <div class="flex gap-2 w-full md:w-auto">
-            <button (click)="openMultipleModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 w-full flex items-center justify-center gap-2">
-                <i class="fa-solid fa-layer-group"></i> <!-- Requires FontAwesome -->
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <button (click)="openMultipleModal()" class="btn btn-primary" style="display:flex;align-items:center;gap:0.5rem">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
                 </svg>
                 Operaciones Múltiples
@@ -197,7 +192,6 @@
             </div>
         </div>
     </div>
-</div>
 
 <!-- Modals -->
 <div *ngIf="activeModal !== null" class="modal-backdrop" (click)="closeModal()">
@@ -344,7 +338,7 @@
         </div>
     </div>
         <!-- Multiple Operations Modal -->
-        <div *ngIf="activeModal === 'multiple'" class="bg-white rounded-xl shadow-2xl overflow-hidden w-full max-w-4xl transform transition-all relative z-10 flex flex-col max-h-[90vh]">
+        <div *ngIf="activeModal === 'multiple'" (click)="$event.stopPropagation()" class="bg-white rounded-xl shadow-2xl overflow-hidden w-full max-w-4xl transform transition-all relative z-10 flex flex-col max-h-[90vh]">
             <!-- Modal Header -->
             <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
                 <h3 class="text-lg font-bold text-gray-800 flex items-center gap-2">
@@ -468,7 +462,7 @@
         <div *ngIf="isProductModalOpen" class="fixed inset-0 z-[60] flex items-center justify-center p-4">
             <div class="fixed inset-0 bg-gray-900 bg-opacity-60 backdrop-blur-sm transition-opacity" (click)="closeProductModal()"></div>
             
-            <div class="bg-white rounded-xl shadow-2xl overflow-hidden w-full max-w-lg transform transition-all relative z-[70] flex flex-col h-[500px]">
+            <div (click)="$event.stopPropagation()" class="bg-white rounded-xl shadow-2xl overflow-hidden w-full max-w-lg transform transition-all relative z-[70] flex flex-col h-[500px]">
                 <div class="px-5 py-3 border-b border-gray-100 bg-indigo-600 flex justify-between items-center text-white">
                     <h3 class="font-bold text-sm tracking-wide">Buscar Producto</h3>
                     <button (click)="closeProductModal()" class="text-indigo-200 hover:text-white transition-colors">X</button>
@@ -512,4 +506,3 @@
             (close)="closeModal()">
         </app-ficha-producto-modal>
     </div>
-</div>

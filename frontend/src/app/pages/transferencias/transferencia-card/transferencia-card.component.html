@@ -19,8 +19,12 @@
           {{ estadoLabel }}
         </span>
       </div>
-      <h3 class="text-lg font-bold text-gray-800 leading-tight truncate" title="{{ transferencia.nombreProducto }}">{{ transferencia.nombreProducto }}</h3>
-      <p class="text-sm font-medium text-gray-500 mt-1">Cantidad Solicitada: <span class="font-bold text-indigo-600 text-base">{{ transferencia.cantidad }}</span></p>
+      <h3 class="text-lg font-bold text-gray-800 leading-tight truncate">Pedido de {{ transferencia.detalles.length }} producto(s)</h3>
+      <p class="text-[10px] font-bold uppercase tracking-wider text-indigo-500 mb-1"><i class="fa-solid fa-hashtag mr-0.5"></i> {{ transferencia.codigoTracking }}</p>
+      <p class="text-sm font-medium text-gray-500 mt-1 truncate max-w-xs">
+        <span *ngFor="let det of transferencia.detalles | slice:0:2; let last = last" class="text-xs text-indigo-700 bg-indigo-50 border border-indigo-100 rounded px-1.5 py-0.5 mr-1 font-semibold">{{ det.cantidad }}x {{ det.nombreProducto }}</span>
+        <span *ngIf="transferencia.detalles.length > 2" class="text-[10px] uppercase font-bold text-gray-400 tracking-wider">...y {{ transferencia.detalles.length - 2 }} más</span>
+      </p>
     </div>
 
     <!-- Info Bloque 2 (Actores & Fechas) -->

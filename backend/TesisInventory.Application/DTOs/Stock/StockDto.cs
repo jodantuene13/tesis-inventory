@@ -19,5 +19,7 @@ namespace TesisInventory.Application.DTOs.Stock
         public int PuntoReposicion { get; set; }
         public DateTime FechaActualizacion { get; set; }
         public bool ConBajoStock => CantidadActual <= PuntoReposicion;
+
+        public List<TesisInventory.Application.DTOs.Productos.ProductoAtributoValorDto> Atributos { get; set; } = new();
     }
 }

@@ -17,5 +17,6 @@ namespace TesisInventory.Domain.Entities
         public ICollection<Movimiento> Movimientos { get; set; } = new List<Movimiento>();
         public ICollection<Transferencia> TransferenciasOrigen { get; set; } = new List<Transferencia>();
         public ICollection<Transferencia> TransferenciasDestino { get; set; } = new List<Transferencia>();
+        public ICollection<OperacionStock> OperacionesStock { get; set; } = new List<OperacionStock>();
     }
 }

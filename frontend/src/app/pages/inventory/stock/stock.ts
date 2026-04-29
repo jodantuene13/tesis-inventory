@@ -9,15 +9,16 @@ import { ProductoService } from '../../../services/producto.service';
 import { SedeService } from '../../../services/sede.service';
 import { SedeContextService } from '../../../services/sede-context.service';
 import { Subscription } from 'rxjs';
-import { IncrementarStockDto, RegistrarConsumoDto, RegistrarTransferenciaDto, Stock } from '../../../models/stock.model';
+import { IncrementarStockDto, RegistrarConsumoDto, RegistrarTransferenciaDto, Stock, OperacionStockMultipleDto } from '../../../models/stock.model';
 import { Rubro } from '../../../models/rubro.model';
 import { Familia } from '../../../models/familia.model';
 import Swal from 'sweetalert2';
+import { FichaProductoModalComponent } from '../../../shared/components/ficha-producto-modal/ficha-producto-modal.component';
 
 @Component({
   selector: 'app-stock',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [CommonModule, FormsModule, RouterModule, FichaProductoModalComponent],
   templateUrl: './stock.html',
   styleUrls: ['./stock.css']
 })
@@ -47,24 +48,31 @@ export class StockComponent implements OnInit {
   indicatorBajoStock: number = 0;
 
   // Modals state
-  activeModal: 'consumo' | 'incremento' | 'historial' | 'detalle' | null = null;
+  activeModal: 'consumo' | 'transferencia' | 'incremento' | 'historial' | 'detalle' | 'multiple' | null = null;
   selectedStock: Stock | null = null;
 
-  // Consumo state
-  consumoCantidad: number = 1;
-  consumoMotivo: number = 0; // 0=Consumo, 1=Vencimiento, 2=Daño
-  consumoConfirm: boolean = false;
 
-  // Incremento state
-  incrementoCantidad: number = 1;
-  incrementoMotivo: number = 3; // 3=Compra, 4=Ajustes
-  incrementoObs: string = '';
 
   // Historial state
   historial: any[] = [];
   histFiltroTipo: string = '';
   histFiltroDesde: string = '';
   histFiltroHasta: string = '';
+
+  // Operacion Multiple State
+  multipleRequest: OperacionStockMultipleDto = {
+    tipoOperacion: 1, // Default Egreso (Consumo)
+    motivo: 0, // Consumo Interno
+    ordenTrabajo: '',
+    ordenCompra: '',
+    ticketSolicitud: '',
+    observaciones: '',
+    detalles: []
+  };
+  isProductModalOpen: boolean = false;
+  searchProduct: string = '';
+  filteredStock: any[] = [];
+  stockList: any[] = [];
 
   constructor(
     private stockService: StockService,
@@ -180,67 +188,7 @@ export class StockComponent implements OnInit {
   closeModal(): void {
     this.activeModal = null;
     this.selectedStock = null;
-    this.consumoConfirm = false;
-  }
-
-  openConsumoModal(stock: Stock): void {
-    this.selectedStock = stock;
-    this.consumoCantidad = 1;
-    this.consumoMotivo = 0;
-    this.consumoConfirm = false;
-    this.activeModal = 'consumo';
-  }
-
-  confirmConsumo(): void {
-    if (!this.selectedStock) return;
-
-    if (!this.consumoConfirm) {
-      this.consumoConfirm = true;
-      return;
-    }
-
-    const dto: RegistrarConsumoDto = {
-      idProducto: this.selectedStock.idProducto,
-      cantidad: this.consumoCantidad,
-      motivo: this.consumoMotivo
-    };
-
-    this.stockService.registrarConsumo(dto).subscribe({
-      next: () => {
-        this.closeModal();
-        this.loadStocks();
-        this.loadIndicators();
-      },
-      error: (err) => alert(err.error?.message || 'Error al registrar consumo')
-    });
-  }
-
-  openIncrementoModal(stock: Stock): void {
-    this.selectedStock = stock;
-    this.incrementoCantidad = 1;
-    this.incrementoMotivo = 3;
-    this.incrementoObs = '';
-    this.activeModal = 'incremento';
-  }
-
-  saveIncremento(): void {
-    if (!this.selectedStock) return;
-
-    const dto: IncrementarStockDto = {
-      idProducto: this.selectedStock.idProducto,
-      cantidad: this.incrementoCantidad,
-      motivo: this.incrementoMotivo,
-      observaciones: this.incrementoObs
-    };
-
-    this.stockService.incrementarStock(dto).subscribe({
-      next: () => {
-        this.closeModal();
-        this.loadStocks();
-        this.loadIndicators();
-      },
-      error: (err) => alert(err.error?.message || 'Error al incrementar stock')
-    });
+    this.isProductModalOpen = false;
   }
 
   openHistorialModal(stock: Stock): void {
@@ -300,4 +248,121 @@ export class StockComponent implements OnInit {
       }
     });
   }
+
+  // Multi-operation Logic
+  openMultipleModal(tipoOperacion?: number, stockPreseleccionado?: Stock): void {
+    this.resetMultipleForm();
+    
+    if (tipoOperacion !== undefined) {
+      this.multipleRequest.tipoOperacion = tipoOperacion;
+      this.onTipoOperacionChange();
+    }
+
+    if (stockPreseleccionado) {
+      this.selectProduct(stockPreseleccionado);
+    }
+    
+    this.stockList = this.stocks.map(s => ({ ...s })); // Copia rápida de los filtrados
+    this.filteredStock = [...this.stockList];
+    this.activeModal = 'multiple';
+  }
+
+  resetMultipleForm(): void {
+    this.multipleRequest = {
+      tipoOperacion: 1, // DEFAULT: Egreso
+      motivo: 0,
+      ordenTrabajo: '',
+      ordenCompra: '',
+      ticketSolicitud: '',
+      observaciones: '',
+      detalles: []
+    };
+    this.searchProduct = '';
+  }
+
+  onTipoOperacionChange(): void {
+    this.multipleRequest.tipoOperacion = Number(this.multipleRequest.tipoOperacion);
+    if (this.multipleRequest.tipoOperacion === 0) { // Ingreso
+      this.multipleRequest.motivo = 3; // Por Compra
+      this.multipleRequest.ordenTrabajo = '';
+    } else { // Egreso
+      this.multipleRequest.motivo = 0; // Consumo Interno
+      this.multipleRequest.ordenCompra = '';
+    }
+  }
+
+  openProductModal(): void {
+    this.isProductModalOpen = true;
+    this.searchProduct = '';
+    // Recargar stockList con todo o lo actual
+    this.stockService.getStockSede('', undefined, undefined, true, undefined, 1, 1000).subscribe(res => {
+        this.stockList = res.data;
+        this.filteredStock = [...this.stockList];
+    });
+  }
+
+  closeProductModal(): void {
+    this.isProductModalOpen = false;
+  }
+
+  onSearchProduct(): void {
+    const term = this.searchProduct.toLowerCase();
+    this.filteredStock = this.stockList.filter(s => 
+      s.nombreProducto?.toLowerCase().includes(term) || 
+      s.sku?.toLowerCase().includes(term)
+    );
+  }
+
+  selectProduct(stockItem: any): void {
+    const alreadyExists = this.multipleRequest.detalles.find(d => d.idProducto === stockItem.idProducto);
+    if (alreadyExists) {
+      alreadyExists.cantidad += 1;
+    } else {
+      this.multipleRequest.detalles.push({
+        idProducto: stockItem.idProducto,
+        cantidad: 1,
+        productoInfo: stockItem
+      });
+    }
+    
+    this.searchProduct = '';
+    this.isProductModalOpen = false;
+  }
+
+  removeDetalle(index: number): void {
+    this.multipleRequest.detalles.splice(index, 1);
+  }
+
+  submitMultipleRequest(): void {
+    if (this.multipleRequest.detalles.length === 0) {
+      Swal.fire('Atención', 'Debe agregar al menos un producto.', 'warning');
+      return;
+    }
+
+    const payload = {
+      tipoOperacion: Number(this.multipleRequest.tipoOperacion),
+      motivo: Number(this.multipleRequest.motivo),
+      ordenTrabajo: this.multipleRequest.ordenTrabajo,
+      ordenCompra: this.multipleRequest.ordenCompra,
+      ticketSolicitud: this.multipleRequest.ticketSolicitud,
+      observaciones: this.multipleRequest.observaciones,
+      detalles: this.multipleRequest.detalles.map(d => ({
+        idProducto: d.idProducto,
+        cantidad: d.cantidad
+      }))
+    };
+
+    this.stockService.procesarOperacionMultiple(payload).subscribe({
+      next: (res) => {
+        this.closeModal();
+        this.loadStocks();
+        this.loadIndicators();
+        Swal.fire('Éxito', 'Operación registrada con éxito. Ir a Remitos para visualizar el comprobante', 'success');
+      },
+      error: (err) => {
+        Swal.fire('Error', err.error?.message || 'Error al procesar la operación múltiple', 'error');
+      }
+    });
+  }
 }
+

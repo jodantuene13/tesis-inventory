@@ -1,0 +1,63 @@
+<div class="fixed inset-0 bg-black bg-opacity-50 z-[100] flex justify-center items-center">
+  <div class="bg-white rounded-lg shadow-xl w-11/12 md:w-1/2 p-6 z-[101]">
+    <div class="flex justify-between items-start mb-4">
+      <h3 class="text-xl font-bold">Ficha de Producto</h3>
+      <button (click)="closeModal()" class="text-gray-500 hover:text-gray-800 scale-125 rounded-full bg-gray-100 p-1">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd"
+                d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                clip-rule="evenodd" />
+        </svg>
+      </button>
+    </div>
+
+    <div class="grid grid-cols-2 gap-4">
+      <div><span class="font-bold text-gray-600">SKU:</span> {{ stock?.sku || 'N/A' }}</div>
+      <div><span class="font-bold text-gray-600">Nombre:</span> {{ stock?.nombreProducto || 'N/A' }}</div>
+      <div><span class="font-bold text-gray-600">Rubro:</span> {{ stock?.rubroProducto || 'N/A' }}</div>
+      <div><span class="font-bold text-gray-600">Familia:</span> {{ stock?.familiaProducto || 'N/A' }}</div>
+      <div><span class="font-bold text-gray-600">Unidad de Medida:</span> {{ stock?.unidadMedida || 'N/A' }}</div>
+      <div>
+        <span class="font-bold text-gray-600">Stock Actual (Local):</span> 
+        <span [ngClass]="stock?.cantidadActual <= stock?.puntoReposicion ? 'text-red-600 font-bold' : ''">{{ stock?.cantidadActual || 0 }}</span>
+      </div>
+      <div><span class="font-bold text-gray-600">Punto Reposición:</span> {{ stock?.puntoReposicion || 0 }}</div>
+      <div><span class="font-bold text-gray-600">Estado:</span> 
+        <span class="rounded px-2 py-0.5 text-xs font-semibold" [ngClass]="stock?.estadoProducto ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'">
+            {{ stock?.estadoProducto ? 'Activo' : 'Inactivo' }}
+        </span>
+      </div>
+    </div>
+
+    <div class="mt-6 border-t pt-4">
+      <h4 class="font-bold mb-3 text-indigo-700"><i class="fa-solid fa-list text-xs mr-2"></i>Atributos del Producto</h4>
+      
+      <ng-container *ngIf="isLoadingAtributos; else atributosReady">
+        <div class="flex items-center text-sm text-gray-500 italic py-2">
+            <i class="fa-solid fa-circle-notch fa-spin mr-2"></i> Consultando atributos actualizados...
+        </div>
+      </ng-container>
+
+      <ng-template #atributosReady>
+          <div *ngIf="stock?.atributos?.length; else noAtributos" class="grid grid-cols-2 gap-4 bg-gray-50 p-4 rounded border border-gray-100">
+            <div *ngFor="let attr of stock.atributos" class="text-sm">
+              <span class="font-bold text-gray-600 block">{{ attr.nombreAtributo }}</span>
+              <span class="text-gray-800">
+                 <ng-container [ngSwitch]="attr.tipoDatoAtributo">
+                    <span *ngSwitchCase="'Texto'">{{ attr.valorTexto || '-' }}</span>
+                    <span *ngSwitchCase="'Numero'">{{ attr.valorNumero != null ? attr.valorNumero : '-' }}</span>
+                    <span *ngSwitchCase="'Decimal'">{{ attr.valorDecimal != null ? attr.valorDecimal : '-' }}</span>
+                    <span *ngSwitchCase="'Booleano'">{{ attr.valorBool ? 'Sí' : 'No' }}</span>
+                    <span *ngSwitchCase="'Lista'">{{ attr.valorLista || '-' }}</span>
+                    <span *ngSwitchDefault>-</span >
+                 </ng-container>
+              </span>
+            </div>
+          </div>
+          <ng-template #noAtributos>
+            <p class="text-sm text-gray-400 italic">No hay atributos adicionales registrados para este producto.</p>
+          </ng-template>
+      </ng-template>
+    </div>
+  </div>
+</div>

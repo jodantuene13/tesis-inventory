@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using TesisInventory.Domain.Enums;
 
@@ -6,11 +7,8 @@ namespace TesisInventory.Application.DTOs.Transferencias
     public class CreateTransferenciaDto
     {
         [Required]
-        public int IdProducto { get; set; }
-
-        [Required]
-        [Range(1, int.MaxValue, ErrorMessage = "La cantidad debe ser mayor a 0.")]
-        public int Cantidad { get; set; }
+        [MinLength(1, ErrorMessage = "Debe incluir al menos un producto en la transferencia.")]
+        public List<CreateTransferenciaDetalleDto> Detalles { get; set; } = new List<CreateTransferenciaDetalleDto>();
 
         [Required]
         public int IdSedeOrigen { get; set; }

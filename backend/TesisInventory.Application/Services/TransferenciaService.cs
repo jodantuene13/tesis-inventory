@@ -40,22 +40,38 @@ namespace TesisInventory.Application.Services
 
         public async Task<TransferenciaDto> CreateAsync(CreateTransferenciaDto createDto, int idUsuarioSolicita)
         {
-            var stockOrigen = await _stockRepo.GetStockAsync(createDto.IdProducto, createDto.IdSedeOrigen);
-            var stockOrigenActual = stockOrigen?.CantidadActual ?? 0;
+            // Validar stock de origen para todos los items
+            foreach (var det in createDto.Detalles)
+            {
+                var stock = await _stockRepo.GetStockAsync(det.IdProducto, createDto.IdSedeOrigen);
+                if (stock == null || stock.CantidadActual < det.Cantidad)
+                {
+                    throw new Exception($"Stock insuficiente en Sede Origen para el Producto ID {det.IdProducto}");
+                }
+            }
 
             var transferencia = new Transferencia
             {
-                IdProducto = createDto.IdProducto,
                 IdSedeOrigen = createDto.IdSedeOrigen,
                 IdSedeDestino = createDto.IdSedeDestino,
-                StockOrigenSnapshot = stockOrigenActual,
-                Cantidad = createDto.Cantidad,
                 Motivo = createDto.Motivo,
                 Observaciones = createDto.Observaciones,
                 IdUsuarioSolicita = idUsuarioSolicita,
                 FechaSolicitud = DateTime.UtcNow,
-                Estado = EstadoTransferencia.Solicitada
+                Estado = EstadoTransferencia.Solicitada,
+                Detalles = new List<TransferenciaDetalle>()
             };
+
+            foreach (var det in createDto.Detalles)
+            {
+                var stock = await _stockRepo.GetStockAsync(det.IdProducto, createDto.IdSedeOrigen);
+                transferencia.Detalles.Add(new TransferenciaDetalle
+                {
+                    IdProducto = det.IdProducto,
+                    Cantidad = det.Cantidad,
+                    StockOrigenSnapshot = stock!.CantidadActual
+                });
+            }
 
             await _transferenciaRepo.AddTransferenciaAsync(transferencia);
             await AddHistorialAsync(transferencia, null, EstadoTransferencia.Solicitada, idUsuarioSolicita, "Solicitud generada");
@@ -137,51 +153,54 @@ namespace TesisInventory.Application.Services
             var originSede = !isReverse ? tx.IdSedeOrigen : tx.IdSedeDestino;
             var destSede = !isReverse ? tx.IdSedeDestino : tx.IdSedeOrigen;
 
-            var stockOrigen = await _stockRepo.GetStockAsync(tx.IdProducto, originSede);
-            if (stockOrigen == null || stockOrigen.CantidadActual < tx.Cantidad)
+            foreach (var d in tx.Detalles)
             {
-                throw new Exception("Stock insuficiente en la sede origen para confirmar la transferencia o devolución.");
-            }
-
-            stockOrigen.CantidadActual -= tx.Cantidad;
-            await _stockRepo.UpdateStockAsync(stockOrigen);
-
-            var stockDestino = await _stockRepo.GetStockAsync(tx.IdProducto, destSede);
-            if (stockDestino == null)
-            {
-                stockDestino = new Stock
+                var stockOrigen = await _stockRepo.GetStockAsync(d.IdProducto, originSede);
+                if (stockOrigen == null || stockOrigen.CantidadActual < d.Cantidad)
                 {
-                    IdProducto = tx.IdProducto,
+                    throw new Exception($"Stock insuficiente en la sede origen para el producto {d.IdProducto}.");
+                }
+
+                stockOrigen.CantidadActual -= d.Cantidad;
+                await _stockRepo.UpdateStockAsync(stockOrigen);
+
+                var stockDestino = await _stockRepo.GetStockAsync(d.IdProducto, destSede);
+                if (stockDestino == null)
+                {
+                    stockDestino = new Stock
+                    {
+                        IdProducto = d.IdProducto,
+                        IdSede = destSede,
+                        CantidadActual = d.Cantidad
+                    };
+                    await _stockRepo.AddStockAsync(stockDestino);
+                }
+                else
+                {
+                    stockDestino.CantidadActual += d.Cantidad;
+                    await _stockRepo.UpdateStockAsync(stockDestino);
+                }
+
+                await _movimientoRepo.AddMovimientoAsync(new Movimiento
+                {
+                    IdProducto = d.IdProducto,
+                    IdSede = originSede,
+                    TipoMovimiento = TipoMovimiento.Egreso,
+                    Cantidad = d.Cantidad,
+                    Motivo = MotivoMovimiento.Transferencia,
+                    IdUsuario = userId
+                });
+
+                await _movimientoRepo.AddMovimientoAsync(new Movimiento
+                {
+                    IdProducto = d.IdProducto,
                     IdSede = destSede,
-                    CantidadActual = tx.Cantidad
-                };
-                await _stockRepo.AddStockAsync(stockDestino);
+                    TipoMovimiento = TipoMovimiento.Ingreso,
+                    Cantidad = d.Cantidad,
+                    Motivo = MotivoMovimiento.Transferencia,
+                    IdUsuario = userId
+                });
             }
-            else
-            {
-                stockDestino.CantidadActual += tx.Cantidad;
-                await _stockRepo.UpdateStockAsync(stockDestino);
-            }
-
-            await _movimientoRepo.AddMovimientoAsync(new Movimiento
-            {
-                IdProducto = tx.IdProducto,
-                IdSede = originSede,
-                TipoMovimiento = TipoMovimiento.Egreso,
-                Cantidad = tx.Cantidad,
-                Motivo = MotivoMovimiento.Transferencia,
-                IdUsuario = userId
-            });
-
-            await _movimientoRepo.AddMovimientoAsync(new Movimiento
-            {
-                IdProducto = tx.IdProducto,
-                IdSede = destSede,
-                TipoMovimiento = TipoMovimiento.Ingreso,
-                Cantidad = tx.Cantidad,
-                Motivo = MotivoMovimiento.Transferencia,
-                IdUsuario = userId
-            });
         }
 
         private async Task AddHistorialAsync(Transferencia tx, EstadoTransferencia? estadoAnterior, EstadoTransferencia estadoNuevo, int idUsuario, string observaciones)
@@ -201,20 +220,25 @@ namespace TesisInventory.Application.Services
             return new TransferenciaDto
             {
                 IdTransferencia = t.IdTransferencia,
-                IdProducto = t.IdProducto,
-                NombreProducto = t.Producto?.Nombre ?? "Desconocido",
                 IdSedeOrigen = t.IdSedeOrigen,
                 NombreSedeOrigen = t.SedeOrigen?.NombreSede ?? "Desconocida",
                 IdSedeDestino = t.IdSedeDestino,
                 NombreSedeDestino = t.SedeDestino?.NombreSede ?? "Desconocida",
-                Cantidad = t.Cantidad,
-                StockOrigenSnapshot = t.StockOrigenSnapshot,
                 FechaSolicitud = t.FechaSolicitud,
                 Estado = t.Estado,
                 Motivo = t.Motivo,
                 IdUsuarioSolicita = t.IdUsuarioSolicita,
                 NombreUsuarioSolicita = t.UsuarioSolicita?.NombreUsuario ?? "Desconocido",
-                Observaciones = t.Observaciones
+                Observaciones = t.Observaciones,
+                Detalles = t.Detalles?.Select(d => new TransferenciaDetalleDto
+                {
+                    IdTransferenciaDetalle = d.IdTransferenciaDetalle,
+                    IdProducto = d.IdProducto,
+                    NombreProducto = d.Producto?.Nombre ?? "Desconocido",
+                    Sku = d.Producto?.Sku ?? "",
+                    Cantidad = d.Cantidad,
+                    StockOrigenSnapshot = d.StockOrigenSnapshot
+                }).ToList() ?? new List<TransferenciaDetalleDto>()
             };
         }
     }

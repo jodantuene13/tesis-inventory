@@ -19,6 +19,7 @@ import { FormsModule } from '@angular/forms';
 export class AdminLayoutComponent implements OnInit, OnDestroy {
     isConfigMenuOpen = false;
     isInventoryMenuOpen = false;
+    isTransferenciasMenuOpen = false;
 
     isAdmin = false;
     sedes: Sede[] = [];
@@ -73,6 +74,10 @@ export class AdminLayoutComponent implements OnInit, OnDestroy {
 
     toggleInventoryMenu() {
         this.isInventoryMenuOpen = !this.isInventoryMenuOpen;
+    }
+
+    toggleTransferenciasMenu() {
+        this.isTransferenciasMenuOpen = !this.isTransferenciasMenuOpen;
     }
 
     logout() {

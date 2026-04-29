@@ -51,15 +51,7 @@ export class StockComponent implements OnInit {
   activeModal: 'consumo' | 'transferencia' | 'incremento' | 'historial' | 'detalle' | 'multiple' | null = null;
   selectedStock: Stock | null = null;
 
-  // Consumo state
-  consumoCantidad: number = 1;
-  consumoMotivo: number = 0; // 0=Consumo, 1=Vencimiento, 2=Daño
-  consumoConfirm: boolean = false;
 
-  // Incremento state
-  incrementoCantidad: number = 1;
-  incrementoMotivo: number = 3; // 3=Compra, 4=Ajustes
-  incrementoObs: string = '';
 
   // Historial state
   historial: any[] = [];
@@ -196,68 +188,7 @@ export class StockComponent implements OnInit {
   closeModal(): void {
     this.activeModal = null;
     this.selectedStock = null;
-    this.consumoConfirm = false;
     this.isProductModalOpen = false;
-  }
-
-  openConsumoModal(stock: Stock): void {
-    this.selectedStock = stock;
-    this.consumoCantidad = 1;
-    this.consumoMotivo = 0;
-    this.consumoConfirm = false;
-    this.activeModal = 'consumo';
-  }
-
-  confirmConsumo(): void {
-    if (!this.selectedStock) return;
-
-    if (!this.consumoConfirm) {
-      this.consumoConfirm = true;
-      return;
-    }
-
-    const dto: RegistrarConsumoDto = {
-      idProducto: this.selectedStock.idProducto,
-      cantidad: this.consumoCantidad,
-      motivo: this.consumoMotivo
-    };
-
-    this.stockService.registrarConsumo(dto).subscribe({
-      next: () => {
-        this.closeModal();
-        this.loadStocks();
-        this.loadIndicators();
-      },
-      error: (err) => alert(err.error?.message || 'Error al registrar consumo')
-    });
-  }
-
-  openIncrementoModal(stock: Stock): void {
-    this.selectedStock = stock;
-    this.incrementoCantidad = 1;
-    this.incrementoMotivo = 3;
-    this.incrementoObs = '';
-    this.activeModal = 'incremento';
-  }
-
-  saveIncremento(): void {
-    if (!this.selectedStock) return;
-
-    const dto: IncrementarStockDto = {
-      idProducto: this.selectedStock.idProducto,
-      cantidad: this.incrementoCantidad,
-      motivo: this.incrementoMotivo,
-      observaciones: this.incrementoObs
-    };
-
-    this.stockService.incrementarStock(dto).subscribe({
-      next: () => {
-        this.closeModal();
-        this.loadStocks();
-        this.loadIndicators();
-      },
-      error: (err) => alert(err.error?.message || 'Error al incrementar stock')
-    });
   }
 
   openHistorialModal(stock: Stock): void {
@@ -319,8 +250,18 @@ export class StockComponent implements OnInit {
   }
 
   // Multi-operation Logic
-  openMultipleModal(): void {
+  openMultipleModal(tipoOperacion?: number, stockPreseleccionado?: Stock): void {
     this.resetMultipleForm();
+    
+    if (tipoOperacion !== undefined) {
+      this.multipleRequest.tipoOperacion = tipoOperacion;
+      this.onTipoOperacionChange();
+    }
+
+    if (stockPreseleccionado) {
+      this.selectProduct(stockPreseleccionado);
+    }
+    
     this.stockList = this.stocks.map(s => ({ ...s })); // Copia rápida de los filtrados
     this.filteredStock = [...this.stockList];
     this.activeModal = 'multiple';
@@ -394,7 +335,7 @@ export class StockComponent implements OnInit {
 
   submitMultipleRequest(): void {
     if (this.multipleRequest.detalles.length === 0) {
-      alert('Debe agregar al menos un producto.');
+      Swal.fire('Atención', 'Debe agregar al menos un producto.', 'warning');
       return;
     }
 
@@ -413,13 +354,13 @@ export class StockComponent implements OnInit {
 
     this.stockService.procesarOperacionMultiple(payload).subscribe({
       next: (res) => {
-        alert(res.message || 'Operación procesada con éxito, ID Operación vinculada.');
         this.closeModal();
         this.loadStocks();
         this.loadIndicators();
+        Swal.fire('Éxito', 'Operación registrada con éxito. Ir a Remitos para visualizar el comprobante', 'success');
       },
       error: (err) => {
-        alert(err.error?.message || 'Error al procesar la operación múltiple');
+        Swal.fire('Error', err.error?.message || 'Error al procesar la operación múltiple', 'error');
       }
     });
   }

@@ -146,12 +146,12 @@
                     </td>
                     <td class="cell-actions">
                         <div class="flex items-center justify-end gap-1">
-                            <button class="btn btn--sm btn--icon btn-ghost" (click)="openConsumoModal(s)" title="Registrar Consumo">
+                            <button class="btn btn--sm btn--icon btn-ghost" (click)="openMultipleModal(1, s)" title="Registrar Consumo">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" />
                                 </svg>
                             </button>
-                            <button class="btn btn--sm btn--icon btn-ghost" (click)="openIncrementoModal(s)" title="Incrementar Stock">
+                            <button class="btn btn--sm btn--icon btn-ghost" (click)="openMultipleModal(0, s)" title="Incrementar Stock">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                                 </svg>
@@ -196,81 +196,7 @@
 <!-- Modals -->
 <div *ngIf="activeModal !== null" class="modal-backdrop" (click)="closeModal()">
 
-    <!-- Consumo Modal -->
-    <div *ngIf="activeModal === 'consumo'" class="modal-box" (click)="$event.stopPropagation()">
-        <div class="modal-header">
-            <h2 class="modal-title">Registrar Consumo / Egreso</h2>
-            <button class="modal-close" (click)="closeModal()">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
-            </button>
-        </div>
-        <div class="modal-body">
-            <p style="font-size:0.875rem;color:var(--color-gray-600);margin-bottom:1.25rem;">
-                <strong style="color:var(--color-gray-900)">{{ selectedStock?.nombreProducto }}</strong> · Stock actual: <strong>{{ selectedStock?.cantidadActual }}</strong> {{ selectedStock?.unidadMedida }}
-            </p>
-            <div *ngIf="!consumoConfirm">
-                <div class="form-row">
-                    <div class="form-field">
-                        <label>Cantidad a descontar</label>
-                        <input type="number" class="ds-input" [(ngModel)]="consumoCantidad" min="1" [max]="selectedStock ? selectedStock.cantidadActual : null">
-                    </div>
-                    <div class="form-field">
-                        <label>Motivo</label>
-                        <select class="ds-input" [(ngModel)]="consumoMotivo">
-                            <option [ngValue]="0">Consumo Interno</option>
-                            <option [ngValue]="1">Egreso por vencimiento</option>
-                            <option [ngValue]="2">Egreso por daño</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-            <div *ngIf="consumoConfirm" class="badge badge-warning" style="padding:0.75rem;border-radius:8px;width:100%;display:block;font-size:0.875rem;font-weight:500">
-                ¿Confirmar egreso de <strong>{{ consumoCantidad }}</strong> unidades de <strong>{{ selectedStock?.nombreProducto }}</strong>?
-            </div>
-        </div>
-        <div class="modal-footer">
-            <button class="btn btn-secondary" (click)="consumoConfirm ? consumoConfirm = false : closeModal()">{{ consumoConfirm ? 'Volver' : 'Cancelar' }}</button>
-            <button class="btn btn-primary" (click)="confirmConsumo()" [disabled]="consumoCantidad < 1 || consumoCantidad > (selectedStock?.cantidadActual || 0)">
-                {{ consumoConfirm ? 'Confirmar Egreso' : 'Continuar' }}
-            </button>
-        </div>
-    </div>
 
-    <!-- Incremento Modal -->
-    <div *ngIf="activeModal === 'incremento'" class="modal-box" (click)="$event.stopPropagation()">
-        <div class="modal-header">
-            <h2 class="modal-title">Registrar Ingreso</h2>
-            <button class="modal-close" (click)="closeModal()">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
-            </button>
-        </div>
-        <div class="modal-body">
-            <p style="font-size:0.875rem;color:var(--color-gray-600);margin-bottom:1.25rem;">
-                <strong style="color:var(--color-gray-900)">{{ selectedStock?.nombreProducto }}</strong>
-            </p>
-            <div class="form-row">
-                <div class="form-field">
-                    <label>Cantidad a ingresar</label>
-                    <input type="number" class="ds-input" [(ngModel)]="incrementoCantidad" min="1">
-                </div>
-                <div class="form-field">
-                    <label>Motivo</label>
-                    <select class="ds-input" [(ngModel)]="incrementoMotivo">
-                        <option [ngValue]="3">Por Compra</option>
-                        <option [ngValue]="4">Ajustes varios</option>
-                    </select>
-                </div>
-            </div>
-            <div class="form-field">
-                <label>Observaciones</label>
-                <input type="text" class="ds-input" [(ngModel)]="incrementoObs" placeholder="Opcional...">
-            </div>
-        </div>
-        <div class="modal-footer">
-            <button class="btn btn-secondary" (click)="closeModal()">Cancelar</button>
-            <button class="btn btn-success" (click)="saveIncremento()" [disabled]="incrementoCantidad < 1">Registrar Ingreso</button>
-        </div>
-    </div>
 
     <!-- Historial Modal -->
     <div *ngIf="activeModal === 'historial'" class="modal-box modal-box--wide" (click)="$event.stopPropagation()" style="max-height:85vh;">

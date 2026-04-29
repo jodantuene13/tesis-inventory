@@ -56,3 +56,8 @@ También incluye un sistema de autogeneración de SKU (Stock Keeping Unit).
 - **Descripción del cambio**: Se añadió el Sub-menú "Remitos / Op. Múltiples" que permite visualizar y filtrar el historial de las Operaciones agrupadas.
 - **Motivo técnico**: Proveer una grilla de control unificada con capacidad de exportación e impresión basada en las transacciones generadas en "Operaciones Múltiples".
 - **Impacto funcional**: Administradores pueden ubicar lotes de consumo/ingreso por fecha, tipo u OC/OT y visualizar con un solo click un formato nativo de Remito para imprimir o exportar a PDF de forma limpia desde el navegador (`@media print`).
+
+**[2026-04-29] (Unificación de flujo de operaciones de stock)**
+- **Descripción del cambio**: Los modales individuales de incremento y consumo de stock de la vista Stock Local fueron deprecados y se consolidó el flujo a través del componente de "Operaciones Múltiples".
+- **Motivo técnico**: Centralizar la lógica transaccional de stock y reutilizar el componente avanzado, reduciendo el código y modales redundantes (DRY) que existían en el componente de Stock Local.
+- **Impacto funcional**: Al hacer clic en los botones de "Registrar Consumo" o "Incrementar Stock" individuales de la tabla, se abrirá dinámicamente el modal de Operaciones Múltiples con el tipo de operación preseleccionado y el producto ya agregado automáticamente al "carrito" para que el usuario solo defina la cantidad.

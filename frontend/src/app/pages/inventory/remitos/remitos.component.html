@@ -61,125 +61,107 @@
     </div>
 
     <!-- Results Table -->
-    <div class="bg-white rounded-lg shadow overflow-hidden relative min-h-[400px]">
+    <div class="ds-table-wrapper relative min-h-[400px]">
         
         <!-- Loading overlay -->
         <div *ngIf="loading" class="absolute inset-0 bg-white/60 backdrop-blur-sm z-10 flex items-center justify-center">
             <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
         </div>
 
-        <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-gray-50">
-                    <tr>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID Operación</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha / Tipo</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Motivo / Tarea</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Doc. Referencia</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Usuario</th>
-                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
-                    </tr>
-                </thead>
-                <tbody class="bg-white divide-y divide-gray-200">
-                    <tr *ngIf="operaciones.length === 0 && !loading">
-                        <td colspan="6" class="px-6 py-12 text-center text-gray-500">
-                            No se encontraron operaciones con los filtros aplicados.
-                        </td>
-                    </tr>
-                    
-                    <tr *ngFor="let op of operaciones" class="hover:bg-gray-50 transition-colors">
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <span class="font-mono text-sm font-bold text-gray-900 border border-gray-200 bg-gray-100 rounded px-2 py-1">
-                                #{{ op.idOperacion }}
+        <table class="ds-table">
+            <thead>
+                <tr>
+                    <th>ID Operación</th>
+                    <th>Fecha / Tipo</th>
+                    <th>Motivo / Tarea</th>
+                    <th>Doc. Referencia</th>
+                    <th>Usuario</th>
+                    <th style="text-align:right">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngFor="let op of operaciones" class="hover:bg-gray-50 transition-colors">
+                    <td>
+                        <span class="font-mono text-sm font-bold text-gray-900 border border-gray-200 bg-gray-100 rounded px-2 py-1">
+                            #{{ op.idOperacion }}
+                        </span>
+                        <div class="text-xs text-gray-500 mt-1">
+                            {{ op.detalles.length || 0 }} productos
+                        </div>
+                    </td>
+                    <td>
+                        <div class="text-sm font-semibold text-gray-800">
+                            {{ op.fecha | date:'dd/MM/yyyy HH:mm' }}
+                        </div>
+                        <div class="mt-1">
+                            <span *ngIf="op.tipoOperacion === 0" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                INGRESO
                             </span>
-                            <div class="text-xs text-gray-500 mt-1">
-                                {{ op.detalles.length || 0 }} productos
+                            <span *ngIf="op.tipoOperacion === 1" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                EGRESO
+                            </span>
+                        </div>
+                    </td>
+                    <td>
+                        <!-- Helper for Motivos: 0 Consumo Int, 1 E Venc, 2 E Daño, 3 Por Compra, 4 Ajustes -->
+                        <div class="text-sm font-medium text-gray-900">
+                            <span *ngIf="op.motivo === 0">Consumo Interno</span>
+                            <span *ngIf="op.motivo === 1">Egreso por Vencimiento</span>
+                            <span *ngIf="op.motivo === 2">Egreso por Daño</span>
+                            <span *ngIf="op.motivo === 3">Por Compra</span>
+                            <span *ngIf="op.motivo === 4">Ajustes varios</span>
+                        </div>
+                        <div class="text-xs text-gray-500 line-clamp-2 max-w-xs mt-1" [title]="op.observaciones">
+                            {{ op.observaciones || '---' }}
+                        </div>
+                    </td>
+                    <td>
+                        <div class="text-xs space-y-1">
+                            <div *ngIf="op.ordenCompra" class="bg-blue-50 text-blue-700 px-2 py-0.5 rounded border border-blue-100 inline-block font-mono">
+                                OC: {{ op.ordenCompra }}
                             </div>
-                        </td>
-                        <td class="px-6 py-4">
-                            <div class="text-sm font-semibold text-gray-800">
-                                {{ op.fecha | date:'dd/MM/yyyy HH:mm' }}
+                            <div *ngIf="op.ordenTrabajo" class="bg-purple-50 text-purple-700 px-2 py-0.5 rounded border border-purple-100 inline-block font-mono">
+                                OT: {{ op.ordenTrabajo }}
                             </div>
-                            <div class="mt-1">
-                                <span *ngIf="op.tipoOperacion === 0" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                    INGRESO
-                                </span>
-                                <span *ngIf="op.tipoOperacion === 1" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                                    EGRESO
-                                </span>
+                            <div *ngIf="op.ticketSolicitud" class="bg-gray-100 text-gray-700 px-2 py-0.5 rounded border border-gray-200 inline-block font-mono block mt-1">
+                                TK: {{ op.ticketSolicitud }}
                             </div>
-                        </td>
-                        <td class="px-6 py-4">
-                            <!-- Helper for Motivos: 0 Consumo Int, 1 E Venc, 2 E Daño, 3 Por Compra, 4 Ajustes -->
-                            <div class="text-sm font-medium text-gray-900">
-                                <span *ngIf="op.motivo === 0">Consumo Interno</span>
-                                <span *ngIf="op.motivo === 1">Egreso por Vencimiento</span>
-                                <span *ngIf="op.motivo === 2">Egreso por Daño</span>
-                                <span *ngIf="op.motivo === 3">Por Compra</span>
-                                <span *ngIf="op.motivo === 4">Ajustes varios</span>
+                            <div *ngIf="!op.ordenCompra && !op.ordenTrabajo && !op.ticketSolicitud" class="text-gray-400">
+                                N/A
                             </div>
-                            <div class="text-xs text-gray-500 line-clamp-2 max-w-xs mt-1" [title]="op.observaciones">
-                                {{ op.observaciones || '---' }}
+                        </div>
+                    </td>
+                    <td>
+                        <div class="flex items-center">
+                            <div class="h-6 w-6 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold text-xs mr-2">
+                                {{ op.nombreUsuario.charAt(0) | uppercase }}
                             </div>
-                        </td>
-                        <td class="px-6 py-4">
-                            <div class="text-xs space-y-1">
-                                <div *ngIf="op.ordenCompra" class="bg-blue-50 text-blue-700 px-2 py-0.5 rounded border border-blue-100 inline-block font-mono">
-                                    OC: {{ op.ordenCompra }}
-                                </div>
-                                <div *ngIf="op.ordenTrabajo" class="bg-purple-50 text-purple-700 px-2 py-0.5 rounded border border-purple-100 inline-block font-mono">
-                                    OT: {{ op.ordenTrabajo }}
-                                </div>
-                                <div *ngIf="op.ticketSolicitud" class="bg-gray-100 text-gray-700 px-2 py-0.5 rounded border border-gray-200 inline-block font-mono block mt-1">
-                                    TK: {{ op.ticketSolicitud }}
-                                </div>
-                                <div *ngIf="!op.ordenCompra && !op.ordenTrabajo && !op.ticketSolicitud" class="text-gray-400">
-                                    N/A
-                                </div>
-                            </div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="flex items-center">
-                                <div class="h-6 w-6 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold text-xs mr-2">
-                                    {{ op.nombreUsuario.charAt(0) | uppercase }}
-                                </div>
-                                <span class="text-sm text-gray-900 font-medium">{{ op.nombreUsuario }}</span>
-                            </div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                            <button (click)="openDetalleModal(op)" 
-                                    class="text-indigo-600 hover:text-white bg-indigo-50 hover:bg-indigo-600 px-3 py-1.5 rounded transition-colors font-bold shadow-sm">
-                                Visualizar
-                            </button>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+                            <span class="text-sm text-gray-900 font-medium">{{ op.nombreUsuario }}</span>
+                        </div>
+                    </td>
+                    <td class="cell-actions text-right">
+                        <button (click)="openDetalleModal(op)" 
+                                class="text-indigo-600 hover:text-white bg-indigo-50 hover:bg-indigo-600 px-3 py-1.5 rounded transition-colors font-bold shadow-sm">
+                            Visualizar
+                        </button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div *ngIf="operaciones.length === 0 && !loading" class="ds-table-empty">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+            </svg>
+            <p>No se encontraron operaciones con los filtros aplicados.</p>
         </div>
         
         <!-- Pagination -->
-        <div class="bg-gray-50 px-6 py-3 flex items-center justify-between border-t border-gray-200">
-            <div class="flex-1 flex justify-between sm:hidden">
-                <button (click)="prevPage()" [disabled]="page === 1" class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50">Anterior</button>
-                <button (click)="nextPage()" [disabled]="page >= totalPages" class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50">Siguiente</button>
-            </div>
-            <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-                <div>
-                    <p class="text-sm text-gray-700">
-                        Mostrando página <span class="font-medium">{{ page }}</span> de <span class="font-medium">{{ totalPages }}</span>
-                        ({{ totalCount }} resultados en total)
-                    </p>
-                </div>
-                <div>
-                    <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-                        <button (click)="prevPage()" [disabled]="page === 1" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50">
-                            <span>Anterior</span>
-                        </button>
-                        <button (click)="nextPage()" [disabled]="page >= totalPages" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50">
-                            <span>Siguiente</span>
-                        </button>
-                    </nav>
-                </div>
+        <div class="ds-table-footer">
+            <span>Página {{ page }} de {{ totalPages }} · {{ totalCount }} resultados</span>
+            <div class="flex gap-2">
+                <button class="btn btn--sm btn-secondary" (click)="prevPage()" [disabled]="page === 1">Anterior</button>
+                <button class="btn btn--sm btn-secondary" (click)="nextPage()" [disabled]="page >= totalPages">Siguiente</button>
             </div>
         </div>
     </div>

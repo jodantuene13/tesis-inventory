@@ -138,74 +138,69 @@
     </div>
 
     <!-- Table -->
-    <div class="overflow-x-auto">
-        <table class="min-w-full bg-white border border-gray-300">
+    <div class="ds-table-wrapper relative min-h-[400px]">
+        <!-- Loading overlay -->
+        <div *ngIf="loading" class="absolute inset-0 bg-white/60 backdrop-blur-sm z-10 flex items-center justify-center">
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+        </div>
+
+        <table class="ds-table">
             <thead>
-                <tr class="bg-gray-100 text-gray-600 uppercase text-xs leading-normal">
-                    <th class="py-3 px-4 text-left">SKU / Producto</th>
-                    <th class="py-3 px-4 text-left">Fecha</th>
-                    <th class="py-3 px-4 text-center">Tipo</th>
-                    <th class="py-3 px-4 text-center">Cant. / UM</th>
-                    <th class="py-3 px-4 text-left">Usuario Ejecutor</th>
-                    <th class="py-3 px-4 text-center">Acciones</th>
+                <tr>
+                    <th>SKU / Producto</th>
+                    <th>Fecha</th>
+                    <th style="text-align:center">Tipo</th>
+                    <th style="text-align:center">Cant. / UM</th>
+                    <th>Usuario Ejecutor</th>
+                    <th style="text-align:center">Acciones</th>
                 </tr>
             </thead>
-            <tbody class="text-gray-600 text-sm font-light">
-                <tr *ngIf="loading">
-                    <td colspan="6" class="py-4 text-center text-gray-500 italic">Cargando historial...</td>
-                </tr>
-                <tr *ngIf="!loading && movimientos.length === 0">
-                    <td colspan="6" class="py-4 text-center text-gray-500 italic">No hay movimientos que coincidan con la búsqueda.</td>
-                </tr>
-                <tr *ngFor="let m of movimientos" class="border-b border-gray-200 hover:bg-gray-100"
-                    [ngClass]="{'bg-green-50': m.tipoMovimiento === 0, 'bg-red-50': m.tipoMovimiento === 1}">
-                    <td class="py-3 px-4 text-left">
+            <tbody>
+                <tr *ngFor="let m of movimientos" [ngClass]="{'bg-green-50': m.tipoMovimiento === 0, 'bg-red-50': m.tipoMovimiento === 1}">
+                    <td>
                         <div class="font-bold text-gray-800">{{ m.sku }}</div>
                         <div class="text-xs text-gray-500">{{ m.nombreProducto }}</div>
                     </td>
-                    <td class="py-3 px-4 text-left whitespace-nowrap">{{ m.fecha | date }}</td>
-                    <td class="py-3 px-4 text-center font-bold"
+                    <td class="whitespace-nowrap">{{ m.fecha | date }}</td>
+                    <td style="text-align:center" class="font-bold"
                         [ngClass]="{'text-green-600': m.tipoMovimiento === 0, 'text-red-600': m.tipoMovimiento === 1}">
                         {{ m.tipoMovimiento === 0 ? 'INGRESO' : 'EGRESO' }}
                     </td>
-                    <td class="py-3 px-4 text-center font-bold">
+                    <td style="text-align:center" class="font-bold">
                         {{ m.cantidad }} <span class="text-xs font-normal text-gray-500">{{ m.unidadMedida }}</span>
                     </td>
-                    <td class="py-3 px-4 text-left">{{ m.nombreUsuario }}</td>
-                    <td class="py-3 px-4 text-center">
-                        <div class="flex item-center justify-center space-x-3">
-                            <!-- Ver Detalle (ojito) -->
-                            <button (click)="openDetalleModal(m)"
-                                class="transform hover:text-blue-500 hover:scale-110 transition duration-150 ease-in-out text-gray-500"
-                                title="Ver Ficha de Movimiento">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                    stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
-                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                        d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
-                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                        d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-                                </svg>
-                            </button>
-                        </div>
+                    <td>{{ m.nombreUsuario }}</td>
+                    <td style="text-align:center" class="cell-actions">
+                        <button (click)="openDetalleModal(m)"
+                            class="text-gray-500 hover:text-blue-500 transition duration-150 ease-in-out"
+                            title="Ver Ficha de Movimiento">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                stroke-width="1.5" stroke="currentColor" class="w-5 h-5 inline-block">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                            </svg>
+                        </button>
                     </td>
                 </tr>
             </tbody>
         </table>
-    </div>
 
-    <!-- Pagination -->
-    <div class="flex justify-between items-center mt-4">
-        <span class="text-sm text-gray-600" *ngIf="!loading">Mostrando página {{ page }} de {{ totalPages }} ({{ totalCount }} resultados)</span>
-        <span class="text-sm text-gray-600" *ngIf="loading">Cargando...</span>
-        <div class="flex space-x-2">
-            <button (click)="prevPage()" [disabled]="page === 1"
-                class="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition disabled:opacity-50 disabled:cursor-not-allowed">
-                Anterior
-            </button>
-            <button (click)="nextPage()" [disabled]="page >= totalPages"
-                class="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition disabled:opacity-50 disabled:cursor-not-allowed">
-                Siguiente
-            </button>
+        <div *ngIf="!loading && movimientos.length === 0" class="ds-table-empty">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+            </svg>
+            <p>No hay movimientos que coincidan con la búsqueda.</p>
+        </div>
+
+        <!-- Pagination -->
+        <div class="ds-table-footer">
+            <span>Página {{ page }} de {{ totalPages }} · {{ totalCount }} resultados</span>
+            <div class="flex gap-2">
+                <button class="btn btn--sm btn-secondary" (click)="prevPage()" [disabled]="page === 1">Anterior</button>
+                <button class="btn btn--sm btn-secondary" (click)="nextPage()" [disabled]="page >= totalPages">Siguiente</button>
+            </div>
         </div>
     </div>
 

@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
+import { ReactiveFormsModule, FormsModule, FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
 import { ProductoService } from '../../../services/producto.service';
 import { RubroService } from '../../../services/rubro.service';
 import { FamiliaService } from '../../../services/familia.service';
@@ -16,13 +16,29 @@ import Swal from 'sweetalert2';
 @Component({
     selector: 'app-productos',
     standalone: true,
-    imports: [CommonModule, ReactiveFormsModule],
+    imports: [CommonModule, ReactiveFormsModule, FormsModule],
     templateUrl: './productos.component.html',
     styleUrls: ['./productos.component.css']
 })
 export class ProductosComponent implements OnInit {
     productos: Producto[] = [];
+    allProductos: Producto[] = [];
     loading = false;
+    
+    // Paginación
+    page = 1;
+    pageSize = 50;
+    totalPages = 1;
+    totalCount = 0;
+    
+    // Filtros
+    searchTerm: string = '';
+    selectedRubroId: number | null = null;
+    selectedFamiliaId: number | null = null;
+    selectedEstado: string = '';
+    selectedUM: string = '';
+    hasSearched: boolean = false;
+    filterFamilias: Familia[] = [];
     
     // Indicators
     indicatorTotal: number = 0;
@@ -98,8 +114,10 @@ export class ProductosComponent implements OnInit {
         this.loading = true;
         this.productoService.getAll(true).subscribe({
             next: (data) => {
-                this.productos = data;
+                this.allProductos = data;
                 this.calculateIndicators();
+                this.page = 1; // Reset to page 1 on load
+                this.applyFilters();
                 this.loading = false;
             },
             error: () => {
@@ -377,26 +395,99 @@ export class ProductosComponent implements OnInit {
     }
 
     calculateIndicators(): void {
-        this.indicatorTotal = this.productos.length;
-        this.indicatorActivos = this.productos.filter(p => p.activo).length;
-        this.indicatorInactivos = this.productos.filter(p => !p.activo).length;
+        this.indicatorTotal = this.allProductos.length;
+        this.indicatorActivos = this.allProductos.filter(p => p.activo).length;
+        this.indicatorInactivos = this.allProductos.filter(p => !p.activo).length;
     }
 
     filterByStatus(activos: boolean | null): void {
-        this.loading = true;
-        this.productoService.getAll(true).subscribe({
-            next: (data) => {
-                if (activos === null) {
-                    this.productos = data;
-                } else {
-                    this.productos = data.filter(p => p.activo === activos);
-                }
-                this.loading = false;
-            }
-        });
+        this.clearFilters();
+        if (activos !== null) {
+            this.selectedEstado = activos ? 'true' : 'false';
+            this.hasSearched = true;
+        }
+        this.applyFilters();
     }
 
     filterAll(): void {
-        this.loadProductos();
+        this.clearFilters();
+    }
+
+    onRubroChangeFilter(): void {
+        this.selectedFamiliaId = null;
+        this.filterFamilias = [];
+        if (this.selectedRubroId) {
+            this.familiaService.getByRubro(this.selectedRubroId, true).subscribe(data => this.filterFamilias = data);
+        }
+        this.search();
+    }
+
+    search(): void {
+        this.hasSearched = true;
+        this.applyFilters();
+    }
+
+    clearFilters(): void {
+        this.searchTerm = '';
+        this.selectedRubroId = null;
+        this.selectedFamiliaId = null;
+        this.selectedEstado = '';
+        this.selectedUM = '';
+        this.filterFamilias = [];
+        this.hasSearched = false;
+        this.page = 1;
+        this.applyFilters();
+    }
+
+    applyFilters(): void {
+        let result = [...this.allProductos];
+
+        if (this.searchTerm) {
+            const term = this.searchTerm.toLowerCase();
+            result = result.filter(p => 
+                p.nombre.toLowerCase().includes(term) || 
+                p.sku.toLowerCase().includes(term)
+            );
+        }
+
+        if (this.selectedRubroId) {
+            result = result.filter(p => p.idRubro === this.selectedRubroId);
+        }
+
+        if (this.selectedFamiliaId) {
+            result = result.filter(p => p.idFamilia === this.selectedFamiliaId);
+        }
+
+        if (this.selectedEstado !== '') {
+            const estadoBool = this.selectedEstado === 'true';
+            result = result.filter(p => p.activo === estadoBool);
+        }
+
+        if (this.selectedUM !== '') {
+            result = result.filter(p => p.unidadMedida === this.selectedUM);
+        }
+
+        this.totalCount = result.length;
+        this.totalPages = Math.ceil(this.totalCount / this.pageSize) || 1;
+        if (this.page > this.totalPages) {
+            this.page = 1;
+        }
+
+        const startIndex = (this.page - 1) * this.pageSize;
+        this.productos = result.slice(startIndex, startIndex + this.pageSize);
+    }
+
+    nextPage(): void {
+        if (this.page < this.totalPages) {
+            this.page++;
+            this.applyFilters();
+        }
+    }
+
+    prevPage(): void {
+        if (this.page > 1) {
+            this.page--;
+            this.applyFilters();
+        }
     }
 }

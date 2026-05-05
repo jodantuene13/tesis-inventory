@@ -20,7 +20,8 @@ namespace TesisInventory.Infrastructure.Repositories
         public async Task<IEnumerable<SolicitudCompra>> GetAllAsync(int? idSede = null)
         {
             var query = _context.SolicitudCompra
-                .Include(s => s.Producto)
+                .Include(s => s.Detalles)
+                    .ThenInclude(d => d.Producto)
                 .Include(s => s.Sede)
                 .Include(s => s.UsuarioSolicitante)
                 .Include(s => s.UsuarioAprobador)
@@ -35,7 +36,8 @@ namespace TesisInventory.Infrastructure.Repositories
         public async Task<SolicitudCompra?> GetByIdAsync(int id)
         {
             return await _context.SolicitudCompra
-                .Include(s => s.Producto)
+                .Include(s => s.Detalles)
+                    .ThenInclude(d => d.Producto)
                 .Include(s => s.Sede)
                 .Include(s => s.UsuarioSolicitante)
                 .Include(s => s.UsuarioAprobador)
@@ -58,7 +60,8 @@ namespace TesisInventory.Infrastructure.Repositories
             int? idSede, string? search, int? estado, int skip, int take)
         {
             var query = _context.SolicitudCompra
-                .Include(s => s.Producto)
+                .Include(s => s.Detalles)
+                    .ThenInclude(d => d.Producto)
                 .Include(s => s.Sede)
                 .Include(s => s.UsuarioSolicitante)
                 .Include(s => s.UsuarioAprobador)
@@ -69,7 +72,12 @@ namespace TesisInventory.Infrastructure.Repositories
 
             if (!string.IsNullOrEmpty(search))
             {
-                query = query.Where(s => s.Producto!.Nombre.Contains(search) || s.Producto!.Sku.Contains(search));
+                query = query.Where(s => 
+                    s.Detalles.Any(d => d.Producto!.Nombre.Contains(search) || d.Producto.Sku.Contains(search)) ||
+                    (s.OrdenTrabajo != null && s.OrdenTrabajo.Contains(search)) ||
+                    (s.TicketSolicitud != null && s.TicketSolicitud.Contains(search)) ||
+                    (s.IdSolicitudCompra.ToString() == search)
+                );
             }
 
             if (estado.HasValue)

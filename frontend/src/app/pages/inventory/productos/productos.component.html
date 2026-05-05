@@ -55,13 +55,66 @@
         </div>
     </div>
 
+    <!-- Filter Bar -->
+    <div class="filter-bar">
+        <div class="filter-group filter-group--grow">
+            <label class="filter-label">Buscar</label>
+            <input type="text" class="ds-input" [(ngModel)]="searchTerm" (keyup.enter)="search()" placeholder="SKU o nombre del producto...">
+        </div>
+        <div class="filter-group">
+            <label class="filter-label">Rubro</label>
+            <select class="ds-input" [(ngModel)]="selectedRubroId" (change)="onRubroChangeFilter()" style="width:160px">
+                <option [ngValue]="null">Todos los rubros</option>
+                <option *ngFor="let r of rubros" [ngValue]="r.idRubro">{{ r.nombre }}</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label class="filter-label">Familia</label>
+            <select class="ds-input" [(ngModel)]="selectedFamiliaId" (change)="search()" [disabled]="!selectedRubroId" style="width:160px">
+                <option [ngValue]="null">Todas las familias</option>
+                <option *ngFor="let f of filterFamilias" [ngValue]="f.idFamilia">{{ f.nombre }}</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label class="filter-label">Estado</label>
+            <select class="ds-input" [(ngModel)]="selectedEstado" (change)="search()" style="width:120px">
+                <option value="">Todos</option>
+                <option value="true">Activo</option>
+                <option value="false">Inactivo</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label class="filter-label">U.M.</label>
+            <select class="ds-input" [(ngModel)]="selectedUM" (change)="search()" style="width:130px">
+                <option value="">Todas</option>
+                <option value="UN">Unidades (UN)</option>
+                <option value="KG">Kilogramos (KG)</option>
+                <option value="MTS">Metros (MTS)</option>
+                <option value="LTS">Litros (LTS)</option>
+                <option value="CAJA">Caja / Bulto</option>
+            </select>
+        </div>
+        <div class="filter-group" style="justify-content:flex-end">
+            <label class="filter-label">&nbsp;</label>
+            <div class="flex gap-2">
+                <button class="btn btn-primary" (click)="search()">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                    Buscar
+                </button>
+                <button *ngIf="hasSearched" class="btn btn-ghost" (click)="clearFilters()">Limpiar</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Table -->
     <div class="ds-table-wrapper">
         <table class="ds-table">
             <thead>
                 <tr>
                     <th>SKU / Producto</th>
-                    <th>Familia</th>
+                    <th>Clasificación</th>
                     <th>U.M.</th>
                     <th style="text-align:center">Estado</th>
                     <th style="text-align:right">Acciones</th>
@@ -76,7 +129,10 @@
                         <div class="cell-primary">{{ p.nombre }}</div>
                         <div class="cell-mono">{{ p.sku }}</div>
                     </td>
-                    <td><span class="badge badge-primary">{{ p.nombreFamilia }}</span></td>
+                    <td>
+                        <div class="cell-primary" style="font-weight:500">{{ p.nombreRubro || 'Sin Rubro' }}</div>
+                        <div class="cell-muted">{{ p.nombreFamilia }}</div>
+                    </td>
                     <td style="color:var(--color-gray-500);font-weight:600;font-size:0.8rem">{{ p.unidadMedida }}</td>
                     <td style="text-align:center">
                         <span class="badge" [ngClass]="p.activo ? 'badge-success' : 'badge-neutral'">
@@ -106,6 +162,14 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
             </svg>
             <p>No hay productos registrados.</p>
+        </div>
+
+        <div class="ds-table-footer">
+            <span>Página {{ page }} de {{ totalPages }} · {{ totalCount }} resultados</span>
+            <div class="flex gap-2">
+                <button class="btn btn--sm btn-secondary" (click)="prevPage()" [disabled]="page === 1">Anterior</button>
+                <button class="btn btn--sm btn-secondary" (click)="nextPage()" [disabled]="page === totalPages">Siguiente</button>
+            </div>
         </div>
     </div>
 </div>

@@ -29,6 +29,7 @@ namespace TesisInventory.Infrastructure.Persistence
         public DbSet<TransferenciaDetalle> TransferenciaDetalle { get; set; }
         public DbSet<HistorialTransferencia> HistorialTransferencia { get; set; }
         public DbSet<SolicitudCompra> SolicitudCompra { get; set; }
+        public DbSet<SolicitudCompraDetalle> SolicitudCompraDetalle { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -279,11 +280,6 @@ namespace TesisInventory.Infrastructure.Persistence
             modelBuilder.Entity<SolicitudCompra>().ToTable("SolicitudCompra");
             modelBuilder.Entity<SolicitudCompra>().HasKey(s => s.IdSolicitudCompra);
             modelBuilder.Entity<SolicitudCompra>()
-                .HasOne(s => s.Producto)
-                .WithMany()
-                .HasForeignKey(s => s.IdProducto)
-                .OnDelete(DeleteBehavior.Restrict);
-            modelBuilder.Entity<SolicitudCompra>()
                 .HasOne(s => s.Sede)
                 .WithMany()
                 .HasForeignKey(s => s.IdSede)
@@ -297,6 +293,20 @@ namespace TesisInventory.Infrastructure.Persistence
                 .HasOne(s => s.UsuarioAprobador)
                 .WithMany()
                 .HasForeignKey(s => s.IdUsuarioAprobador)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // SolicitudCompraDetalle
+            modelBuilder.Entity<SolicitudCompraDetalle>().ToTable("SolicitudCompraDetalle");
+            modelBuilder.Entity<SolicitudCompraDetalle>().HasKey(sd => sd.IdSolicitudCompraDetalle);
+            modelBuilder.Entity<SolicitudCompraDetalle>()
+                .HasOne(sd => sd.SolicitudCompra)
+                .WithMany(s => s.Detalles)
+                .HasForeignKey(sd => sd.IdSolicitudCompra)
+                .OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<SolicitudCompraDetalle>()
+                .HasOne(sd => sd.Producto)
+                .WithMany()
+                .HasForeignKey(sd => sd.IdProducto)
                 .OnDelete(DeleteBehavior.Restrict);
         }
     }

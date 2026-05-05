@@ -1,7 +1,9 @@
 export interface Producto {
     idProducto: number;
     idFamilia: number;
+    idRubro?: number;
     nombreFamilia: string;
+    nombreRubro?: string;
     sku: string;
     nombre: string;
     unidadMedida: string;

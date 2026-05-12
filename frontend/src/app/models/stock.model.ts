@@ -58,6 +58,7 @@ export interface RegistrarTransferenciaDto {
 export interface DetalleOperacionStockDto {
     idProducto: number;
     cantidad: number;
+    maxCantidad?: number; // Para uso en Frontend (carrito bloqueado)
     productoInfo?: any; // Para uso en Frontend (carrito)
 }
 
@@ -68,6 +69,7 @@ export interface OperacionStockMultipleDto {
     ordenCompra?: string;
     ticketSolicitud?: string;
     observaciones?: string;
+    idSolicitudCompraAsociada?: number;
     detalles: DetalleOperacionStockDto[];
 }
 

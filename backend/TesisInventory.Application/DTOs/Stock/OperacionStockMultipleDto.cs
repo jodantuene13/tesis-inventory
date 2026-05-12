@@ -16,6 +16,8 @@ namespace TesisInventory.Application.DTOs.Stock
         public string? OrdenCompra { get; set; }
         public string? TicketSolicitud { get; set; }
         public string? Observaciones { get; set; }
+        
+        public int? IdSolicitudCompraAsociada { get; set; }
 
         [Required]
         [MinLength(1, ErrorMessage = "Debe enviar al menos un producto en la operación.")]

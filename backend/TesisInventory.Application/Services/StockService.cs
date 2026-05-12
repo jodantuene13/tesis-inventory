@@ -18,6 +18,7 @@ namespace TesisInventory.Application.Services
         private readonly IProductoRepository _productoRepository;
         private readonly ISedeRepository _sedeRepository;
         private readonly IOperacionStockRepository _operacionStockRepository;
+        private readonly ISolicitudCompraRepository _solicitudCompraRepository;
 
         public StockService(
             IStockRepository stockRepository,
@@ -25,7 +26,8 @@ namespace TesisInventory.Application.Services
             ITransferenciaRepository transferenciaRepository,
             IProductoRepository productoRepository,
             ISedeRepository sedeRepository,
-            IOperacionStockRepository operacionStockRepository)
+            IOperacionStockRepository operacionStockRepository,
+            ISolicitudCompraRepository solicitudCompraRepository)
         {
             _stockRepository = stockRepository;
             _movimientoRepository = movimientoRepository;
@@ -33,6 +35,7 @@ namespace TesisInventory.Application.Services
             _productoRepository = productoRepository;
             _sedeRepository = sedeRepository;
             _operacionStockRepository = operacionStockRepository;
+            _solicitudCompraRepository = solicitudCompraRepository;
         }
 
         public async Task<(IEnumerable<StockDto> Items, int TotalCount)> GetStockAsync(
@@ -293,6 +296,19 @@ namespace TesisInventory.Application.Services
             if (dto.Detalles == null || !dto.Detalles.Any())
                 throw new InvalidOperationException("La operación debe contener al menos un producto.");
 
+            SolicitudCompra? solicitud = null;
+            if (dto.IdSolicitudCompraAsociada.HasValue)
+            {
+                solicitud = await _solicitudCompraRepository.GetByIdAsync(dto.IdSolicitudCompraAsociada.Value);
+                if (solicitud == null)
+                    throw new InvalidOperationException("La Solicitud de Compra asociada no existe.");
+                
+                if (solicitud.Estado != EstadoSolicitudCompra.Aprobada)
+                    throw new InvalidOperationException("La Solicitud de Compra debe estar Aprobada para impactar stock.");
+                if (solicitud.Etiqueta == EtiquetaSolicitudCompra.IngresadaAlStock || solicitud.Etiqueta == EtiquetaSolicitudCompra.NoConcretada)
+                    throw new InvalidOperationException("La Solicitud de Compra ya fue completada o marcada como no concretada.");
+            }
+
             var operacion = new OperacionStock
             {
                 IdSede = idSede,
@@ -309,6 +325,18 @@ namespace TesisInventory.Application.Services
 
             foreach (var detalle in dto.Detalles)
             {
+                if (solicitud != null)
+                {
+                    var solDetalle = solicitud.Detalles.FirstOrDefault(d => d.IdProducto == detalle.IdProducto);
+                    if (solDetalle == null)
+                        throw new InvalidOperationException($"El producto {detalle.IdProducto} no pertenece a la Solicitud de Compra.");
+                    
+                    if (detalle.Cantidad + solDetalle.CantidadRecibida > solDetalle.Cantidad)
+                        throw new InvalidOperationException($"La cantidad ingresada para el producto {detalle.IdProducto} supera el remanente de la Solicitud de Compra.");
+                    
+                    solDetalle.CantidadRecibida += detalle.Cantidad;
+                }
+
                 var stock = await _stockRepository.GetStockAsync(detalle.IdProducto, idSede);
 
                 if (dto.TipoOperacion == TipoMovimiento.Ingreso)
@@ -359,6 +387,13 @@ namespace TesisInventory.Application.Services
             }
 
             await _operacionStockRepository.AddOperacionStockAsync(operacion);
+
+            if (solicitud != null)
+            {
+                bool isCompletada = solicitud.Detalles.All(d => d.CantidadRecibida == d.Cantidad);
+                solicitud.Etiqueta = isCompletada ? EtiquetaSolicitudCompra.IngresadaAlStock : EtiquetaSolicitudCompra.ParcialmenteIngresada;
+                await _solicitudCompraRepository.UpdateAsync(solicitud);
+            }
 
             return dto;
         }

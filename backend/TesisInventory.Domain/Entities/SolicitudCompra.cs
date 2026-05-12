@@ -16,6 +16,7 @@ namespace TesisInventory.Domain.Entities
         public string? TareaARealizar { get; set; }
 
         public EstadoSolicitudCompra Estado { get; set; } = EstadoSolicitudCompra.Pendiente;
+        public EtiquetaSolicitudCompra Etiqueta { get; set; } = EtiquetaSolicitudCompra.Pendiente;
         public DateTime FechaSolicitud { get; set; } = DateTime.UtcNow;
         public DateTime? FechaDecision { get; set; }
         public string? Observaciones { get; set; }

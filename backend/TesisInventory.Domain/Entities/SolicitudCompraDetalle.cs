@@ -8,6 +8,7 @@ namespace TesisInventory.Domain.Entities
         public int IdSolicitudCompra { get; set; }
         public int IdProducto { get; set; }
         public int Cantidad { get; set; }
+        public int CantidadRecibida { get; set; } = 0;
 
         public virtual SolicitudCompra? SolicitudCompra { get; set; }
         public virtual Producto? Producto { get; set; }

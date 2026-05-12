@@ -43,3 +43,8 @@ Se realizaron las siguientes adaptaciones al modelo de clases original para su i
 
 ### 4. Convención de Nombres (Refactor)
 - **Tablas en Singular**: Se adoptó la convención de nombres en singular para todas las tablas (`Usuario`, `Rol`, `Sede`, `Movimiento`, etc.) para adherirse a las mejores prácticas de diseño y consistencia con los nombres de las clases del dominio.
+
+### [2026-05-09]
+- **Descripción del cambio:** Recreación de Base de Datos, Semilla Inicial y Seed Completo. Se aplicaron todas las migraciones de EF Core, se recreó el esquema y se inyectaron datos base (Roles, Sede, Usuario). Posteriormente, se creó y ejecutó un archivo `seed_full_entities.sql` con datos de prueba (mock) para TODAS las entidades del sistema (Rubros, Familias, Atributos, Productos, Stock, Transferencias, Solicitudes de Compra, etc.) respetando la integridad referencial.
+- **Motivo técnico:** Reconstrucción del entorno local debido a la pérdida de la base de datos y necesidad de contar con datos de prueba realistas para agilizar el desarrollo y testing del frontend.
+- **Impacto funcional:** Se restableció el esquema de base de datos, el acceso al sistema, y se dispone de un entorno de inventario funcionalmente completo (con stock y operaciones).

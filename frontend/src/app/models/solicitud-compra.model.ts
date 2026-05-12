@@ -4,6 +4,13 @@ export enum EstadoSolicitudCompra {
     Rechazada = 2
 }
 
+export enum EtiquetaSolicitudCompra {
+    Pendiente = 0,
+    ParcialmenteIngresada = 1,
+    IngresadaAlStock = 2,
+    NoConcretada = 3
+}
+
 export interface SolicitudCompra {
     idSolicitudCompra: number;
     idSede: number;
@@ -19,6 +26,7 @@ export interface SolicitudCompra {
     tareaARealizar?: string;
 
     estado: EstadoSolicitudCompra;
+    etiqueta: EtiquetaSolicitudCompra;
     fechaSolicitud: string;
     fechaDecision?: string;
     observaciones?: string;
@@ -32,6 +40,7 @@ export interface SolicitudCompraDetalle {
     nombreProducto: string;
     skuProducto: string;
     cantidad: number;
+    cantidadRecibida?: number;
 }
 
 export interface CreateSolicitudCompra {

@@ -106,5 +106,19 @@ namespace TesisInventory.API.Controllers
                 return BadRequest(new { Message = ex.Message });
             }
         }
+
+        [HttpPut("{id}/no-concretada")]
+        public async Task<IActionResult> MarcarNoConcretada(int id)
+        {
+            try
+            {
+                var result = await _solicitudService.MarcarComoNoConcretadaAsync(id);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { Message = ex.Message });
+            }
+        }
     }
 }

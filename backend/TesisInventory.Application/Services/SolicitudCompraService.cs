@@ -81,6 +81,24 @@ namespace TesisInventory.Application.Services
             return MapToDto(updated!);
         }
 
+        public async Task<SolicitudCompraDto> MarcarComoNoConcretadaAsync(int idSolicitud)
+        {
+            var solicitud = await _solicitudRepository.GetByIdAsync(idSolicitud);
+            if (solicitud == null)
+                throw new KeyNotFoundException("La solicitud no existe.");
+
+            if (solicitud.Estado != EstadoSolicitudCompra.Aprobada)
+                throw new InvalidOperationException("Solo se pueden marcar como No Concretadas las solicitudes Aprobadas.");
+
+            if (solicitud.Etiqueta == EtiquetaSolicitudCompra.IngresadaAlStock)
+                throw new InvalidOperationException("La solicitud ya fue completamente ingresada al stock.");
+
+            solicitud.Etiqueta = EtiquetaSolicitudCompra.NoConcretada;
+            await _solicitudRepository.UpdateAsync(solicitud);
+
+            return MapToDto(solicitud);
+        }
+
         public async Task<(IEnumerable<SolicitudCompraDto> Items, int TotalCount)> GetPagedSolicitudesAsync(
             int? idSede, string? search, int? estado, int page, int pageSize)
         {
@@ -114,6 +132,7 @@ namespace TesisInventory.Application.Services
                 TareaARealizar = s.TareaARealizar,
 
                 Estado = s.Estado,
+                Etiqueta = s.Etiqueta,
                 FechaSolicitud = s.FechaSolicitud,
                 FechaDecision = s.FechaDecision,
                 Observaciones = s.Observaciones,
@@ -124,7 +143,8 @@ namespace TesisInventory.Application.Services
                     IdProducto = d.IdProducto,
                     NombreProducto = d.Producto?.Nombre ?? "N/A",
                     SkuProducto = d.Producto?.Sku ?? "N/A",
-                    Cantidad = d.Cantidad
+                    Cantidad = d.Cantidad,
+                    CantidadRecibida = d.CantidadRecibida
                 }).ToList()
             };
         }

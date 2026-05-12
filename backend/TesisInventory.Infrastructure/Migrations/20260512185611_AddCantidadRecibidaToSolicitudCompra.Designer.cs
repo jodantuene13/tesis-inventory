@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TesisInventory.Infrastructure.Persistence;
 
@@ -11,9 +12,11 @@ using TesisInventory.Infrastructure.Persistence;
 namespace TesisInventory.Infrastructure.Migrations
 {
     [DbContext(typeof(InventoryDbContext))]
-    partial class InventoryDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260512185611_AddCantidadRecibidaToSolicitudCompra")]
+    partial class AddCantidadRecibidaToSolicitudCompra
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -547,9 +550,6 @@ namespace TesisInventory.Infrastructure.Migrations
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("IdSolicitudCompra"));
 
                     b.Property<int>("Estado")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Etiqueta")
                         .HasColumnType("int");
 
                     b.Property<DateTime?>("FechaDecision")

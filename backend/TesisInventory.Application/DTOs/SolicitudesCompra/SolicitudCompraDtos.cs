@@ -19,6 +19,7 @@ namespace TesisInventory.Application.DTOs.SolicitudesCompra
         public string? TareaARealizar { get; set; }
 
         public EstadoSolicitudCompra Estado { get; set; }
+        public EtiquetaSolicitudCompra Etiqueta { get; set; }
         public DateTime FechaSolicitud { get; set; }
         public DateTime? FechaDecision { get; set; }
         public string? Observaciones { get; set; }
@@ -33,6 +34,7 @@ namespace TesisInventory.Application.DTOs.SolicitudesCompra
         public string NombreProducto { get; set; } = string.Empty;
         public string SkuProducto { get; set; } = string.Empty;
         public int Cantidad { get; set; }
+        public int CantidadRecibida { get; set; }
     }
 
     public class CreateSolicitudCompraDto

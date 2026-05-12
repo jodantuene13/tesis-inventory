@@ -3,14 +3,16 @@ import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { SolicitudCompraService } from '../../../services/solicitud-compra.service';
 import { StockService } from '../../../services/stock.service';
-import { SolicitudCompra, EstadoSolicitudCompra, CreateSolicitudCompra } from '../../../models/solicitud-compra.model';
+import { SolicitudCompra, EstadoSolicitudCompra, EtiquetaSolicitudCompra, CreateSolicitudCompra } from '../../../models/solicitud-compra.model';
 import { Stock } from '../../../models/stock.model';
 import Swal from 'sweetalert2';
+import { OperacionesMultiplesModalComponent } from '../../../shared/components/operaciones-multiples-modal/operaciones-multiples-modal.component';
+import { DetalleOperacionStockDto } from '../../../models/stock.model';
 
 @Component({
   selector: 'app-solicitudes-compra',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, OperacionesMultiplesModalComponent],
   templateUrl: './solicitudes-compra.component.html',
   styleUrls: ['./solicitudes-compra.component.css']
 })
@@ -54,8 +56,26 @@ export class SolicitudesCompraComponent implements OnInit {
   stockList: Stock[] = [];
   filteredStock: Stock[] = [];
 
+  // Multiple Operations Modal Shared Config
+  multipleModalConfig = {
+    isOpen: false,
+    isLocked: true,
+    requiereOC: true,
+    initialRequest: {
+      tipoOperacion: 0 as number,
+      motivo: 3 as number,
+      ordenTrabajo: '',
+      ordenCompra: '',
+      ticketSolicitud: '',
+      observaciones: '',
+      idSolicitudCompraAsociada: undefined as number | undefined,
+      detalles: [] as DetalleOperacionStockDto[]
+    }
+  };
+
   // Enum for template
   EstadoEnum = EstadoSolicitudCompra;
+  EtiquetaEnum = EtiquetaSolicitudCompra;
 
   constructor(
     private solicitudService: SolicitudCompraService,
@@ -278,6 +298,27 @@ export class SolicitudesCompraComponent implements OnInit {
     });
   }
 
+  marcarNoConcretada(s: SolicitudCompra): void {
+    Swal.fire({
+      title: '¿Marcar como No Concretada?',
+      text: 'Esta acción indica que la solicitud no se va a recibir en stock.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Sí, marcar',
+      cancelButtonText: 'Cancelar'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.solicitudService.marcarNoConcretada(s.idSolicitudCompra).subscribe({
+          next: () => {
+            Swal.fire('Éxito', 'La solicitud ha sido marcada como no concretada.', 'success');
+            this.loadSolicitudes();
+          },
+          error: (err) => Swal.fire('Error', err.error?.message || 'Error al procesar solicitud', 'error')
+        });
+      }
+    });
+  }
+
   nextPage(): void {
     if (this.page < this.totalPages) {
       this.page++;
@@ -290,5 +331,46 @@ export class SolicitudesCompraComponent implements OnInit {
       this.page--;
       this.loadSolicitudes();
     }
+  }
+
+  // --- Multi-operation modal logic ---
+  openImpactarStockModal(s: SolicitudCompra): void {
+    const config = {
+      isOpen: true,
+      isLocked: true,
+      requiereOC: true,
+      initialRequest: {
+        tipoOperacion: 0, // Ingreso
+        motivo: 3, // Por Compra
+        ordenTrabajo: '',
+        ordenCompra: `SC-${s.idSolicitudCompra}`,
+        ticketSolicitud: s.ticketSolicitud || '',
+        observaciones: `Impacto automático desde Solicitud de Compra #${s.idSolicitudCompra}`,
+        idSolicitudCompraAsociada: s.idSolicitudCompra,
+        detalles: s.detalles
+            .filter((d: any) => d.cantidad - (d.cantidadRecibida || 0) > 0)
+            .map((d: any) => ({
+                idProducto: d.idProducto,
+                cantidad: d.cantidad - (d.cantidadRecibida || 0),
+                maxCantidad: d.cantidad - (d.cantidadRecibida || 0),
+                productoInfo: {
+                    idProducto: d.idProducto,
+                    nombreProducto: d.nombreProducto,
+                    sku: d.skuProducto
+                }
+            })) as DetalleOperacionStockDto[]
+      }
+    };
+
+    if (config.initialRequest.detalles.length === 0) {
+      Swal.fire('Atención', 'No hay productos pendientes para impactar en esta solicitud.', 'info');
+      return;
+    }
+
+    this.multipleModalConfig = config;
+  }
+
+  onMultipleModalComplete(): void {
+    this.loadSolicitudes();
   }
 }

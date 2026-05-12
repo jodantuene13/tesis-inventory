@@ -33,4 +33,8 @@ export class SolicitudCompraService {
   updateEstado(id: number, dto: UpdateSolicitudCompraEstado): Observable<SolicitudCompra> {
     return this.http.put<SolicitudCompra>(`${this.apiUrl}/${id}/estado`, dto);
   }
+
+  marcarNoConcretada(id: number): Observable<SolicitudCompra> {
+    return this.http.put<SolicitudCompra>(`${this.apiUrl}/${id}/no-concretada`, {});
+  }
 }

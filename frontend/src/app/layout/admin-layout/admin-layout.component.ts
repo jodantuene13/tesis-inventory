@@ -20,6 +20,7 @@ export class AdminLayoutComponent implements OnInit, OnDestroy {
     isConfigMenuOpen = false;
     isInventoryMenuOpen = false;
     isTransferenciasMenuOpen = false;
+    isParametricasMenuOpen = false;
 
     isAdmin = false;
     sedes: Sede[] = [];
@@ -78,6 +79,10 @@ export class AdminLayoutComponent implements OnInit, OnDestroy {
 
     toggleTransferenciasMenu() {
         this.isTransferenciasMenuOpen = !this.isTransferenciasMenuOpen;
+    }
+
+    toggleParametricasMenu() {
+        this.isParametricasMenuOpen = !this.isParametricasMenuOpen;
     }
 
     logout() {

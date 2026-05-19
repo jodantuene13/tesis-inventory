@@ -373,4 +373,9 @@ export class SolicitudesCompraComponent implements OnInit {
   onMultipleModalComplete(): void {
     this.loadSolicitudes();
   }
+
+  getTotalCantidad(s: SolicitudCompra): number {
+    if (!s || !s.detalles) return 0;
+    return s.detalles.reduce((acc, det) => acc + det.cantidad, 0);
+  }
 }

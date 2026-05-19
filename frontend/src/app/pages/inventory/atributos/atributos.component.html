@@ -78,11 +78,11 @@
                 </button>
             </div>
 
-            <div class="flex-1 overflow-y-auto p-2">
-                <table class="min-w-full">
-                    <thead>
-                        <tr
-                            class="bg-gray-50 text-gray-500 uppercase text-[11px] font-bold tracking-widest leading-normal sticky top-0 z-10 border-b border-gray-100">
+            <div class="flex-1 flex flex-col p-4 overflow-hidden">
+                <div class="ds-table-wrapper flex-1" style="overflow-y: auto;">
+                    <table class="ds-table">
+                        <thead class="sticky top-0 z-10 bg-gray-50 shadow-sm">
+                            <tr>
                             <th class="py-4 px-6 text-left">Código</th>
                             <th class="py-4 px-6 text-left">Nombre</th>
                             <th class="py-4 px-6 text-center">Tipo</th>
@@ -149,6 +149,7 @@
                         </tr>
                     </tbody>
                 </table>
+                </div>
             </div>
         </div>
 
@@ -197,7 +198,7 @@
                         </div>
                     </div>
 
-                    <div class="bg-gray-50 border border-gray-200 rounded-t-md px-3 py-2 flex text-xs font-bold text-gray-500 uppercase tracking-wider">
+                    <div class="bg-gray-50 border border-gray-200 rounded-t-md px-3 py-2 flex text-xs font-bold text-gray-500 uppercase tracking-wider sticky top-0 z-10">
                         <span class="w-24">Código</span>
                         <span class="flex-1 ml-2">Valor / Descripción</span>
                         <span class="w-8 text-center">Acción</span>

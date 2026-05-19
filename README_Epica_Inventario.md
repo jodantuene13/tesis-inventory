@@ -140,3 +140,38 @@ También incluye un sistema de autogeneración de SKU (Stock Keeping Unit).
 - **Descripción del cambio**: Se vinculó el módulo de Solicitudes de Compra con Operaciones Múltiples de Stock. Al aprobar una solicitud, se habilita la acción "Impactar Stock", que instancia el modal de operaciones. La solicitud controla cumplimientos parciales y asume una **Etiqueta** logística (`ParcialmenteIngresada`, `IngresadaAlStock`, `NoConcretada`) paralela al estado de aprobación. Se eliminaron los estados híbridos ("Parcial" y "Completada") del workflow de aprobación principal.
 - **Motivo técnico**: Requisito crítico para cerrar el ciclo de abastecimiento separando la responsabilidad de "Autorización" (Aprobada/Rechazada) de la "Ejecución" (Ingresada parcial o totalmente). Se añadió la posibilidad de marcar manualmente una Solicitud Aprobada como "No concretada" en caso de falla del proveedor.
 - **Impacto funcional**: Al momento de la llegada de los insumos físicos, el usuario "Impacta Stock" precargando el listado original. Si recibe un pedido fraccionado, la solicitud obtendrá la etiqueta "Ingreso Parcial". Adicionalmente, el usuario puede cancelar la espera de stock marcando la orden como "No concretada", cerrando visualmente el proceso y desactivando la opción de seguir impactando inventario.
+
+**[2026-05-19] (Corrección de diseño en paginación de tablas)**
+- **Descripción del cambio**: Se actualizó la clase global CSS `.ds-table-wrapper` con propiedades flex (`flex-col`) y `.ds-table-footer` con `margin-top: auto`.
+- **Motivo técnico**: Solucionar un problema de diseño en el que el pie de paginación de las tablas (ej. Remitos e Historial de Movimientos) se renderizaba en el medio del contenedor cuando la grilla no tenía registros (o no cubría la altura mínima del contenedor).
+- **Impacto funcional**: La barra de paginación ahora se posiciona consistentemente y siempre en la base inferior del panel sin importar la cantidad de resultados de la búsqueda, ofreciendo una experiencia visual limpia.
+
+**[2026-05-19] (Ajuste visual en grilla de Solicitudes de Compra)**
+- **Descripción del cambio**: Se modificó la renderización de la tabla principal de Solicitudes de Compra. Se creó una nueva columna dedicada a "Etiquetas" separada de "Estado". Adicionalmente, se mejoró la lectura de productos resumiendo las cantidades (sumatoria total) y estandarizando la vista del primer producto para órdenes múltiples (mostrando "Producto X" y debajo "y N más").
+- **Motivo técnico**: Proveer una UX más limpia donde la columna de estado no se sobrecargue con badges de estado de aprobación y etiquetas de recepción simultáneamente, y simplificar la lectura rápida de volúmenes de compra.
+- **Impacto funcional**: Los usuarios ahora pueden identificar claramente si el estado "Aprobado" y el progreso de recepción logística ("Ingreso Parcial") operan por carriles separados. La sumatoria de unidades previene la ambigüedad del texto previo "VARIAS".
+
+**[2026-05-19] (Normalización de UI en Rubros y Familias)**
+- **Descripción del cambio**: Se refactorizaron las tablas de "Rubros" y "Familias" en `rubros-familias.component.html` para utilizar el sistema de diseño estándar `.ds-table-wrapper` y `.ds-table`.
+- **Motivo técnico**: Las tablas no utilizaban el diseño estandarizado (Design System). Específicamente, en "Rubros" el atributo `sticky` de la cabecera, sumado al padding, estaba causando un gap visual por donde se veían los items hacer scroll.
+- **Impacto funcional**: Mayor consistencia visual con el resto de los módulos del sistema y se soluciona la falla estética del scroll desfasado.
+### [2026-05-19] Normalización visual en pantallas de inventario (Stock, Productos, Atributos, Remitos e Historial)
+- **Descripción del cambio:** Se aplicó una estructura `flex` de pantalla completa a los componentes del inventario y se independizó el scroll de las tablas mediante `.ds-table-wrapper`. Los paginadores ahora quedan anclados al final de la pantalla y el encabezado de las tablas queda fijo (`sticky top-0`).
+- **Motivo técnico:** Solucionar el problema de cabeceras flotantes (gap visual al hacer scroll) y estandarizar el comportamiento de la paginación globalmente.
+- **Impacto funcional:** Mejor UX al leer tablas largas con paginación, logrando que el usuario no pierda contexto visual de las columnas. Se modificaron los archivos `stock.html`, `productos.component.html`, `atributos.component.html`, `remitos.component.html` e `historial-movimientos.component.html`.
+
+### [2026-05-19] Reestructuración del Menú Lateral (Sidebar)
+- **Descripción del cambio:** El titular de la sección se renombró a "Administración" y su menú desplegable operativo a "Configuración Admin". Se creó un nuevo grupo desplegable llamado "Paramétricas del Gestor" bajo este mismo titular, moviendo allí los submenús de "Rubros y Familias", "Atributos" y "Productos", que antes pertenecían a "Inventario".
+- **Motivo técnico:** Mejorar la organización del menú lateral y agrupar las configuraciones paramétricas (entidades maestras del catálogo) de manera independiente para evitar sobrecargar el menú operativo del Inventario.
+- **Impacto funcional:** Mayor claridad para el usuario a la hora de navegar entre operaciones diarias (Inventario/Remitos) y gestión de maestros paramétricos. Se modificaron los componentes `admin-layout.component.ts` y `admin-layout.component.html`.
+
+### [2026-05-19] Corrección de doble renderizado en Ficha de Producto (Stock Local)
+- **Descripción del cambio:** Se eliminó el modal de ficha antiguo (inline) de `stock.html` que convivía con el componente reutilizable `app-ficha-producto-modal`, provocando que ambos modales se abrieran superpuestos al dar click en "Ver Ficha". Adicionalmente, el formato base de `.modal-box` (del *Design System*) fue integrado internamente dentro del componente `app-ficha-producto-modal` para garantizar que la vista contenga la funcionalidad de "Atributos del producto" preservando los estilos estandarizados globales solicitados.
+- **Motivo técnico:** Había una duplicación del estado `activeModal === 'detalle'` que gatillaba dos bloques de HTML distintos simultáneamente. Además el componente compartido no estaba aplicando la clase `.modal-box`.
+- **Impacto funcional:** Solo se renderiza un único modal con la información consolidada (incluyendo atributos) y un fondo correcto, evitando la doble superposición. Modificados `stock.html` y `ficha-producto-modal.component.html`.
+
+### [2026-05-19] Eliminación de botón "Inhabilitar" en Stock Local
+- **Descripción del cambio:** Se retiró el botón de acción rápida "Dar de baja" (Inhabilitar) que aparecía en cada fila de la tabla del componente `stock.html`.
+- **Motivo técnico:** Solicitud directa de simplificación de UI para la pantalla de Stock Local.
+- **Impacto funcional:** Menor carga visual en las filas de stock. Se modificó únicamente el frontend en `stock.html`.
+

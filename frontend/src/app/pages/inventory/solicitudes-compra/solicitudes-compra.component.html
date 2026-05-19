@@ -103,6 +103,7 @@
                         <th class="py-5 px-6">Producto</th>
                         <th class="py-5 px-6 text-center">Cantidad</th>
                         <th class="py-5 px-6 text-center">Estado</th>
+                        <th class="py-5 px-6 text-center">Etiquetas</th>
                         <th class="py-5 px-6">Solicitante</th>
                         <th class="py-5 px-6 text-right">Acciones</th>
                     </tr>
@@ -119,16 +120,15 @@
                                 <div class="text-xs text-blue-600 font-black tracking-tighter">{{ s.detalles[0].skuProducto }}</div>
                             </div>
                             <div *ngIf="s.detalles.length > 1">
-                                <div class="font-bold">Múltiples Productos ({{ s.detalles.length }})</div>
-                                <div class="text-xs text-gray-500 font-black tracking-tighter mt-1">{{ s.detalles[0].nombreProducto }} + {{ s.detalles.length - 1 }} más</div>
+                                <div class="font-bold">{{ s.detalles[0].nombreProducto }}</div>
+                                <div class="text-xs text-gray-500 font-black tracking-tighter mt-1">y {{ s.detalles.length - 1 }} más</div>
                             </div>
                         </td>
                         <td class="py-4 px-6 text-center">
-                            <span *ngIf="s.detalles.length === 1" class="inline-block px-3 py-1 bg-gray-100 rounded-lg font-black text-gray-900">{{ s.detalles[0].cantidad }}</span>
-                            <span *ngIf="s.detalles.length > 1" class="text-xs text-gray-500 font-bold uppercase">Varias</span>
+                            <span class="inline-block px-3 py-1 bg-gray-100 rounded-lg font-black text-gray-900">{{ getTotalCantidad(s) }}</span>
                         </td>
                         <td class="py-4 px-6 text-center">
-                            <span class="px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-sm block w-max"
+                            <span class="px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-sm inline-block w-max mx-auto"
                                 [ngClass]="{
                                     'bg-amber-100 text-amber-700 border border-amber-200': s.estado === EstadoEnum.Pendiente,
                                     'bg-blue-100 text-blue-700 border border-blue-200': s.estado === EstadoEnum.Aprobada,
@@ -137,7 +137,12 @@
                                 {{ s.estado === EstadoEnum.Pendiente ? 'Pendiente' : 
                                    s.estado === EstadoEnum.Aprobada ? 'Aprobada' : 'Rechazada' }}
                             </span>
-                            <span *ngIf="s.etiqueta !== EtiquetaEnum.Pendiente" class="px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-sm mt-1 block w-max"
+                            <div *ngIf="s.fechaDecision" class="text-[9px] text-gray-400 mt-1 uppercase font-bold">
+                                {{ s.fechaDecision | date:'short' }}
+                            </div>
+                        </td>
+                        <td class="py-4 px-6 text-center">
+                            <span *ngIf="s.etiqueta !== EtiquetaEnum.Pendiente" class="px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-sm inline-block w-max mx-auto"
                                 [ngClass]="{
                                     'bg-purple-100 text-purple-700 border border-purple-200': s.etiqueta === EtiquetaEnum.ParcialmenteIngresada,
                                     'bg-emerald-100 text-emerald-700 border border-emerald-200': s.etiqueta === EtiquetaEnum.IngresadaAlStock,
@@ -146,9 +151,9 @@
                                 {{ s.etiqueta === EtiquetaEnum.ParcialmenteIngresada ? 'Ingreso Parcial' : 
                                    s.etiqueta === EtiquetaEnum.IngresadaAlStock ? 'Ingresada al Stock' : 'No Concretada' }}
                             </span>
-                            <div *ngIf="s.fechaDecision" class="text-[9px] text-gray-400 mt-1 uppercase font-bold">
-                                {{ s.fechaDecision | date:'short' }}
-                            </div>
+                            <span *ngIf="s.etiqueta === EtiquetaEnum.Pendiente" class="text-xs text-gray-400 font-medium italic">
+                                -
+                            </span>
                         </td>
                         <td class="py-4 px-6">
                             <div class="flex flex-col gap-2">
@@ -211,7 +216,7 @@
                         </td>
                     </tr>
                     <tr *ngIf="solicitudes.length === 0">
-                        <td colspan="6" class="py-20 text-center">
+                        <td colspan="7" class="py-20 text-center">
                             <div class="flex flex-col items-center opacity-30">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />

@@ -67,6 +67,18 @@ namespace TesisInventory.Infrastructure.Repositories
                 .ToListAsync();
         }
 
+        public async Task<System.Collections.Generic.IEnumerable<Transferencia>> GetAllAsync()
+        {
+            return await _context.Transferencia
+                .Include(t => t.Detalles)
+                    .ThenInclude(d => d.Producto)
+                .Include(t => t.SedeOrigen)
+                .Include(t => t.SedeDestino)
+                .Include(t => t.UsuarioSolicita)
+                .OrderByDescending(t => t.FechaSolicitud)
+                .ToListAsync();
+        }
+
         public async Task AddHistorialTransferenciaAsync(HistorialTransferencia historial)
         {
             _context.HistorialTransferencia.Add(historial);

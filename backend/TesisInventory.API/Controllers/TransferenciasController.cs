@@ -27,27 +27,11 @@ namespace TesisInventory.API.Controllers
 
         private int GetCurrentUserSedeId()
         {
-            int sedeClaimId = 0;
-            var sedeIdStr = User.FindFirstValue("sede_id");
-            if (int.TryParse(sedeIdStr, out var id))
-            {
-                sedeClaimId = id;
-            }
-
-            var roleClaim = User.FindFirstValue(ClaimTypes.Role) ?? User.FindFirstValue("role") ?? User.FindFirstValue("nombreRol");
-            bool isAdmin = roleClaim?.Equals("Admin", StringComparison.OrdinalIgnoreCase) == true || 
-                           roleClaim?.Equals("Administrador", StringComparison.OrdinalIgnoreCase) == true ||
-                           roleClaim?.Equals("ADMIN", StringComparison.OrdinalIgnoreCase) == true ||
-                           roleClaim == "1";
-
-            // Priorizar el Sede-Contexto que envía el front (Interceptor)
             if (Request.Headers.TryGetValue("Sede-Contexto", out var sedeContexto) && int.TryParse(sedeContexto, out int headerSedeId))
-            {
-                if (isAdmin) return headerSedeId;
-                if (headerSedeId == sedeClaimId) return headerSedeId;
-            }
-            
-            if (sedeClaimId > 0) return sedeClaimId;
+                return headerSedeId;
+
+            var sedeIdClaim = User.FindFirstValue("sede_id");
+            if (int.TryParse(sedeIdClaim, out int sId)) return sId;
 
             return 0;
         }
@@ -69,6 +53,13 @@ namespace TesisInventory.API.Controllers
             if (sedeId == 0) return BadRequest("Sede no identificada en el token");
 
             var result = await _transferenciaService.GetSalientesAsync(sedeId);
+            return Ok(result);
+        }
+
+        [HttpGet("all")]
+        public async Task<IActionResult> GetAll()
+        {
+            var result = await _transferenciaService.GetAllAsync();
             return Ok(result);
         }
 

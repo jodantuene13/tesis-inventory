@@ -726,3 +726,142 @@ label {
   .printable-area { position: absolute; left: 0; top: 0; width: 100%; }
   @page { margin: 1.5cm; }
 }
+
+/* ========================================
+   RESPONSIVE — MOBILE (max-width: 768px)
+   ======================================== */
+@media (max-width: 768px) {
+
+  /* --- PAGE HEADER --- */
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+  }
+  .page-header__actions {
+    width: 100%;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .page-header__title {
+    font-size: var(--text-xl);
+  }
+
+  /* --- KPI GRID --- */
+  .kpi-grid {
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 0.5rem;
+  }
+  .kpi-card__value {
+    font-size: 1.35rem;
+  }
+
+  /* --- FILTER BAR --- */
+  .filter-bar {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 0.875rem 1rem;
+    gap: 0.625rem;
+  }
+  .filter-group,
+  .filter-group--grow {
+    width: 100%;
+    min-width: unset;
+  }
+
+  /* --- DATA TABLE — Responsive scroll --- */
+  .ds-table-wrapper {
+    border-radius: var(--radius-md);
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .ds-table {
+    min-width: 600px; /* Permite scroll horizontal sin romper el layout */
+  }
+  .ds-table thead th,
+  .ds-table tbody td {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.78rem;
+  }
+  /* Ocultar columnas de baja prioridad en mobile */
+  .ds-table .col-mobile-hidden {
+    display: none;
+  }
+
+  /* --- TABLE FOOTER (paginación) --- */
+  .ds-table-footer {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+    padding: 0.625rem 0.875rem;
+  }
+
+  /* --- MODAL --- */
+  .modal-backdrop {
+    padding: 0.5rem;
+    align-items: flex-end; /* Bottom sheet en mobile */
+  }
+  .modal-box {
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+    max-height: 92vh;
+    max-width: 100%;
+  }
+  .modal-box--wide,
+  .modal-box--xl {
+    max-width: 100%;
+  }
+  .modal-header {
+    padding: 1.25rem 1.25rem 0.75rem;
+  }
+  .modal-body {
+    padding: 1.25rem;
+  }
+  .modal-footer {
+    padding: 0.875rem 1.25rem 1.25rem;
+    flex-wrap: wrap;
+  }
+  .modal-footer .btn {
+    flex: 1;
+    min-width: 100px;
+    justify-content: center;
+  }
+
+  /* --- FORM ROWS --- */
+  .form-row--2col {
+    grid-template-columns: 1fr; /* Vuelve a una columna en mobile */
+  }
+
+  /* --- BOTONES --- */
+  .btn {
+    font-size: 0.8rem;
+  }
+  .page-header__actions .btn {
+    flex: 1;
+    justify-content: center;
+  }
+
+  /* --- DS CARD --- */
+  .ds-card__header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+}
+
+/* ========================================
+   RESPONSIVE — TABLET (769px – 1024px)
+   ======================================== */
+@media (max-width: 1024px) and (min-width: 769px) {
+  .kpi-grid {
+    grid-template-columns: repeat(auto-fit, minmax(155px, 1fr));
+  }
+
+  .content-area {
+    padding: 1.25rem 1.5rem;
+  }
+
+  .modal-box--xl {
+    max-width: 90vw;
+  }
+}

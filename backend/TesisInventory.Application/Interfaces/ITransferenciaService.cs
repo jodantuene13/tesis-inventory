@@ -8,6 +8,7 @@ namespace TesisInventory.Application.Interfaces
     {
         Task<IEnumerable<TransferenciaDto>> GetEntrantesAsync(int idSede);
         Task<IEnumerable<TransferenciaDto>> GetSalientesAsync(int idSede);
+        Task<IEnumerable<TransferenciaDto>> GetAllAsync();
         Task<TransferenciaDto> CreateAsync(CreateTransferenciaDto createDto, int idUsuarioSolicita);
         Task AceptarTransferenciaAsync(int idTransferencia, int idUsuarioAutenticado, string? observaciones = null);
         Task RechazarTransferenciaAsync(int idTransferencia, int idUsuarioAutenticado, string? observaciones = null);

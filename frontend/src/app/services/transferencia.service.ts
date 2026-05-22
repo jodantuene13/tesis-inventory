@@ -19,6 +19,10 @@ export class TransferenciaService {
     return this.http.get<Transferencia[]>(`${this.apiUrl}/salientes`);
   }
 
+  getAll(): Observable<Transferencia[]> {
+    return this.http.get<Transferencia[]>(`${this.apiUrl}/all`);
+  }
+
   create(dto: CreateTransferenciaDto): Observable<Transferencia> {
     return this.http.post<Transferencia>(this.apiUrl, dto);
   }

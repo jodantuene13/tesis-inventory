@@ -10,6 +10,7 @@ namespace TesisInventory.Domain.Interfaces
         Task<Transferencia?> GetTransferenciaByIdAsync(int id);
         Task<System.Collections.Generic.IEnumerable<Transferencia>> GetEntrantesAsync(int idSede);
         Task<System.Collections.Generic.IEnumerable<Transferencia>> GetSalientesAsync(int idSede);
+        Task<System.Collections.Generic.IEnumerable<Transferencia>> GetAllAsync();
         
         Task AddHistorialTransferenciaAsync(HistorialTransferencia historial);
     }

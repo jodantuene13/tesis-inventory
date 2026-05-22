@@ -1,13 +1,15 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { SolicitudCompraService } from '../../../services/solicitud-compra.service';
 import { StockService } from '../../../services/stock.service';
+import { SedeContextService } from '../../../services/sede-context.service';
 import { SolicitudCompra, EstadoSolicitudCompra, EtiquetaSolicitudCompra, CreateSolicitudCompra } from '../../../models/solicitud-compra.model';
 import { Stock } from '../../../models/stock.model';
 import Swal from 'sweetalert2';
 import { OperacionesMultiplesModalComponent } from '../../../shared/components/operaciones-multiples-modal/operaciones-multiples-modal.component';
 import { DetalleOperacionStockDto } from '../../../models/stock.model';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-solicitudes-compra',
@@ -16,7 +18,7 @@ import { DetalleOperacionStockDto } from '../../../models/stock.model';
   templateUrl: './solicitudes-compra.component.html',
   styleUrls: ['./solicitudes-compra.component.css']
 })
-export class SolicitudesCompraComponent implements OnInit {
+export class SolicitudesCompraComponent implements OnInit, OnDestroy {
   solicitudes: SolicitudCompra[] = [];
   loading = false;
   
@@ -77,15 +79,26 @@ export class SolicitudesCompraComponent implements OnInit {
   EstadoEnum = EstadoSolicitudCompra;
   EtiquetaEnum = EtiquetaSolicitudCompra;
 
+  private contextSub!: Subscription;
+
   constructor(
     private solicitudService: SolicitudCompraService,
-    private stockService: StockService
+    private stockService: StockService,
+    private sedeContextService: SedeContextService
   ) {
   }
 
   ngOnInit(): void {
-    this.loadSolicitudes();
-    this.loadProductos();
+    this.contextSub = this.sedeContextService.sedeEnContexto$.subscribe(() => {
+      this.loadSolicitudes();
+      this.loadProductos();
+    });
+  }
+
+  ngOnDestroy(): void {
+    if (this.contextSub) {
+      this.contextSub.unsubscribe();
+    }
   }
 
   loadSolicitudes(): void {

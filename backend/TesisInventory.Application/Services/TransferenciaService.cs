@@ -38,6 +38,12 @@ namespace TesisInventory.Application.Services
             return transferencias.Select(MapToDto);
         }
 
+        public async Task<IEnumerable<TransferenciaDto>> GetAllAsync()
+        {
+            var transferencias = await _transferenciaRepo.GetAllAsync();
+            return transferencias.Select(MapToDto);
+        }
+
         public async Task<TransferenciaDto> CreateAsync(CreateTransferenciaDto createDto, int idUsuarioSolicita)
         {
             // Validar stock de origen para todos los items

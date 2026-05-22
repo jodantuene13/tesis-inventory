@@ -155,11 +155,11 @@ export class TransferenciasListComponent implements OnInit, OnDestroy {
   }
 
   loadSedes() {
-    let userSedeId = 0;
-    this.authService.user$.subscribe(u => { if(u?.idSede) userSedeId = u.idSede; }).unsubscribe();
+    let contextSedeId = 0;
+    this.sedeContextService.sedeEnContexto$.subscribe(s => contextSedeId = s).unsubscribe();
 
     this.sedeService.getAll().subscribe(res => {
-      this.sedes = res.filter(s => s.idSede !== userSedeId);
+      this.sedes = res.filter(s => s.idSede !== contextSedeId);
     });
   }
 
@@ -293,8 +293,8 @@ export class TransferenciasListComponent implements OnInit, OnDestroy {
       width: '600px'
     }).then((result) => {
       if (result.isConfirmed) {
-        let userSedeId = 1; 
-        this.authService.user$.subscribe(u => { if(u?.idSede) userSedeId = u.idSede; }).unsubscribe();
+        let contextSedeId = 1; 
+        this.sedeContextService.sedeEnContexto$.subscribe(s => contextSedeId = s).unsubscribe();
 
         // Mapeo simple de detalles
         const payloadDetalles = this.newRequest.detalles.map(d => ({
@@ -303,7 +303,7 @@ export class TransferenciasListComponent implements OnInit, OnDestroy {
         }));
 
         this.transferenciaService.create({
-          idSedeDestino: userSedeId,
+          idSedeDestino: contextSedeId,
           idSedeOrigen: this.newRequest.idSedeOrigen!,
           detalles: payloadDetalles,
           motivo: Number(this.newRequest.motivo),
@@ -328,49 +328,102 @@ export class TransferenciasListComponent implements OnInit, OnDestroy {
 
   // --- Actions Logic ---
   aceptar(t: Transferencia) {
-    if(confirm(`¿Desea aceptar la transferencia de ${t.detalles.length} productos hacia ${t.nombreSedeDestino}?`)) {
-      this.transferenciaService.aceptar(t.idTransferencia, 'Aceptado desde listado').subscribe({
-        next: () => {
-          Swal.fire('Aceptada', 'La solicitud pasó a En Tránsito', 'success');
-          this.cargarDatos();
-        },
-        error: (e) => Swal.fire('Error', 'No se pudo aceptar', 'error')
-      });
-    }
+    Swal.fire({
+      title: 'Aceptar Transferencia',
+      text: `¿Desea aceptar la transferencia de ${t.detalles.length} productos hacia ${t.nombreSedeDestino}?`,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Sí, Aceptar',
+      cancelButtonText: 'Cancelar',
+      confirmButtonColor: '#4f46e5',
+      cancelButtonColor: '#9ca3af'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.transferenciaService.aceptar(t.idTransferencia, 'Aceptado desde listado').subscribe({
+          next: () => {
+            Swal.fire('Aceptada', 'La solicitud pasó a En Tránsito', 'success');
+            this.cargarDatos();
+          },
+          error: (e) => Swal.fire('Error', 'No se pudo aceptar', 'error')
+        });
+      }
+    });
   }
 
   rechazar(t: Transferencia) {
-    const motivo = prompt('Motivo de rechazo:');
-    if(motivo !== null) {
-      this.transferenciaService.rechazar(t.idTransferencia, motivo).subscribe({
-        next: () => this.cargarDatos(),
-        error: (e) => Swal.fire('Error', 'No se pudo rechazar', 'error')
-      });
-    }
+    Swal.fire({
+      title: 'Rechazar Transferencia',
+      input: 'text',
+      inputLabel: 'Motivo de rechazo',
+      inputPlaceholder: 'Ingrese el motivo...',
+      showCancelButton: true,
+      confirmButtonText: 'Rechazar',
+      cancelButtonText: 'Cancelar',
+      confirmButtonColor: '#ef4444',
+      cancelButtonColor: '#9ca3af',
+      inputValidator: (value) => {
+        if (!value) {
+          return '¡Necesita ingresar un motivo!';
+        }
+        return null;
+      }
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.transferenciaService.rechazar(t.idTransferencia, result.value).subscribe({
+          next: () => {
+            Swal.fire('Rechazada', 'La solicitud fue rechazada', 'success');
+            this.cargarDatos();
+          },
+          error: (e) => Swal.fire('Error', 'No se pudo rechazar', 'error')
+        });
+      }
+    });
   }
 
   recibir(t: Transferencia) {
-    if(confirm(`¿Confirma la recepción de ${t.detalles.length} productos? Esto impactará el stock.`)) {
-      this.transferenciaService.confirmarRecepcion(t.idTransferencia, 'Recibido').subscribe({
-        next: () => {
-          Swal.fire('Recibido', 'Stock actualizado en destino', 'success');
-          this.cargarDatos();
-        },
-        error: (e) => Swal.fire('Error', 'No se pudo confirmar', 'error')
-      });
-    }
+    Swal.fire({
+      title: 'Confirmar Recepción',
+      text: `¿Confirma la recepción de ${t.detalles.length} productos? Esto impactará el stock.`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Sí, Recibir',
+      cancelButtonText: 'Cancelar',
+      confirmButtonColor: '#10b981',
+      cancelButtonColor: '#9ca3af'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.transferenciaService.confirmarRecepcion(t.idTransferencia, 'Recibido').subscribe({
+          next: () => {
+            Swal.fire('Recibido', 'Stock actualizado en destino', 'success');
+            this.cargarDatos();
+          },
+          error: (e) => Swal.fire('Error', 'No se pudo confirmar', 'error')
+        });
+      }
+    });
   }
 
   devolver(t: Transferencia) {
-    if(confirm(`¿Desea devolver el préstamo asignado a la transferencia ${t.codigoTracking}?`)) {
-      this.transferenciaService.devolver(t.idTransferencia, 'Devolución').subscribe({
-        next: () => {
-          Swal.fire('Devuelto', 'Se ha devuelto el stock a la sede origen', 'success');
-          this.cargarDatos();
-        },
-        error: (e) => Swal.fire('Error', 'Error al devolver', 'error')
-      });
-    }
+    Swal.fire({
+      title: 'Devolver Préstamo',
+      text: `¿Desea devolver el préstamo asignado a la transferencia ${t.codigoTracking}?`,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Sí, Devolver',
+      cancelButtonText: 'Cancelar',
+      confirmButtonColor: '#f59e0b',
+      cancelButtonColor: '#9ca3af'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.transferenciaService.devolver(t.idTransferencia, 'Devolución').subscribe({
+          next: () => {
+            Swal.fire('Devuelto', 'Se ha devuelto el stock a la sede origen', 'success');
+            this.cargarDatos();
+          },
+          error: (e) => Swal.fire('Error', 'Error al devolver', 'error')
+        });
+      }
+    });
   }
 
   verDetalles(t: Transferencia) {

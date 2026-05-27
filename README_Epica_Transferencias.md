@@ -192,3 +192,9 @@ Implementar la funcionalidad completa para solicitar, gestionar y hacer seguimie
 **Impacto funcional:** 
 - Si un usuario cambia la "Sede:" en el sidebar, el Histórico no se limpia ni re-filtra, sino que permanece global.
 - Ahora es posible realizar búsquedas en la tabla combinando múltiples productos, donde el motor filtrará solo aquellas transferencias que incluyan el carrito completo de productos consultados.
+
+### [2026-05-27] (Ajuste de EF Core Migrations)
+**Descripción del cambio:** Creación de la migración `FixTransferenciaAutoIncrement`.
+**Motivo técnico:** Las correcciones manuales previas de `AUTO_INCREMENT` en la base de datos local funcionaban, pero al clonar el proyecto en otro equipo y generar la base de datos a partir de las migraciones, volvía a arrojar el error `Duplicate entry '0' for key 'PRIMARY'`. Esto ocurre por un comportamiento conocido del Provider de Pomelo EF Core para MySQL donde `RenameColumn` elimina implícitamente la propiedad `AUTO_INCREMENT` de las claves primarias si no se re-especifican explícitamente. Se debió generar una migración formal que contiene instrucciones `AlterColumn` explícitas indicando `MySqlValueGenerationStrategy.IdentityColumn`.
+**Impacto funcional:**
+- La base de datos puede ser instanciada en equipos nuevos (vía `dotnet ef database update`) sin perder las propiedades auto-incrementales en las tablas `Transferencia` e `HistorialTransferencia`.

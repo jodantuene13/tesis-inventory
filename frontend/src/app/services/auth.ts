@@ -69,6 +69,16 @@ export class AuthService {
     );
   }
 
+  loginWithEmail(email: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/test-login`, { email }).pipe(
+      tap((res: any) => {
+        localStorage.setItem(this.tokenKey, res.token);
+        localStorage.setItem(this.userKey, JSON.stringify(res.user));
+        this.userSubject.next(res.user);
+      })
+    );
+  }
+
   logout() {
     localStorage.removeItem(this.tokenKey);
     localStorage.removeItem(this.userKey);

@@ -5,6 +5,17 @@
 
         <div id="google-btn" class="google-btn-wrapper"></div>
 
-        <p class="footer-text">Solo acceso @ucc.edu.ar</p>
+        <div class="test-login-section mt-6 border-t border-gray-300 pt-4" style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #ccc;">
+            <h3 style="font-size: 14px; margin-bottom: 10px;">Acceso de Prueba (Bypass)</h3>
+            <input type="email" [(ngModel)]="testEmail" placeholder="admin@ucc.edu.ar" 
+                   style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; margin-bottom: 10px; font-size: 14px; box-sizing: border-box;" />
+            <button (click)="onTestLogin()" 
+                    style="width: 100%; background-color: #0056b3; color: white; padding: 10px; border: none; border-radius: 4px; cursor: pointer; font-size: 14px;">
+                Entrar con Email
+            </button>
+            <p *ngIf="loginError" style="color: red; font-size: 12px; margin-top: 10px;">{{ loginError }}</p>
+        </div>
+
+        <p class="footer-text" style="margin-top: 20px;">Solo acceso @ucc.edu.ar</p>
     </div>
 </div>

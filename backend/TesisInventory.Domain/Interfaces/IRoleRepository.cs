@@ -8,7 +8,9 @@ namespace TesisInventory.Domain.Interfaces
     {
         Task<Rol?> GetByIdAsync(int id);
         Task<Rol?> GetByIdWithUsersAsync(int id);
-        Task<IEnumerable<Rol>> GetAllAsync();
+        Task<Rol?> GetByIdWithPermissionsAndSedesAsync(int id);
+        Task<IEnumerable<Rol>> GetAllWithPermissionsAndSedesAsync();
+        Task<IEnumerable<Permiso>> GetAllPermisosAsync();
         Task<Rol> AddAsync(Rol rol);
         Task UpdateAsync(Rol rol);
         Task DeleteAsync(int id);

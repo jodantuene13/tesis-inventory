@@ -8,6 +8,10 @@ export interface User {
     nombreRol: string;
     idSede: number;
     nombreSede: string;
+    todasLasSedes?: boolean;
+    limitarOperacionSedePrimaria?: boolean;
+    permisos?: string[];
+    sedesPermitidas?: number[];
 }
 
 export interface CreateUserDto {

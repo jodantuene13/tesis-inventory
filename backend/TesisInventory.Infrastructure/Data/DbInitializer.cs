@@ -16,12 +16,63 @@ namespace TesisInventory.Infrastructure.Data
             {
                 var roles = new Rol[]
                 {
-                    new Rol { IdRol = 1, NombreRol = "Administrador", Descripcion = "Acceso total al sistema" },
-                    new Rol { IdRol = 2, NombreRol = "Operador", Descripcion = "Acceso limitado a operaciones diarias" },
-                    new Rol { IdRol = 3, NombreRol = "Auditor", Descripcion = "Acceso de solo lectura para control" }
+                    new Rol { IdRol = 1, NombreRol = "Administrador", Descripcion = "Acceso total al sistema", TodasLasSedes = true, LimitarOperacionSedePrimaria = false },
+                    new Rol { IdRol = 2, NombreRol = "Operador", Descripcion = "Acceso limitado a operaciones diarias", TodasLasSedes = false, LimitarOperacionSedePrimaria = false },
+                    new Rol { IdRol = 3, NombreRol = "Auditor", Descripcion = "Acceso de solo lectura para control", TodasLasSedes = true, LimitarOperacionSedePrimaria = true }
                 };
                 context.Rol.AddRange(roles);
                 context.SaveChanges();
+            }
+
+            // Seed Permisos
+            if (!context.Permiso.Any())
+            {
+                var permisosData = new List<(string Modulo, string Nombre, string Descripcion)>
+                {
+                    ("Inicio", "Inicio_Ver", "Ver pantalla de Inicio"),
+                    ("Inventario", "Inventario_Ver", "Ver módulo de Inventario"),
+                    ("Inventario", "Inventario_StockLocal_Ver", "Ver Stock Local"),
+                    ("Inventario", "Inventario_StockLocal_Historial_Ver", "Ver Historial de Stock Local"),
+                    ("Inventario", "Inventario_StockLocal_Historial_VerMovimientos", "Ver Movimientos de Historial de Stock Local"),
+                    ("Inventario", "Inventario_StockLocal_OpMultiples_VerCrear", "Ver y crear Operaciones Múltiples de Stock Local"),
+                    ("Inventario", "Inventario_Remitos_Ver", "Ver Remitos"),
+                    ("Inventario", "Inventario_Historial_Ver", "Ver Historial de Movimientos de Inventario"),
+                    ("Solicitudes", "Solicitudes_VerBuscarImprimir", "Ver, buscar e imprimir Solicitudes de Compra"),
+                    ("Solicitudes", "Solicitudes_Crear", "Crear Solicitudes de Compra"),
+                    ("Transferencias", "Transferencias_Ver", "Ver módulo de Transferencias"),
+                    ("Transferencias", "Transferencias_Crear", "Crear nueva solicitud de Transferencia"),
+                    ("Transferencias", "Transferencias_PedidosAMiSede_Ver", "Ver Pedidos a mi Sede en Transferencias"),
+                    ("Transferencias", "Transferencias_MisPedidos_Ver", "Ver Mis Pedidos en Transferencias"),
+                    ("Transferencias", "Transferencias_Historico_Ver", "Ver Histórico de Transferencias"),
+                    ("Parametricas", "Parametricas_Ver", "Ver módulo de Paramétricas del Gestor"),
+                    ("Parametricas", "Parametricas_RubrosFamilias_ABM", "Ver, crear y modificar Rubros y Familias"),
+                    ("Parametricas", "Parametricas_Atributos_ABM", "Ver, crear, asociar y modificar Atributos"),
+                    ("Parametricas", "Parametricas_Productos_ABM", "Crear y modificar Productos"),
+                    ("Configuracion", "ConfiguracionAdmin_Ver", "Ver Configuración Admin")
+                };
+
+                var permisos = permisosData.Select((p, index) => new Permiso
+                {
+                    IdPermiso = index + 1,
+                    Modulo = p.Modulo,
+                    Nombre = p.Nombre,
+                    Descripcion = p.Descripcion
+                }).ToList();
+
+                context.Permiso.AddRange(permisos);
+                context.SaveChanges();
+
+                // Asignar todos los permisos al Administrador
+                if (!context.RolPermiso.Any())
+                {
+                    var adminRolPermisos = permisos.Select(p => new RolPermiso
+                    {
+                        IdRol = 1, // Administrador
+                        IdPermiso = p.IdPermiso
+                    }).ToList();
+                    context.RolPermiso.AddRange(adminRolPermisos);
+                    context.SaveChanges();
+                }
             }
 
             // Seed Sedes

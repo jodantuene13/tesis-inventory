@@ -13,6 +13,10 @@ namespace TesisInventory.Infrastructure.Persistence
         public DbSet<Rol> Rol { get; set; }
         public DbSet<Sede> Sede { get; set; }
         public DbSet<AuditLog> AuditLogs { get; set; }
+        
+        public DbSet<Permiso> Permiso { get; set; }
+        public DbSet<RolPermiso> RolPermiso { get; set; }
+        public DbSet<RolSede> RolSede { get; set; }
 
         // Inventory DbSets
         public DbSet<Rubro> Rubro { get; set; }
@@ -73,6 +77,36 @@ namespace TesisInventory.Infrastructure.Persistence
             modelBuilder.Entity<Sede>().HasKey(s => s.IdSede);
             modelBuilder.Entity<Sede>().Property(s => s.IdSede).HasColumnName("idSede");
             modelBuilder.Entity<Sede>().Property(s => s.NombreSede).HasColumnName("nombreSede");
+
+            // Permisos
+            modelBuilder.Entity<Permiso>().ToTable("Permiso");
+            modelBuilder.Entity<Permiso>().HasKey(p => p.IdPermiso);
+
+            modelBuilder.Entity<RolPermiso>().ToTable("RolPermiso");
+            modelBuilder.Entity<RolPermiso>().HasKey(rp => new { rp.IdRol, rp.IdPermiso });
+            modelBuilder.Entity<RolPermiso>()
+                .HasOne(rp => rp.Rol)
+                .WithMany(r => r.RolesPermisos)
+                .HasForeignKey(rp => rp.IdRol)
+                .OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<RolPermiso>()
+                .HasOne(rp => rp.Permiso)
+                .WithMany(p => p.RolesPermisos)
+                .HasForeignKey(rp => rp.IdPermiso)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<RolSede>().ToTable("RolSede");
+            modelBuilder.Entity<RolSede>().HasKey(rs => new { rs.IdRol, rs.IdSede });
+            modelBuilder.Entity<RolSede>()
+                .HasOne(rs => rs.Rol)
+                .WithMany(r => r.RolesSedes)
+                .HasForeignKey(rs => rs.IdRol)
+                .OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<RolSede>()
+                .HasOne(rs => rs.Sede)
+                .WithMany(s => s.RolesSedes)
+                .HasForeignKey(rs => rs.IdSede)
+                .OnDelete(DeleteBehavior.Cascade);
 
             // Audit
             modelBuilder.Entity<AuditLog>().ToTable("AuditLog");

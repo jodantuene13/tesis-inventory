@@ -5,5 +5,10 @@ export interface User {
     idRol: number;
     idSede?: number;
     nombreRol?: string;
+    nombreSede?: string;
     token?: string;
+    todasLasSedes?: boolean;
+    limitarOperacionSedePrimaria?: boolean;
+    permisos?: string[];
+    sedesPermitidas?: number[];
 }

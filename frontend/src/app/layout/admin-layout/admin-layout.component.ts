@@ -48,15 +48,21 @@ export class AdminLayoutComponent implements OnInit, OnDestroy {
         }
     }
 
+    userPermisos: string[] = [];
+    todasLasSedes = false;
+
     ngOnInit() {
         this.userSub = this.authService.user$.subscribe(user => {
             if (user) {
-                // Determine if user is Admin
-                const roleValue = user.nombreRol;
-                this.isAdmin = roleValue === 'Admin' || roleValue === 'Administrador';
+                this.userPermisos = user.permisos || [];
+                this.todasLasSedes = user.todasLasSedes || false;
+                
+                // Un usuario puede cambiar de sede si puede ver todas las sedes o tiene más de una sede permitida
+                const sedesPermitidasCount = user.sedesPermitidas ? user.sedesPermitidas.length : 0;
+                this.isAdmin = this.todasLasSedes || sedesPermitidasCount > 1;
 
                 if (this.isAdmin) {
-                    this.loadSedes();
+                    this.loadSedes(user.sedesPermitidas);
                 }
             }
         });
@@ -79,10 +85,20 @@ export class AdminLayoutComponent implements OnInit, OnDestroy {
         if (this.routerSub) this.routerSub.unsubscribe();
     }
 
-    loadSedes() {
+    loadSedes(sedesPermitidas?: number[]) {
         this.sedeService.getAll().subscribe(data => {
-            this.sedes = data;
+            if (this.todasLasSedes) {
+                this.sedes = data;
+            } else if (sedesPermitidas) {
+                this.sedes = data.filter(s => sedesPermitidas.includes(s.idSede));
+            } else {
+                this.sedes = [];
+            }
         });
+    }
+
+    hasPermiso(permiso: string): boolean {
+        return this.userPermisos.includes(permiso);
     }
 
     toggleSedeDropdown(event: Event) {

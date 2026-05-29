@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 using TesisInventory.Application.Interfaces;
+using TesisInventory.Application.DTOs.Roles;
 
 namespace TesisInventory.API.Controllers
 {
@@ -31,18 +32,26 @@ namespace TesisInventory.API.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] TesisInventory.Domain.Entities.Rol rol)
+        public async Task<IActionResult> Create([FromBody] RolCreateDto rolDto)
         {
-            var createdRole = await _rolesService.CreateRoleAsync(rol);
+            var createdRole = await _rolesService.CreateRoleAsync(rolDto);
             return CreatedAtAction(nameof(GetById), new { id = createdRole.IdRol }, createdRole);
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update(int id, [FromBody] TesisInventory.Domain.Entities.Rol rol)
+        public async Task<IActionResult> Update(int id, [FromBody] RolUpdateDto rolDto)
         {
-            if (id != rol.IdRol) return BadRequest();
-            await _rolesService.UpdateRoleAsync(rol);
-            return NoContent();
+            if (id != rolDto.IdRol) return BadRequest();
+            
+            try
+            {
+                await _rolesService.UpdateRoleAsync(rolDto);
+                return NoContent();
+            }
+            catch (System.ArgumentException)
+            {
+                return NotFound();
+            }
         }
 
         [HttpDelete("{id}")]
@@ -58,6 +67,13 @@ namespace TesisInventory.API.Controllers
             {
                 return Conflict(new { message = ex.Message });
             }
+        }
+
+        [HttpGet("permisos")]
+        public async Task<IActionResult> GetPermisos()
+        {
+            var permisos = await _rolesService.GetAllPermisosAsync();
+            return Ok(permisos);
         }
     }
 }

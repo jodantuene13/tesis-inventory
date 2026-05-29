@@ -1,59 +1,35 @@
-6.X Épica: Gestión de Roles
+# Épica: Roles y Permisos (Configuración Atómica)
 
-────────────────────────────────────────
-6.1 Descripción general de la épica
-────────────────────────────────────────
-Esta épica extiende el módulo de Configuración para permitir la administración dinámica de los Roles del sistema.
-- **Objetivo**: Permitir crear, editar y eliminar roles, asegurando la integridad referencial (no eliminar roles asignados).
-- **Relación con el problema**: Provee flexibilidad para ajustar los perfiles de acceso sin intervención en base de datos.
+## Objetivo
+Implementar la gestión de roles dentro del sistema permitiendo una configuración atómica de permisos y de alcance de sedes, además de habilitar a los usuarios para cambiar el contexto de operación entre sedes habilitadas (con permisos condicionados a si operan en su sede primaria o en una secundaria).
 
-────────────────────────────────────────
-6.2 Alcance funcional de la épica
-────────────────────────────────────────
-**Funcionalidades incluidas:**
-1.  Listado de Roles existentes (reutilizando diseño de tabla de Usuarios).
-2.  Alta de nuevos Roles.
-3.  Edición de Roles (Nombre, Descripción).
-4.  Eliminación de Roles con validación de dependencia (no se elimina si tiene usuarios).
+## Historias de Usuario
+- Como Administrador, quiero poder crear roles y asignarles permisos específicos desde una lista en forma de árbol.
+- Como Administrador, quiero definir si un rol tiene acceso a todas las sedes o a un conjunto limitado de ellas.
+- Como Administrador, quiero configurar si las operaciones de un usuario (crear/modificar) deben limitarse sólo a su sede primaria.
 
-**Suposiciones o restricciones:**
-- Los roles "Administrador" pueden ser editados pero debería tenerse cuidado.
-- La validación de eliminación es estricta.
+## Alcance Funcional
+- ABM de Roles (Nombre, Descripción, Flags: `TodasLasSedes`, `LimitarOperacionSedePrimaria`).
+- Selección de permisos mediante checkboxes agrupados por módulo.
+- Selección de sedes en formato multiselect en caso de no tener el flag `TodasLasSedes`.
+- Ocultamiento de opciones en el menú lateral (`AdminLayoutComponent`) basado en los permisos de visualización (`*_Ver`).
+- Envío de configuración de sedes y permisos al frontend durante el Login.
 
-────────────────────────────────────────
-6.3 Historias de usuario asociadas
-────────────────────────────────────────
-- **HU-ROLES-01**: Como Administrador quiero ver la lista de roles para conocer los perfiles disponibles.
-- **HU-ROLES-02**: Como Administrador quiero crear/editar roles para ajustar las descripciones o nombres.
-- **HU-ROLES-03**: Como Administrador quiero eliminar roles en desuso, pero el sistema debe impedirlo si hay usuarios asignados.
+## Capas Involucradas
+- **Domain**: `Rol`, `Permiso`, `RolPermiso`, `RolSede`.
+- **Infrastructure**: `InventoryDbContext`, configuraciones de Fluent API, Repositorios (`RoleRepository`, `DbInitializer`).
+- **Application**: `RolDto`, `RolCreateDto`, `RolUpdateDto`, `PermisoDto`, `IRolesService`, `RolesService`.
+- **API**: `RolesController`, `AuthController` (actualización de respuesta de login).
+- **Frontend**: `RoleFormComponent`, `AdminLayoutComponent`, `auth.service.ts`, `role.service.ts`, modelo `user`.
 
-────────────────────────────────────────
-6.4 Diseño técnico asociado
-────────────────────────────────────────
-**Componentes de Frontend (Angular):**
-- `RolesListComponent`: Reutiliza diseño de `UsersListComponent`.
-- `RoleFormComponent`: Formulario para ABM de Roles.
-- `RoleService`: Métodos CRUD (`create`, `update`, `delete`, `getAll`, `getById`).
+## Decisiones de Implementación y Ajustes
+- **[2026-05-29]**:
+  - **Descripción**: Implementación de las entidades relacionales `RolPermiso` y `RolSede`, creación de 20 permisos semilla en `DbInitializer.cs`, adición de campos configurables (`TodasLasSedes`, `LimitarOperacionSedePrimaria`) al `Rol`.
+  - **Motivo técnico**: Proveer una arquitectura escalable de control de accesos usando un modelo relacional en vez de JSON o flags binarios, alineado con las buenas prácticas de EF Core.
+  - **Impacto funcional**: Ninguno sobre las vistas previas, pero dota de la estructura subyacente para los árboles de selección en el form de rol y la seguridad real en operaciones de API.
 
-**Lógica de Backend (C# .NET):**
-- `RolesController`: Endpoints `POST`, `PUT`, `DELETE`.
-- `RolesService`: Lógica de validación (`DeleteRoleAsync` verifica `Usuarios.Any()`).
-- `RoleRepository`: Implementación de persistencia con `Include(Usuarios)`.
+  - **Descripción**: Refactorización de la respuesta de `GoogleLogin` para incrustar `permisos` (lista de nombres) y `sedesPermitidas` (lista de IDs) directamente en el token/cookie (vía localStorage user).
+  - **Motivo técnico**: Evita tener que hacer request adicional de los permisos al cargar el `AdminLayoutComponent`. Se priorizó un payload JSON más denso en login por performance de UI.
 
-────────────────────────────────────────
-6.5 Pruebas realizadas (Verificación)
-────────────────────────────────────────
-| Acción | Resultado Esperado |
-| :--- | :--- |
-| Acceder a `/configuration/roles` | Ver lista de roles. |
-| Crear Rol "Test" | Aparece en lista. |
-| Eliminar Rol "Test" | Se elimina correctamente. |
-| Eliminar Rol "Admin" (Asignado) | **Error**: "No se puede eliminar un rol asignado a un usuario." |
-
-────────────────────────────────────────
-6.6 Decisiones de Implementación y Ajustes
-────────────────────────────────────────
-**[2026-04-14]**
-- **Descripción del cambio**: Configuración del rol "Administrador" como visualizador de múltiples sedes, gestionando el cambio de sede mediante un menú contextual reactivo (SedeContextService).
-- **Motivo técnico**: El rol administrador requería de la capacidad de alternar entre los contextos de stock y transferencias de cada sede directamente desde el front, sin modificar la estructura base de las tablas de datos vinculadas por idSede y enviando la nueva cabecera 'Sede-Contexto' configurada de manera global a través de un interceptor.
-- **Impacto funcional**: Impacta de manera positiva la gestión de los administradores proveyendo una UI transparente global en el TopBar. El resto de los roles sigue restringido al idSede embebido en su propio claim original sin romper las lógicas pre-establecidas.
+  - **Descripción**: Implementación de la vista `RoleFormComponent` usando un grid dual para Sedes y Permisos.
+  - **Motivo técnico**: El usuario solicitó un diagrama visual organizado por módulos, así que se agruparon dinámicamente los permisos por la propiedad `Modulo`.

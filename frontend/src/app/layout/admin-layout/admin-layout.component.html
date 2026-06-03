@@ -60,6 +60,25 @@
                     </li>
                 </ng-container>
 
+                <!-- Informes Module -->
+                <li class="nav-section-label" style="list-style:none">Informes</li>
+                <li class="nav-item-group">
+                    <button (click)="toggleInformesMenu()" [class.active]="isInformesMenuOpen" class="nav-group-toggle">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                        </svg>
+                        Informes
+                        <span class="arrow" [class.rotated]="isInformesMenuOpen">▾</span>
+                    </button>
+                    <ul class="submenu" [class.open]="isInformesMenuOpen">
+                        <li>
+                            <a routerLink="/informes/stock-alertas" routerLinkActive="active" (click)="closeSidebar()">
+                                Stock bajo y alertas
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+
                 <!-- Top-level modules -->
                 <li class="nav-section-label" style="list-style:none" *ngIf="hasPermiso('Solicitudes_VerBuscarImprimir') || hasPermiso('Transferencias_Ver')">Operaciones</li>
                 <li *ngIf="hasPermiso('Solicitudes_VerBuscarImprimir')">

@@ -21,6 +21,7 @@ export class AdminLayoutComponent implements OnInit, OnDestroy {
     isInventoryMenuOpen = false;
     isTransferenciasMenuOpen = false;
     isParametricasMenuOpen = false;
+    isInformesMenuOpen = false;
 
     /** Controla si el sidebar está abierto en mobile */
     isSidebarOpen = false;
@@ -140,6 +141,10 @@ export class AdminLayoutComponent implements OnInit, OnDestroy {
 
     toggleParametricasMenu() {
         this.isParametricasMenuOpen = !this.isParametricasMenuOpen;
+    }
+
+    toggleInformesMenu() {
+        this.isInformesMenuOpen = !this.isInformesMenuOpen;
     }
 
     logout() {

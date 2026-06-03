@@ -47,6 +47,14 @@ export const routes: Routes = [
                     { path: '', redirectTo: 'gestionar', pathMatch: 'full' }
                 ]
             },
+            // Informes Module
+            {
+                path: 'informes',
+                children: [
+                    { path: 'stock-alertas', loadComponent: () => import('./pages/informes/alertas-stock/alertas-stock.component').then(m => m.AlertasStockComponent) },
+                    { path: '', redirectTo: 'stock-alertas', pathMatch: 'full' }
+                ]
+            },
             // Configuration Module
             {
                 path: 'configuration',

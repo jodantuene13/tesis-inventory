@@ -67,14 +67,35 @@ frontend/src/app/
 ├── pages/
 │   └── informes/
 │       └── alertas-stock/
-│           ├── alertas-stock.component.ts   ← Lógica + datos mockeados
-│           ├── alertas-stock.component.html ← Template con sidebar + main
-│           └── alertas-stock.component.css  ← Estilos del módulo
+│           ├── alertas-stock.component.ts   ← Lógica + llamadas HTTP reales
+│           ├── alertas-stock.component.html ← Template actualizado (loading/error/filtros reales)
+│           └── alertas-stock.component.css  ← Agrega loading-state y error-state
+├── services/
+│   └── informes.service.ts              ← [NUEVO] Servicio HTTP de informes
 ├── layout/
 │   └── admin-layout/
-│       ├── admin-layout.component.html      ← Modificado: menú Informes
-│       └── admin-layout.component.ts        ← Modificado: isInformesMenuOpen, toggleInformesMenu()
-└── app.routes.ts                            ← Modificado: ruta /informes/stock-alertas
+│       ├── admin-layout.component.html
+│       └── admin-layout.component.ts
+└── app.routes.ts
+
+backend/
+├── TesisInventory.Domain/
+│   ├── Entities/AlertaStock.cs              ← [NUEVO] Entidad histórica de alertas
+│   ├── Enums/EstadoAlerta.cs               ← [NUEVO] Enum Activa/Resuelta
+│   └── Interfaces/IAlertaStockRepository.cs ← [NUEVO] Contrato del repositorio
+├── TesisInventory.Application/
+│   ├── DTOs/Informes/                       ← [NUEVO] DTOs del informe
+│   ├── Interfaces/IAlertaStockService.cs   ← [NUEVO] Interface del servicio de alertas
+│   ├── Interfaces/IInformesService.cs      ← [NUEVO] Interface del servicio de informes
+│   ├── Services/AlertaStockService.cs      ← [NUEVO] Lógica de detección de alertas
+│   ├── Services/InformesService.cs         ← [NUEVO] Orquestación del informe
+│   └── Services/StockService.cs            ← [MODIFICADO] Inyecta IAlertaStockService
+├── TesisInventory.Infrastructure/
+│   ├── Repositories/AlertaStockRepository.cs  ← [NUEVO] Implementación del repositorio
+│   └── Persistence/InventoryDbContext.cs      ← [MODIFICADO] DbSet + configuración
+└── TesisInventory.API/
+    ├── Controllers/InformesController.cs      ← [NUEVO] GET /api/informes/alertas-stock
+    └── Program.cs                             ← [MODIFICADO] Registro DI
 ```
 
 ---
@@ -82,8 +103,8 @@ frontend/src/app/
 ## Capas involucradas
 
 - **Frontend (Angular)**: Standalone components con lazy load.
-- **Backend**: No modificado. Se utilizan datos mockeados en el componente.
-- **Base de datos**: No modificada.
+- **Backend**: Modificado. Nuevo `InformesController`, `InformesService`, `AlertaStockService`.
+- **Base de datos**: Modificada. Nueva tabla `AlertaStock` para registro histórico de alertas.
 
 ---
 
@@ -137,7 +158,8 @@ El submenú se activa con toggle (igual patrón que Inventario, Transferencias y
 
 ## Pendientes / Próximos pasos
 
-- [ ] Conectar con endpoints reales del backend cuando estén disponibles.
+- [x] Conectar con endpoints reales del backend cuando estén disponibles. (**✅ Implementado**)
+- [ ] Aplicar migración EF Core (`dotnet ef migrations add AddAlertaStockTable`) y actualizar BD.
 - [ ] Agregar permiso `Informes_Ver` al sistema de roles para control de acceso granular.
 - [ ] Implementar informe de transferencias.
 - [ ] Implementar informe de solicitudes de compra.

@@ -1,74 +1,15 @@
-import { Component, OnInit, OnDestroy, AfterViewInit, ElementRef, ViewChild, ChangeDetectorRef } from '@angular/core';
+import {
+  Component, OnInit, OnDestroy, AfterViewInit,
+  ElementRef, ViewChild, ChangeDetectorRef
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Chart, registerables } from 'chart.js';
+import { InformesService, ProductoAlertaStockDto, ProductoRecurrenciaDto } from '../../../services/informes.service';
+import { FamiliaService } from '../../../services/familia.service';
+import { Familia } from '../../../models/familia.model';
 
 Chart.register(...registerables);
-
-// ─── Interfaces ───────────────────────────────────────────────────────────────
-
-interface ProductoAlertaStock {
-  id: number;
-  producto: string;
-  familia: string;
-  sede: string;
-  stockActual: number;
-  stockMinimo: number;
-  diferencia: number;
-  diasEnAlerta: number;
-  ultimaAlerta: string;
-  criticidad: 'Alta' | 'Media' | 'Baja';
-}
-
-interface ProductoRecurrencia {
-  id: number;
-  producto: string;
-  familia: string;
-  sede: string;
-  cantidadAlertas: number;
-  diasAcumulados: number;
-  stockActual: number;
-  stockMinimo: number;
-  ultimaAlerta: string;
-  estadoActual: string;
-  criticidad: 'Alta' | 'Media' | 'Baja';
-}
-
-// ─── Datos Mockeados ──────────────────────────────────────────────────────────
-
-const MOCK_ALERTAS_STOCK: ProductoAlertaStock[] = [
-  { id: 1, producto: 'Cable UTP Cat6',     familia: 'Cables y conectividad', sede: 'Campus',     stockActual: 2,  stockMinimo: 20, diferencia: -18, diasEnAlerta: 68, ultimaAlerta: '20/05/2025', criticidad: 'Alta' },
-  { id: 2, producto: 'Lámpara LED 18W',    familia: 'Iluminación',           sede: 'Centro',     stockActual: 5,  stockMinimo: 25, diferencia: -20, diasEnAlerta: 55, ultimaAlerta: '19/05/2025', criticidad: 'Alta' },
-  { id: 3, producto: 'Tóner HP 83A',       familia: 'Impresión',             sede: 'General Paz',stockActual: 1,  stockMinimo: 8,  diferencia: -7,  diasEnAlerta: 49, ultimaAlerta: '20/05/2025', criticidad: 'Alta' },
-  { id: 4, producto: 'Pintura blanca 20L', familia: 'Pinturas',              sede: 'Campus',     stockActual: 3,  stockMinimo: 15, diferencia: -12, diasEnAlerta: 44, ultimaAlerta: '18/05/2025', criticidad: 'Media' },
-  { id: 5, producto: 'Llave térmica 20A',  familia: 'Eléctrico',             sede: 'Centro',     stockActual: 0,  stockMinimo: 8,  diferencia: -8,  diasEnAlerta: 39, ultimaAlerta: '20/05/2025', criticidad: 'Alta' },
-  { id: 6, producto: 'Cinta aisladora',    familia: 'Eléctrico',             sede: 'General Paz',stockActual: 7,  stockMinimo: 20, diferencia: -13, diasEnAlerta: 34, ultimaAlerta: '17/05/2025', criticidad: 'Media' },
-  { id: 7, producto: 'Caño PVC 20 mm',    familia: 'Sanitarios',            sede: 'Campus',     stockActual: 6,  stockMinimo: 18, diferencia: -12, diasEnAlerta: 28, ultimaAlerta: '16/05/2025', criticidad: 'Baja' },
-  { id: 8, producto: 'Tornillo 6x40',      familia: 'Ferretería',            sede: 'Centro',     stockActual: 12, stockMinimo: 30, diferencia: -18, diasEnAlerta: 22, ultimaAlerta: '14/05/2025', criticidad: 'Baja' },
-  { id: 9, producto: 'Disyuntor 40A',      familia: 'Eléctrico',             sede: 'General Paz',stockActual: 1,  stockMinimo: 6,  diferencia: -5,  diasEnAlerta: 18, ultimaAlerta: '13/05/2025', criticidad: 'Media' },
-  { id: 10, producto: 'Router Wi-Fi',      familia: 'Redes',                 sede: 'Campus',     stockActual: 2,  stockMinimo: 10, diferencia: -8,  diasEnAlerta: 15, ultimaAlerta: '12/05/2025', criticidad: 'Baja' },
-];
-
-const MOCK_RECURRENCIA: ProductoRecurrencia[] = [
-  { id: 1, producto: 'Cable UTP Cat6',     familia: 'Cables y conectividad', sede: 'Campus',     cantidadAlertas: 4,  diasAcumulados: 68, stockActual: 2,  stockMinimo: 20, ultimaAlerta: '20/05/2025', estadoActual: 'Bajo stock', criticidad: 'Alta' },
-  { id: 2, producto: 'Lámpara LED 18W',    familia: 'Iluminación',           sede: 'Centro',     cantidadAlertas: 3,  diasAcumulados: 55, stockActual: 5,  stockMinimo: 25, ultimaAlerta: '19/05/2025', estadoActual: 'Bajo stock', criticidad: 'Media' },
-  { id: 3, producto: 'Tóner HP 83A',       familia: 'Impresión',             sede: 'General Paz',cantidadAlertas: 3,  diasAcumulados: 49, stockActual: 1,  stockMinimo: 8,  ultimaAlerta: '20/05/2025', estadoActual: 'Crítico',    criticidad: 'Alta' },
-  { id: 4, producto: 'Pintura blanca 20L', familia: 'Pinturas',              sede: 'Campus',     cantidadAlertas: 3,  diasAcumulados: 44, stockActual: 3,  stockMinimo: 15, ultimaAlerta: '18/05/2025', estadoActual: 'Bajo stock', criticidad: 'Media' },
-  { id: 5, producto: 'Llave térmica 20A',  familia: 'Eléctrico',             sede: 'Centro',     cantidadAlertas: 6,  diasAcumulados: 39, stockActual: 0,  stockMinimo: 8,  ultimaAlerta: '20/05/2025', estadoActual: 'Crítico',    criticidad: 'Alta' },
-  { id: 6, producto: 'Cinta aisladora',    familia: 'Eléctrico',             sede: 'General Paz',cantidadAlertas: 3,  diasAcumulados: 34, stockActual: 7,  stockMinimo: 20, ultimaAlerta: '17/05/2025', estadoActual: 'Bajo stock', criticidad: 'Media' },
-  { id: 7, producto: 'Caño PVC 20 mm',    familia: 'Sanitarios',            sede: 'Campus',     cantidadAlertas: 2,  diasAcumulados: 28, stockActual: 6,  stockMinimo: 18, ultimaAlerta: '16/05/2025', estadoActual: 'Bajo stock', criticidad: 'Baja' },
-  { id: 8, producto: 'Tornillo 6x40',      familia: 'Ferretería',            sede: 'Centro',     cantidadAlertas: 2,  diasAcumulados: 22, stockActual: 12, stockMinimo: 30, ultimaAlerta: '14/05/2025', estadoActual: 'Bajo stock', criticidad: 'Baja' },
-  { id: 9, producto: 'Disyuntor 40A',      familia: 'Eléctrico',             sede: 'General Paz',cantidadAlertas: 2,  diasAcumulados: 18, stockActual: 1,  stockMinimo: 6,  ultimaAlerta: '13/05/2025', estadoActual: 'Bajo stock', criticidad: 'Media' },
-  { id: 10, producto: 'Router Wi-Fi',      familia: 'Redes',                 sede: 'Campus',     cantidadAlertas: 1,  diasAcumulados: 15, stockActual: 2,  stockMinimo: 10, ultimaAlerta: '12/05/2025', estadoActual: 'Bajo stock', criticidad: 'Baja' },
-];
-
-const SEMANAS_EVOLUCION = [
-  { semana: '22 Abr', alertas: 18 },
-  { semana: '29 Abr', alertas: 22 },
-  { semana: '6 May',  alertas: 31 },
-  { semana: '13 May', alertas: 47 },
-  { semana: '20 May', alertas: 39 },
-];
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
@@ -87,17 +28,21 @@ export class AlertasStockComponent implements OnInit, AfterViewInit, OnDestroy {
 
   // ── Filtros ──────────────────────────────────────────────────────────────
   filtros = {
-    sede: 'Todas',
-    familia: 'Todas',
-    periodo: '30d',
-    fechaDesde: '',
-    fechaHasta: '',
+    idSede: null as number | null,
+    idFamilia: null as number | null,
     estado: 'Todos',
     topN: 10,
+    semanas: 5,
   };
 
-  sedes = ['Todas', 'Centro', 'Campus', 'General Paz'];
-  familias = ['Todas', 'Cables y conectividad', 'Iluminación', 'Impresión', 'Pinturas', 'Eléctrico', 'Sanitarios', 'Ferretería', 'Redes'];
+  sedes = [
+    { id: null, nombre: 'Todas' },
+    { id: 1,    nombre: 'Centro' },
+    { id: 2,    nombre: 'Campus' },
+    { id: 3,    nombre: 'General Paz' }
+  ];
+
+  familias: Familia[] = [];
   topNOptions = [5, 10, 20, 50];
 
   // ── Tabs ─────────────────────────────────────────────────────────────────
@@ -107,36 +52,44 @@ export class AlertasStockComponent implements OnInit, AfterViewInit, OnDestroy {
   verMasBajoStock = false;
   verMasRecurrencia = false;
 
-  // ── Ordenamiento tablas ───────────────────────────────────────────────────
-  sortColumnBS: keyof ProductoAlertaStock = 'stockActual';
+  // ── Ordenamiento ──────────────────────────────────────────────────────────
+  sortColumnBS: keyof ProductoAlertaStockDto = 'stockActual';
   sortDirBS: 'asc' | 'desc' = 'asc';
-  sortColumnRec: keyof ProductoRecurrencia = 'cantidadAlertas';
+  sortColumnRec: keyof ProductoRecurrenciaDto = 'cantidadAlertas';
   sortDirRec: 'asc' | 'desc' = 'desc';
 
   // ── Búsqueda ──────────────────────────────────────────────────────────────
   busquedaBS = '';
   busquedaRec = '';
 
-  // ── Datos filtrados ───────────────────────────────────────────────────────
-  datosBajoStock: ProductoAlertaStock[] = [];
-  datosRecurrencia: ProductoRecurrencia[] = [];
+  // ── Estado ────────────────────────────────────────────────────────────────
+  cargando = false;
+  error: string | null = null;
+
+  // ── Datos reales ──────────────────────────────────────────────────────────
+  datosBajoStock: ProductoAlertaStockDto[] = [];
+  datosRecurrencia: ProductoRecurrenciaDto[] = [];
+  evolucionSemanal: { semana: string; alertas: number }[] = [];
 
   // ── Charts ───────────────────────────────────────────────────────────────
   private chartBajoStock: Chart | null = null;
   private chartRecurrencia: Chart | null = null;
   private chartEvolucion: Chart | null = null;
-
   private chartsInitialized = false;
 
-  constructor(private cdr: ChangeDetectorRef) {}
+  constructor(
+    private cdr: ChangeDetectorRef,
+    private informesService: InformesService,
+    private familiaService: FamiliaService
+  ) {}
 
   ngOnInit(): void {
-    this.aplicarFiltros();
+    this.cargarFamilias();
+    this.cargarDatos();
   }
 
   ngAfterViewInit(): void {
     this.chartsInitialized = true;
-    setTimeout(() => this.renderCharts(), 100);
   }
 
   ngOnDestroy(): void {
@@ -145,46 +98,66 @@ export class AlertasStockComponent implements OnInit, AfterViewInit, OnDestroy {
     this.chartEvolucion?.destroy();
   }
 
-  // ── Filtrado ──────────────────────────────────────────────────────────────
+  // ── Carga de familias ─────────────────────────────────────────────────────
+  private cargarFamilias(): void {
+    this.familiaService.getAll().subscribe({
+      next: (familias) => { this.familias = familias; },
+      error: () => { this.familias = []; }
+    });
+  }
+
+  // ── Carga de datos reales ─────────────────────────────────────────────────
+  cargarDatos(): void {
+    this.cargando = true;
+    this.error = null;
+
+    this.informesService.getAlertasStock(
+      this.filtros.idSede ?? undefined,
+      this.filtros.idFamilia ?? undefined,
+      this.filtros.semanas
+    ).subscribe({
+      next: (data) => {
+        let bs = [...data.bajoStock];
+        let rec = [...data.recurrencia];
+
+        // Filtro de estado (Alta criticidad → "Crítico", resto → "Normal")
+        if (this.filtros.estado === 'Crítico') {
+          bs  = bs.filter(p => p.criticidad === 'Alta');
+          rec = rec.filter(p => p.criticidad === 'Alta');
+        } else if (this.filtros.estado === 'Normal') {
+          bs  = bs.filter(p => p.criticidad !== 'Alta');
+          rec = rec.filter(p => p.criticidad !== 'Alta');
+        }
+
+        this.datosBajoStock  = bs;
+        this.datosRecurrencia = rec;
+        this.evolucionSemanal = data.evolucionSemanal;
+        this.verMasBajoStock  = false;
+        this.verMasRecurrencia = false;
+        this.cargando = false;
+        this.cdr.detectChanges();
+
+        if (this.chartsInitialized) {
+          setTimeout(() => this.renderCharts(), 100);
+        }
+      },
+      error: (err) => {
+        this.error = 'No se pudieron cargar los datos del informe. Verificá la conexión con el servidor.';
+        this.cargando = false;
+        this.cdr.detectChanges();
+      }
+    });
+  }
 
   aplicarFiltros(): void {
-    let bs = [...MOCK_ALERTAS_STOCK];
-    let rec = [...MOCK_RECURRENCIA];
-
-    if (this.filtros.sede !== 'Todas') {
-      bs  = bs.filter(p => p.sede === this.filtros.sede);
-      rec = rec.filter(p => p.sede === this.filtros.sede);
-    }
-    if (this.filtros.familia !== 'Todas') {
-      bs  = bs.filter(p => p.familia === this.filtros.familia);
-      rec = rec.filter(p => p.familia === this.filtros.familia);
-    }
-    if (this.filtros.estado !== 'Todos') {
-      const esAltaMedia = this.filtros.estado === 'Crítico';
-      bs  = bs.filter(p => esAltaMedia ? p.criticidad === 'Alta' : p.criticidad !== 'Alta');
-      rec = rec.filter(p => esAltaMedia ? p.criticidad === 'Alta' : p.criticidad !== 'Alta');
-    }
-
-    // Ordenar
-    bs.sort((a, b) => a.stockActual - b.stockActual);
-    rec.sort((a, b) => b.cantidadAlertas - a.cantidadAlertas);
-
-    this.datosBajoStock = bs;
-    this.datosRecurrencia = rec;
-
-    this.verMasBajoStock = false;
-    this.verMasRecurrencia = false;
-
-    if (this.chartsInitialized) {
-      setTimeout(() => this.renderCharts(), 50);
-    }
+    this.cargarDatos();
   }
 
   limpiarFiltros(): void {
-    this.filtros = { sede: 'Todas', familia: 'Todas', periodo: '30d', fechaDesde: '', fechaHasta: '', estado: 'Todos', topN: 10 };
+    this.filtros = { idSede: null, idFamilia: null, estado: 'Todos', topN: 10, semanas: 5 };
     this.busquedaBS = '';
     this.busquedaRec = '';
-    this.aplicarFiltros();
+    this.cargarDatos();
   }
 
   // ── KPI Calculados ────────────────────────────────────────────────────────
@@ -195,7 +168,7 @@ export class AlertasStockComponent implements OnInit, AfterViewInit, OnDestroy {
 
   get kpiProductoMenorStock(): string {
     if (!this.datosBajoStock.length) return '—';
-    return this.datosBajoStock[0].producto;
+    return [...this.datosBajoStock].sort((a, b) => a.stockActual - b.stockActual)[0].producto;
   }
 
   get kpiPromedioUnidades(): string {
@@ -208,6 +181,11 @@ export class AlertasStockComponent implements OnInit, AfterViewInit, OnDestroy {
     if (!this.datosBajoStock.length) return '0';
     const avg = this.datosBajoStock.reduce((s, p) => s + p.diasEnAlerta, 0) / this.datosBajoStock.length;
     return avg.toFixed(1);
+  }
+
+  get sedeSeleccionadaNombre(): string {
+    if (this.filtros.idSede === null) return 'Todas';
+    return this.sedes.find(s => s.id === this.filtros.idSede)?.nombre ?? 'Todas';
   }
 
   get kpiMayorRecurrencia(): string {
@@ -236,13 +214,12 @@ export class AlertasStockComponent implements OnInit, AfterViewInit, OnDestroy {
 
   // ── Datos visibles en tabla ───────────────────────────────────────────────
 
-  get datosBSFiltrados(): ProductoAlertaStock[] {
+  get datosBSFiltrados(): ProductoAlertaStockDto[] {
     let data = this.datosBajoStock;
     if (this.busquedaBS) {
       const q = this.busquedaBS.toLowerCase();
       data = data.filter(p => p.producto.toLowerCase().includes(q));
     }
-    // Ordenamiento de columnas
     data = [...data].sort((a, b) => {
       const va = a[this.sortColumnBS];
       const vb = b[this.sortColumnBS];
@@ -252,7 +229,7 @@ export class AlertasStockComponent implements OnInit, AfterViewInit, OnDestroy {
     return this.verMasBajoStock ? data : data.slice(0, this.filtros.topN);
   }
 
-  get datosRecFiltrados(): ProductoRecurrencia[] {
+  get datosRecFiltrados(): ProductoRecurrenciaDto[] {
     let data = this.datosRecurrencia;
     if (this.busquedaRec) {
       const q = this.busquedaRec.toLowerCase();
@@ -269,12 +246,12 @@ export class AlertasStockComponent implements OnInit, AfterViewInit, OnDestroy {
 
   // ── Ordenamiento ──────────────────────────────────────────────────────────
 
-  sortBS(col: keyof ProductoAlertaStock): void {
+  sortBS(col: keyof ProductoAlertaStockDto): void {
     if (this.sortColumnBS === col) this.sortDirBS = this.sortDirBS === 'asc' ? 'desc' : 'asc';
     else { this.sortColumnBS = col; this.sortDirBS = 'asc'; }
   }
 
-  sortRec(col: keyof ProductoRecurrencia): void {
+  sortRec(col: keyof ProductoRecurrenciaDto): void {
     if (this.sortColumnRec === col) this.sortDirRec = this.sortDirRec === 'asc' ? 'desc' : 'asc';
     else { this.sortColumnRec = col; this.sortDirRec = 'asc'; }
   }
@@ -426,10 +403,10 @@ export class AlertasStockComponent implements OnInit, AfterViewInit, OnDestroy {
     this.chartEvolucion = new Chart(canvas, {
       type: 'line',
       data: {
-        labels: SEMANAS_EVOLUCION.map(s => s.semana),
+        labels: this.evolucionSemanal.map(s => s.semana),
         datasets: [{
           label: 'Alertas por semana',
-          data: SEMANAS_EVOLUCION.map(s => s.alertas),
+          data: this.evolucionSemanal.map(s => s.alertas),
           borderColor: '#6366f1',
           backgroundColor: 'rgba(99,102,241,0.1)',
           borderWidth: 2.5,
@@ -489,5 +466,5 @@ export class AlertasStockComponent implements OnInit, AfterViewInit, OnDestroy {
                                     'badge-crit-baja';
   }
 
-  trackById(index: number, item: any): number { return item.id; }
+  trackById(index: number, item: any): number { return item.idProducto ?? index; }
 }

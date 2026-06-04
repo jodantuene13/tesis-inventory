@@ -28,5 +28,13 @@ namespace TesisInventory.Domain.Interfaces
         Task<Stock> AddStockAsync(Stock stock);
         Task UpdateStockAsync(Stock stock);
         Task UpdatePuntoReposicionAsync(int idProducto, int puntoReposicion);
+
+        /// <summary>
+        /// Retorna todos los registros de Stock donde CantidadActual &lt;= PuntoReposicion
+        /// (estado ACTUAL de bajo stock), con filtros opcionales de sede y familia.
+        /// </summary>
+        Task<IEnumerable<Stock>> GetStocksEnBajoStockAsync(
+            int? idSede = null,
+            int? idFamilia = null);
     }
 }

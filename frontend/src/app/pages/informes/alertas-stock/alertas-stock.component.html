@@ -11,40 +11,30 @@
       <span>Filtros</span>
     </div>
 
-    <!-- Período -->
+    <!-- Período (Semanas) -->
     <div class="filter-section">
-      <label class="filter-section-label">Período</label>
+      <label class="filter-section-label">Período de historial</label>
       <div class="period-chips">
-        <button class="chip" [class.active]="filtros.periodo === '30d'" (click)="filtros.periodo='30d'; aplicarFiltros()">Últimos 30 días</button>
-        <button class="chip" [class.active]="filtros.periodo === '90d'" (click)="filtros.periodo='90d'; aplicarFiltros()">Últimos 90 días</button>
-        <button class="chip" [class.active]="filtros.periodo === 'custom'" (click)="filtros.periodo='custom'">Personalizado</button>
-      </div>
-      <div class="date-range" *ngIf="filtros.periodo === 'custom'">
-        <div class="filter-field">
-          <label>Desde</label>
-          <input type="date" [(ngModel)]="filtros.fechaDesde" class="ds-input" />
-        </div>
-        <div class="filter-field">
-          <label>Hasta</label>
-          <input type="date" [(ngModel)]="filtros.fechaHasta" class="ds-input" />
-        </div>
+        <button class="chip" [class.active]="filtros.semanas === 5"  (click)="filtros.semanas=5;  aplicarFiltros()">Últ. 5 semanas</button>
+        <button class="chip" [class.active]="filtros.semanas === 12" (click)="filtros.semanas=12; aplicarFiltros()">Últ. 3 meses</button>
+        <button class="chip" [class.active]="filtros.semanas === 26" (click)="filtros.semanas=26; aplicarFiltros()">Últ. 6 meses</button>
       </div>
     </div>
 
     <!-- Sede -->
     <div class="filter-section">
       <label class="filter-section-label">Sede</label>
-      <select class="ds-input" [(ngModel)]="filtros.sede">
-        <option *ngFor="let s of sedes">{{ s }}</option>
+      <select class="ds-input" [(ngModel)]="filtros.idSede">
+        <option *ngFor="let s of sedes" [ngValue]="s.id">{{ s.nombre }}</option>
       </select>
     </div>
 
     <!-- Familia -->
     <div class="filter-section">
       <label class="filter-section-label">Familia de producto</label>
-      <select class="ds-input" [(ngModel)]="filtros.familia">
-        <option value="Todas">Todas las familias</option>
-        <option *ngFor="let f of familias.slice(1)">{{ f }}</option>
+      <select class="ds-input" [(ngModel)]="filtros.idFamilia">
+        <option [ngValue]="null">Todas las familias</option>
+        <option *ngFor="let f of familias" [ngValue]="f.idFamilia">{{ f.nombre }}</option>
       </select>
     </div>
 
@@ -52,9 +42,9 @@
     <div class="filter-section">
       <label class="filter-section-label">Estado</label>
       <div class="estado-chips">
-        <button class="chip chip--danger"  [class.active]="filtros.estado === 'Crítico'"    (click)="filtros.estado='Crítico'; aplicarFiltros()">Crítico</button>
-        <button class="chip chip--warning" [class.active]="filtros.estado === 'Bajo stock'" (click)="filtros.estado='Bajo stock'; aplicarFiltros()">Bajo stock</button>
-        <button class="chip"               [class.active]="filtros.estado === 'Todos'"      (click)="filtros.estado='Todos'; aplicarFiltros()">Todos</button>
+        <button class="chip chip--danger"  [class.active]="filtros.estado === 'Crítico'" (click)="filtros.estado='Crítico'; aplicarFiltros()">Crítico</button>
+        <button class="chip chip--warning" [class.active]="filtros.estado === 'Normal'"  (click)="filtros.estado='Normal'; aplicarFiltros()">Normal</button>
+        <button class="chip"               [class.active]="filtros.estado === 'Todos'"   (click)="filtros.estado='Todos'; aplicarFiltros()">Todos</button>
       </div>
     </div>
 
@@ -93,10 +83,10 @@
     <!-- Info filtros activos -->
     <div class="filter-summary">
       <div class="filter-summary-item">
-        <span class="dot dot--blue"></span> Sede: <strong>{{ filtros.sede }}</strong>
+        <span class="dot dot--blue"></span> Sede: <strong>{{ sedeSeleccionadaNombre }}</strong>
       </div>
       <div class="filter-summary-item">
-        <span class="dot dot--purple"></span> Período: <strong>{{ filtros.periodo === '30d' ? 'Últ. 30 días' : filtros.periodo === '90d' ? 'Últ. 90 días' : 'Personalizado' }}</strong>
+        <span class="dot dot--purple"></span> Período: <strong>{{ filtros.semanas }} semanas</strong>
       </div>
       <div class="filter-summary-item">
         <span class="dot dot--gray"></span> Top: <strong>{{ filtros.topN }}</strong>
@@ -108,14 +98,32 @@
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
           d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
       </svg>
-      Datos referenciales del período seleccionado.
-      Actualizado: 20/05/2025
+      Datos reales del sistema. Las alertas se registran automáticamente al detectar stock bajo.
     </div>
 
   </aside>
 
   <!-- ══ ÁREA PRINCIPAL ═════════════════════════════════════════════════════ -->
   <div class="report-main">
+
+    <!-- Indicador de carga -->
+    <div *ngIf="cargando" class="loading-state">
+      <div class="loading-spinner"></div>
+      <span>Cargando datos del informe...</span>
+    </div>
+
+    <!-- Mensaje de error -->
+    <div *ngIf="error && !cargando" class="error-state">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="20" height="20">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+      </svg>
+      <span>{{ error }}</span>
+      <button class="btn btn-primary btn--sm" (click)="cargarDatos()">Reintentar</button>
+    </div>
+
+    <!-- Contenido principal (solo cuando no está cargando ni hay error) -->
+    <ng-container *ngIf="!cargando && !error">
 
     <!-- Encabezado -->
     <div class="report-header">
@@ -449,6 +457,8 @@
       </div>
 
     </div><!-- /tab recurrencia -->
+
+    </ng-container><!-- /ng-container no cargando -->
 
   </div><!-- /report-main -->
 

@@ -19,6 +19,7 @@ namespace TesisInventory.Application.Services
         private readonly ISedeRepository _sedeRepository;
         private readonly IOperacionStockRepository _operacionStockRepository;
         private readonly ISolicitudCompraRepository _solicitudCompraRepository;
+        private readonly IAlertaStockService _alertaStockService;
 
         public StockService(
             IStockRepository stockRepository,
@@ -27,7 +28,8 @@ namespace TesisInventory.Application.Services
             IProductoRepository productoRepository,
             ISedeRepository sedeRepository,
             IOperacionStockRepository operacionStockRepository,
-            ISolicitudCompraRepository solicitudCompraRepository)
+            ISolicitudCompraRepository solicitudCompraRepository,
+            IAlertaStockService alertaStockService)
         {
             _stockRepository = stockRepository;
             _movimientoRepository = movimientoRepository;
@@ -36,6 +38,7 @@ namespace TesisInventory.Application.Services
             _sedeRepository = sedeRepository;
             _operacionStockRepository = operacionStockRepository;
             _solicitudCompraRepository = solicitudCompraRepository;
+            _alertaStockService = alertaStockService;
         }
 
         public async Task<(IEnumerable<StockDto> Items, int TotalCount)> GetStockAsync(
@@ -119,6 +122,10 @@ namespace TesisInventory.Application.Services
 
             await _movimientoRepository.AddMovimientoAsync(movimiento);
 
+            // Verificar si el ingreso resuelve una alerta activa
+            await _alertaStockService.VerificarYRegistrarAlertaAsync(
+                dto.IdProducto, idSede, stock.CantidadActual, stock.PuntoReposicion);
+
             return new StockDto
             {
                 IdStock = stock.IdStock,
@@ -158,6 +165,10 @@ namespace TesisInventory.Application.Services
             };
 
             await _movimientoRepository.AddMovimientoAsync(movimiento);
+
+            // Verificar si el egreso genera o actualiza una alerta de bajo stock
+            await _alertaStockService.VerificarYRegistrarAlertaAsync(
+                dto.IdProducto, idSede, stock.CantidadActual, stock.PuntoReposicion);
 
             return new StockDto
             {
@@ -357,6 +368,10 @@ namespace TesisInventory.Application.Services
                     stock.CantidadActual += detalle.Cantidad;
                     stock.FechaActualizacion = DateTime.UtcNow;
                     await _stockRepository.UpdateStockAsync(stock);
+
+                    // Ingreso: puede resolver una alerta activa
+                    await _alertaStockService.VerificarYRegistrarAlertaAsync(
+                        detalle.IdProducto, idSede, stock.CantidadActual, stock.PuntoReposicion);
                 }
                 else if (dto.TipoOperacion == TipoMovimiento.Egreso)
                 {
@@ -368,6 +383,10 @@ namespace TesisInventory.Application.Services
                     stock.CantidadActual -= detalle.Cantidad;
                     stock.FechaActualizacion = DateTime.UtcNow;
                     await _stockRepository.UpdateStockAsync(stock);
+
+                    // Egreso: puede generar o actualizar una alerta de bajo stock
+                    await _alertaStockService.VerificarYRegistrarAlertaAsync(
+                        detalle.IdProducto, idSede, stock.CantidadActual, stock.PuntoReposicion);
                 }
 
                 var movimiento = new Movimiento

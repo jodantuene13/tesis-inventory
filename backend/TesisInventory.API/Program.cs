@@ -35,6 +35,7 @@ builder.Services.AddScoped<IOperacionStockRepository, OperacionStockRepository>(
 builder.Services.AddScoped<IMovimientoRepository, MovimientoRepository>();
 builder.Services.AddScoped<ITransferenciaRepository, TransferenciaRepository>();
 builder.Services.AddScoped<ISolicitudCompraRepository, SolicitudCompraRepository>();
+builder.Services.AddScoped<IAlertaStockRepository, AlertaStockRepository>();
 
 // Services
 builder.Services.AddScoped<IAuthService, AuthService>();
@@ -51,6 +52,8 @@ builder.Services.AddScoped<IProductosService, ProductosService>();
 builder.Services.AddScoped<IStockService, StockService>();
 builder.Services.AddScoped<ITransferenciaService, TransferenciaService>();
 builder.Services.AddScoped<ISolicitudCompraService, SolicitudCompraService>();
+builder.Services.AddScoped<IAlertaStockService, AlertaStockService>();
+builder.Services.AddScoped<IInformesService, InformesService>();
 
 builder.Services.AddHttpContextAccessor();
 

@@ -34,6 +34,7 @@ namespace TesisInventory.Infrastructure.Persistence
         public DbSet<HistorialTransferencia> HistorialTransferencia { get; set; }
         public DbSet<SolicitudCompra> SolicitudCompra { get; set; }
         public DbSet<SolicitudCompraDetalle> SolicitudCompraDetalle { get; set; }
+        public DbSet<AlertaStock> AlertaStock { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -341,6 +342,28 @@ namespace TesisInventory.Infrastructure.Persistence
                 .HasOne(sd => sd.Producto)
                 .WithMany()
                 .HasForeignKey(sd => sd.IdProducto)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // AlertaStock
+            modelBuilder.Entity<AlertaStock>().ToTable("AlertaStock");
+            modelBuilder.Entity<AlertaStock>().HasKey(a => a.IdAlertaStock);
+            modelBuilder.Entity<AlertaStock>().Property(a => a.IdAlertaStock).HasColumnName("idAlertaStock");
+            modelBuilder.Entity<AlertaStock>().Property(a => a.IdProducto).HasColumnName("idProducto");
+            modelBuilder.Entity<AlertaStock>().Property(a => a.IdSede).HasColumnName("idSede");
+            modelBuilder.Entity<AlertaStock>().Property(a => a.StockAlMomento).HasColumnName("stockAlMomento");
+            modelBuilder.Entity<AlertaStock>().Property(a => a.PuntoReposicion).HasColumnName("puntoReposicion");
+            modelBuilder.Entity<AlertaStock>().Property(a => a.FechaCreacion).HasColumnName("fechaCreacion");
+            modelBuilder.Entity<AlertaStock>().Property(a => a.FechaUltimaAlerta).HasColumnName("fechaUltimaAlerta");
+            modelBuilder.Entity<AlertaStock>().Property(a => a.Estado).HasColumnName("estado");
+            modelBuilder.Entity<AlertaStock>()
+                .HasOne(a => a.Producto)
+                .WithMany()
+                .HasForeignKey(a => a.IdProducto)
+                .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<AlertaStock>()
+                .HasOne(a => a.Sede)
+                .WithMany()
+                .HasForeignKey(a => a.IdSede)
                 .OnDelete(DeleteBehavior.Restrict);
         }
     }

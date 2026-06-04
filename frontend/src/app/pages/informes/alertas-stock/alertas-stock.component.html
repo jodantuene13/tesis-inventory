@@ -1,0 +1,455 @@
+<div class="report-page">
+
+  <!-- ══ PANEL LATERAL DE FILTROS ══════════════════════════════════════════ -->
+  <aside class="report-sidebar">
+
+    <div class="sidebar-header">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="16" height="16">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z" />
+      </svg>
+      <span>Filtros</span>
+    </div>
+
+    <!-- Período -->
+    <div class="filter-section">
+      <label class="filter-section-label">Período</label>
+      <div class="period-chips">
+        <button class="chip" [class.active]="filtros.periodo === '30d'" (click)="filtros.periodo='30d'; aplicarFiltros()">Últimos 30 días</button>
+        <button class="chip" [class.active]="filtros.periodo === '90d'" (click)="filtros.periodo='90d'; aplicarFiltros()">Últimos 90 días</button>
+        <button class="chip" [class.active]="filtros.periodo === 'custom'" (click)="filtros.periodo='custom'">Personalizado</button>
+      </div>
+      <div class="date-range" *ngIf="filtros.periodo === 'custom'">
+        <div class="filter-field">
+          <label>Desde</label>
+          <input type="date" [(ngModel)]="filtros.fechaDesde" class="ds-input" />
+        </div>
+        <div class="filter-field">
+          <label>Hasta</label>
+          <input type="date" [(ngModel)]="filtros.fechaHasta" class="ds-input" />
+        </div>
+      </div>
+    </div>
+
+    <!-- Sede -->
+    <div class="filter-section">
+      <label class="filter-section-label">Sede</label>
+      <select class="ds-input" [(ngModel)]="filtros.sede">
+        <option *ngFor="let s of sedes">{{ s }}</option>
+      </select>
+    </div>
+
+    <!-- Familia -->
+    <div class="filter-section">
+      <label class="filter-section-label">Familia de producto</label>
+      <select class="ds-input" [(ngModel)]="filtros.familia">
+        <option value="Todas">Todas las familias</option>
+        <option *ngFor="let f of familias.slice(1)">{{ f }}</option>
+      </select>
+    </div>
+
+    <!-- Estado -->
+    <div class="filter-section">
+      <label class="filter-section-label">Estado</label>
+      <div class="estado-chips">
+        <button class="chip chip--danger"  [class.active]="filtros.estado === 'Crítico'"    (click)="filtros.estado='Crítico'; aplicarFiltros()">Crítico</button>
+        <button class="chip chip--warning" [class.active]="filtros.estado === 'Bajo stock'" (click)="filtros.estado='Bajo stock'; aplicarFiltros()">Bajo stock</button>
+        <button class="chip"               [class.active]="filtros.estado === 'Todos'"      (click)="filtros.estado='Todos'; aplicarFiltros()">Todos</button>
+      </div>
+    </div>
+
+    <!-- Top N -->
+    <div class="filter-section">
+      <label class="filter-section-label">Mostrar top</label>
+      <select class="ds-input" [(ngModel)]="filtros.topN">
+        <option *ngFor="let n of topNOptions" [value]="n">Top {{ n }}</option>
+      </select>
+    </div>
+
+    <!-- Acciones -->
+    <div class="filter-actions">
+      <button class="btn btn-primary btn--full" (click)="aplicarFiltros()">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="14" height="14">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z" />
+        </svg>
+        Aplicar filtros
+      </button>
+      <button class="btn btn-secondary btn--full" (click)="limpiarFiltros()">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="14" height="14">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4l16 16M4 20L20 4" />
+        </svg>
+        Limpiar
+      </button>
+      <button class="btn btn-export btn--full" (click)="exportarCSV()">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="14" height="14">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+        </svg>
+        Exportar CSV
+      </button>
+    </div>
+
+    <!-- Info filtros activos -->
+    <div class="filter-summary">
+      <div class="filter-summary-item">
+        <span class="dot dot--blue"></span> Sede: <strong>{{ filtros.sede }}</strong>
+      </div>
+      <div class="filter-summary-item">
+        <span class="dot dot--purple"></span> Período: <strong>{{ filtros.periodo === '30d' ? 'Últ. 30 días' : filtros.periodo === '90d' ? 'Últ. 90 días' : 'Personalizado' }}</strong>
+      </div>
+      <div class="filter-summary-item">
+        <span class="dot dot--gray"></span> Top: <strong>{{ filtros.topN }}</strong>
+      </div>
+    </div>
+
+    <div class="sidebar-footer-note">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="12" height="12">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+      Datos referenciales del período seleccionado.
+      Actualizado: 20/05/2025
+    </div>
+
+  </aside>
+
+  <!-- ══ ÁREA PRINCIPAL ═════════════════════════════════════════════════════ -->
+  <div class="report-main">
+
+    <!-- Encabezado -->
+    <div class="report-header">
+      <div class="report-header-breadcrumb">
+        <span class="breadcrumb-module">Módulo de Informes</span>
+        <span class="breadcrumb-sep">›</span>
+        <span class="breadcrumb-current">Stock bajo y alertas</span>
+      </div>
+      <h1 class="report-title">Informes de stock bajo y recurrencia de alertas</h1>
+      <p class="report-desc">Análisis de productos con bajo stock actual y productos con mayor recurrencia de alertas dentro del período seleccionado.</p>
+    </div>
+
+    <!-- KPIs Globales (Informe 1) -->
+    <div class="kpi-grid report-kpis animate-fade-in">
+      <div class="kpi-card kpi-card--rose">
+        <div class="kpi-card__icon">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="18" height="18">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+        </div>
+        <div class="kpi-card__body">
+          <div class="kpi-card__label">Productos en alerta</div>
+          <div class="kpi-card__value">{{ kpiProductosEnAlerta }}</div>
+          <div class="kpi-card__meta">actualmente bajo mínimo</div>
+        </div>
+      </div>
+
+      <div class="kpi-card kpi-card--amber">
+        <div class="kpi-card__icon">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="18" height="18">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+          </svg>
+        </div>
+        <div class="kpi-card__body">
+          <div class="kpi-card__label">Menor stock disponible</div>
+          <div class="kpi-card__value kpi-card__value--sm">{{ kpiProductoMenorStock }}</div>
+          <div class="kpi-card__meta">producto más crítico</div>
+        </div>
+      </div>
+
+      <div class="kpi-card kpi-card--sky">
+        <div class="kpi-card__icon">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="18" height="18">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+          </svg>
+        </div>
+        <div class="kpi-card__body">
+          <div class="kpi-card__label">Promedio de unidades</div>
+          <div class="kpi-card__value">{{ kpiPromedioUnidades }}</div>
+          <div class="kpi-card__meta">promedio stock en alerta</div>
+        </div>
+      </div>
+
+      <div class="kpi-card kpi-card--violet">
+        <div class="kpi-card__icon">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="18" height="18">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+        </div>
+        <div class="kpi-card__body">
+          <div class="kpi-card__label">Días promedio en alerta</div>
+          <div class="kpi-card__value">{{ kpiDiasPromedioAlerta }}</div>
+          <div class="kpi-card__meta">en el período seleccionado</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="report-tabs">
+      <button class="tab-btn" [class.active]="activeTab === 'bajoStock'" (click)="setTab('bajoStock')" id="tab-bajo-stock">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="15" height="15">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6" />
+        </svg>
+        Bajo stock actual
+      </button>
+      <button class="tab-btn" [class.active]="activeTab === 'recurrencia'" (click)="setTab('recurrencia')" id="tab-recurrencia">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="15" height="15">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+        </svg>
+        Recurrencia de alertas
+      </button>
+    </div>
+
+    <!-- ══ TAB 1: BAJO STOCK ═══════════════════════════════════════════════ -->
+    <div *ngIf="activeTab === 'bajoStock'" class="tab-content animate-fade-in">
+
+      <!-- Gráfico de barras horizontales -->
+      <div class="ds-card chart-card">
+        <div class="ds-card__header">
+          <div>
+            <h3 class="ds-card__title">Top {{ filtros.topN }} productos con menor stock disponible</h3>
+            <p class="ds-card__subtitle">Ordenados de menor a mayor stock actual. Rojo: crítico · Naranja: medio · Verde: bajo.</p>
+          </div>
+        </div>
+        <div class="ds-card__body chart-body">
+          <canvas #chartBajoStock id="chart-bajo-stock"></canvas>
+        </div>
+      </div>
+
+      <!-- Tabla Informe 1 -->
+      <div class="ds-card table-card">
+        <div class="ds-card__header">
+          <h3 class="ds-card__title">Detalle de productos en alerta bajo stock</h3>
+          <div class="table-toolbar">
+            <div class="search-box">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="14" height="14">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+              <input type="text" placeholder="Buscar producto..." [(ngModel)]="busquedaBS" class="search-input" />
+            </div>
+          </div>
+        </div>
+        <div class="table-scroll-wrap">
+          <table class="ds-table informe-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th (click)="sortBS('producto')" class="sortable">Producto <span class="sort-icon">{{ sortIcon('producto', sortColumnBS, sortDirBS) }}</span></th>
+                <th (click)="sortBS('familia')" class="sortable">Familia <span class="sort-icon">{{ sortIcon('familia', sortColumnBS, sortDirBS) }}</span></th>
+                <th (click)="sortBS('sede')" class="sortable">Sede <span class="sort-icon">{{ sortIcon('sede', sortColumnBS, sortDirBS) }}</span></th>
+                <th (click)="sortBS('stockActual')" class="sortable">Stock actual <span class="sort-icon">{{ sortIcon('stockActual', sortColumnBS, sortDirBS) }}</span></th>
+                <th>Stock mín.</th>
+                <th>Diferencia</th>
+                <th (click)="sortBS('diasEnAlerta')" class="sortable">Días en alerta <span class="sort-icon">{{ sortIcon('diasEnAlerta', sortColumnBS, sortDirBS) }}</span></th>
+                <th (click)="sortBS('ultimaAlerta')" class="sortable">Última alerta <span class="sort-icon">{{ sortIcon('ultimaAlerta', sortColumnBS, sortDirBS) }}</span></th>
+                <th (click)="sortBS('criticidad')" class="sortable">Criticidad <span class="sort-icon">{{ sortIcon('criticidad', sortColumnBS, sortDirBS) }}</span></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let p of datosBSFiltrados; let i = index; trackBy: trackById">
+                <td class="cell-num">{{ i + 1 }}</td>
+                <td class="cell-primary">{{ p.producto }}</td>
+                <td>{{ p.familia }}</td>
+                <td><span class="sede-chip">{{ p.sede }}</span></td>
+                <td class="cell-stock" [class.cell-stock--critico]="p.stockActual === 0">{{ p.stockActual }} u.</td>
+                <td>{{ p.stockMinimo }} u.</td>
+                <td class="cell-diff">{{ p.diferencia }} u.</td>
+                <td>{{ p.diasEnAlerta }} días</td>
+                <td>{{ p.ultimaAlerta }}</td>
+                <td><span class="badge-criticidad" [ngClass]="badgeClass(p.criticidad)">{{ p.criticidad }}</span></td>
+              </tr>
+              <tr *ngIf="datosBSFiltrados.length === 0">
+                <td colspan="10" class="cell-empty">No hay productos con los filtros seleccionados.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="table-footer-bar">
+          <span class="table-footer-count">Mostrando {{ datosBSFiltrados.length }} de {{ datosBajoStock.length }} productos</span>
+          <button class="btn btn-ghost btn--sm ver-mas-btn"
+            *ngIf="!verMasBajoStock && datosBajoStock.length > filtros.topN"
+            (click)="verMasBajoStock = true">
+            Ver todos ({{ datosBajoStock.length }}) ›
+          </button>
+          <button class="btn btn-ghost btn--sm ver-mas-btn"
+            *ngIf="verMasBajoStock"
+            (click)="verMasBajoStock = false">
+            ‹ Mostrar top {{ filtros.topN }}
+          </button>
+        </div>
+      </div>
+
+    </div><!-- /tab bajoStock -->
+
+    <!-- ══ TAB 2: RECURRENCIA ══════════════════════════════════════════════ -->
+    <div *ngIf="activeTab === 'recurrencia'" class="tab-content animate-fade-in">
+
+      <!-- KPIs Recurrencia -->
+      <div class="kpi-grid report-kpis kpi-grid--secondary">
+        <div class="kpi-card kpi-card--primary">
+          <div class="kpi-card__icon">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="18" height="18">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+          </div>
+          <div class="kpi-card__body">
+            <div class="kpi-card__label">Mayor recurrencia</div>
+            <div class="kpi-card__value kpi-card__value--sm">{{ kpiMayorRecurrencia }}</div>
+            <div class="kpi-card__meta">más alertas en el período</div>
+          </div>
+        </div>
+
+        <div class="kpi-card kpi-card--rose">
+          <div class="kpi-card__icon">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="18" height="18">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+            </svg>
+          </div>
+          <div class="kpi-card__body">
+            <div class="kpi-card__label">Total de alertas</div>
+            <div class="kpi-card__value">{{ kpiTotalAlertas }}</div>
+            <div class="kpi-card__meta">en el período</div>
+          </div>
+        </div>
+
+        <div class="kpi-card kpi-card--emerald">
+          <div class="kpi-card__icon">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="18" height="18">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            </svg>
+          </div>
+          <div class="kpi-card__body">
+            <div class="kpi-card__label">Promedio alertas</div>
+            <div class="kpi-card__value">{{ kpiPromedioAlertas }}</div>
+            <div class="kpi-card__meta">por producto</div>
+          </div>
+        </div>
+
+        <div class="kpi-card kpi-card--orange">
+          <div class="kpi-card__icon">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="18" height="18">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+            </svg>
+          </div>
+          <div class="kpi-card__body">
+            <div class="kpi-card__label">Familia con más alertas</div>
+            <div class="kpi-card__value kpi-card__value--sm">{{ kpiFamiliaMasAlertas }}</div>
+            <div class="kpi-card__meta">mayor acumulación</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Layout 2 gráficos -->
+      <div class="charts-row">
+
+        <!-- Gráfico principal: barras recurrencia -->
+        <div class="ds-card chart-card chart-card--wide">
+          <div class="ds-card__header">
+            <div>
+              <h3 class="ds-card__title">Top {{ filtros.topN }} productos con más alertas de bajo stock</h3>
+              <p class="ds-card__subtitle">Ordenados por cantidad de eventos de alerta en el período. Indica recurrencia de problemas de stock.</p>
+            </div>
+          </div>
+          <div class="ds-card__body chart-body">
+            <canvas #chartRecurrencia id="chart-recurrencia"></canvas>
+          </div>
+        </div>
+
+        <!-- Gráfico complementario: línea temporal -->
+        <div class="ds-card chart-card chart-card--narrow">
+          <div class="ds-card__header">
+            <div>
+              <h3 class="ds-card__title">Evolución semanal de alertas</h3>
+              <p class="ds-card__subtitle">Total de alertas activas por semana.</p>
+            </div>
+          </div>
+          <div class="ds-card__body chart-body">
+            <canvas #chartEvolucion id="chart-evolucion"></canvas>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Tabla Informe 2 -->
+      <div class="ds-card table-card">
+        <div class="ds-card__header">
+          <h3 class="ds-card__title">Detalle de recurrencia de alertas por producto</h3>
+          <div class="table-toolbar">
+            <div class="search-box">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="14" height="14">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+              <input type="text" placeholder="Buscar producto..." [(ngModel)]="busquedaRec" class="search-input" />
+            </div>
+          </div>
+        </div>
+        <div class="table-scroll-wrap">
+          <table class="ds-table informe-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th (click)="sortRec('producto')" class="sortable">Producto <span class="sort-icon">{{ sortIcon('producto', sortColumnRec, sortDirRec) }}</span></th>
+                <th (click)="sortRec('familia')" class="sortable">Familia <span class="sort-icon">{{ sortIcon('familia', sortColumnRec, sortDirRec) }}</span></th>
+                <th (click)="sortRec('sede')" class="sortable">Sede <span class="sort-icon">{{ sortIcon('sede', sortColumnRec, sortDirRec) }}</span></th>
+                <th (click)="sortRec('cantidadAlertas')" class="sortable">Cant. alertas <span class="sort-icon">{{ sortIcon('cantidadAlertas', sortColumnRec, sortDirRec) }}</span></th>
+                <th (click)="sortRec('diasAcumulados')" class="sortable">Días acum. <span class="sort-icon">{{ sortIcon('diasAcumulados', sortColumnRec, sortDirRec) }}</span></th>
+                <th (click)="sortRec('stockActual')" class="sortable">Stock actual <span class="sort-icon">{{ sortIcon('stockActual', sortColumnRec, sortDirRec) }}</span></th>
+                <th>Stock mín.</th>
+                <th (click)="sortRec('ultimaAlerta')" class="sortable">Última alerta <span class="sort-icon">{{ sortIcon('ultimaAlerta', sortColumnRec, sortDirRec) }}</span></th>
+                <th>Estado actual</th>
+                <th (click)="sortRec('criticidad')" class="sortable">Criticidad <span class="sort-icon">{{ sortIcon('criticidad', sortColumnRec, sortDirRec) }}</span></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let p of datosRecFiltrados; let i = index; trackBy: trackById">
+                <td class="cell-num">{{ i + 1 }}</td>
+                <td class="cell-primary">{{ p.producto }}</td>
+                <td>{{ p.familia }}</td>
+                <td><span class="sede-chip">{{ p.sede }}</span></td>
+                <td class="cell-alertas">
+                  <span class="alerta-count">{{ p.cantidadAlertas }}</span>
+                </td>
+                <td>{{ p.diasAcumulados }} días</td>
+                <td [class.cell-stock--critico]="p.stockActual === 0">{{ p.stockActual }} u.</td>
+                <td>{{ p.stockMinimo }} u.</td>
+                <td>{{ p.ultimaAlerta }}</td>
+                <td><span class="estado-chip">{{ p.estadoActual }}</span></td>
+                <td><span class="badge-criticidad" [ngClass]="badgeClass(p.criticidad)">{{ p.criticidad }}</span></td>
+              </tr>
+              <tr *ngIf="datosRecFiltrados.length === 0">
+                <td colspan="11" class="cell-empty">No hay productos con los filtros seleccionados.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="table-footer-bar">
+          <span class="table-footer-count">Mostrando {{ datosRecFiltrados.length }} de {{ datosRecurrencia.length }} productos</span>
+          <button class="btn btn-ghost btn--sm ver-mas-btn"
+            *ngIf="!verMasRecurrencia && datosRecurrencia.length > filtros.topN"
+            (click)="verMasRecurrencia = true">
+            Ver todos ({{ datosRecurrencia.length }}) ›
+          </button>
+          <button class="btn btn-ghost btn--sm ver-mas-btn"
+            *ngIf="verMasRecurrencia"
+            (click)="verMasRecurrencia = false">
+            ‹ Mostrar top {{ filtros.topN }}
+          </button>
+        </div>
+      </div>
+
+    </div><!-- /tab recurrencia -->
+
+  </div><!-- /report-main -->
+
+</div><!-- /report-page -->

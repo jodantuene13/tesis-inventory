@@ -248,6 +248,8 @@ namespace TesisInventory.Infrastructure.Persistence
             modelBuilder.Entity<Transferencia>().Property(t => t.FechaSolicitud).HasColumnName("fechaSolicitud");
             modelBuilder.Entity<Transferencia>().Property(t => t.Estado).HasColumnName("estado");
             modelBuilder.Entity<Transferencia>().Property(t => t.Motivo).HasColumnName("motivo");
+            modelBuilder.Entity<Transferencia>().Property(t => t.FechaDevolucionEsperada).HasColumnName("fechaDevolucionEsperada");
+            modelBuilder.Entity<Transferencia>().Property(t => t.FechaDevolucionReal).HasColumnName("fechaDevolucionReal");
             modelBuilder.Entity<Transferencia>().Property(t => t.IdUsuarioSolicita).HasColumnName("idUsuarioSolicita");
             modelBuilder.Entity<Transferencia>().Property(t => t.Observaciones).HasColumnName("observaciones");
 

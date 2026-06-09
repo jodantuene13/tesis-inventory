@@ -19,6 +19,11 @@ El módulo se integra como una sección independiente dentro del layout principa
 | HU-INF-05    | Ver tabla de datos base del informe con ordenamiento y búsqueda                               | ✅ Implementada |
 | HU-INF-06    | Exportar datos a CSV                                                                          | ✅ Implementada |
 | HU-INF-07    | Ver más registros más allá del Top N seleccionado                                             | ✅ Implementada |
+| HU-INF-08    | Ver pantalla de informe "Rotación de productos" con tres sub-vistas integradas               | ✅ Implementada |
+| HU-INF-09    | Filtrar rotación por período (30d / 90d / personalizado), sede, familia y top N              | ✅ Implementada |
+| HU-INF-10    | Ver ranking principal por índice de rotación (Egresos / Stock ponderado)                     | ✅ Implementada |
+| HU-INF-11    | Ver desagregado de productos que más ingresaron por período y sede                            | ✅ Implementada |
+| HU-INF-12    | Ver desagregado de productos que más egresaron por período y sede                            | ✅ Implementada |
 
 ---
 
@@ -156,11 +161,40 @@ El submenú se activa con toggle (igual patrón que Inventario, Transferencias y
 
 ---
 
+### [06-06-2026] Informe Transferencias y Préstamos
+- **Motivo técnico:** Se requirió agregar `FechaDevolucionEsperada` y `FechaDevolucionReal` en la entidad `Transferencia` mediante migración de EF Core para poder calcular correctamente la curva de préstamos activos en el tiempo.
+- **Impacto funcional:** Los préstamos ahora pueden trackearse en el tiempo en un gráfico de líneas, y permite calcular métricas como el tiempo promedio de devolución.
+- **Cálculo de rechazos:** Se utiliza el campo `Observaciones` en el historial de transferencia cuando el estado cambia a `Rechazada` como "motivo principal".
+
+### [06-06-2026] Informe Rotación de productos
+
+**Cambio:** Implementación del informe "Rotación de productos" — HU-INF-08 a HU-INF-12.
+
+**Motivo técnico:**
+- La fórmula de rotación acordada es: `Índice = Egresos / Stock Promedio Ponderado por Tiempo`, donde el stock promedio ponderado = Σ(Stockᵢ × Díasᵢ) / días_totales. Se reconstruye la curva usando `CantidadRestante` de cada movimiento como punto de control.
+- No se creó ninguna tabla nueva en la base de datos. Los datos se calculan en tiempo real desde `Movimiento` (join con `Producto`, `Familia`, `Sede`).
+- Se agregó el método `GetDatosRotacionAsync` a `IMovimientoRepository` / `MovimientoRepository` con filtros por sede, familia y rango de fechas.
+- Se amplió `IInformesService` / `InformesService` con `GetRotacionProductosAsync` que produce tres listas: rotación, mayorIngreso, mayorEgreso.
+- Se solucionó de paso un error de compilación pre-existente: `GetStocksEnBajoStockAsync` estaba declarado en `IStockRepository` pero no implementado en `StockRepository`.
+- El frontend usa el mismo sistema de diseño (clases CSS, chips, KPI grid, Chart.js barras horizontales) que `alertas-stock` para consistencia visual.
+- El período "Personalizado" muestra inputs de fecha cuando se selecciona; los presets aplican y recargan automáticamente.
+- Tendencia (Alta/Media/Baja) se calcula comparando el índice del producto contra el promedio del período × factores 1.2 / 0.8.
+
+**Impacto funcional:**
+- Nuevo submenú "Rotación de productos" bajo Informes → `/informes/rotacion-productos`.
+- Tres tabs integradas: Rotación / Ingresos / Egresos con gráficos independientes y tablas exportables a CSV.
+- Top N aplica solo al ranking de rotación; ingresos y egresos muestran todos con paginación tipo "Ver más".
+- Misma lógica de sede que el resto del sistema (Admin ve todas, Depósito ve solo la propia).
+
+---
+
 ## Pendientes / Próximos pasos
 
 - [x] Conectar con endpoints reales del backend cuando estén disponibles. (**✅ Implementado**)
 - [ ] Aplicar migración EF Core (`dotnet ef migrations add AddAlertaStockTable`) y actualizar BD.
 - [ ] Agregar permiso `Informes_Ver` al sistema de roles para control de acceso granular.
+- [x] Implementar informe de Rotación de productos. (**✅ Implementado**)
 - [ ] Implementar informe de transferencias.
 - [ ] Implementar informe de solicitudes de compra.
 - [ ] Considerar cache de resultados para grandes volúmenes de datos.
+

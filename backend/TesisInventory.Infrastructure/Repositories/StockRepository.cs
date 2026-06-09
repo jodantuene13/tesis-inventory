@@ -140,5 +140,28 @@ namespace TesisInventory.Infrastructure.Repositories
                 .Where(s => s.IdProducto == idProducto)
                 .ExecuteUpdateAsync(s => s.SetProperty(x => x.PuntoReposicion, puntoReposicion));
         }
+
+        public async Task<IEnumerable<Stock>> GetStocksEnBajoStockAsync(
+            int? idSede = null,
+            int? idFamilia = null)
+        {
+            var query = _context.Stock
+                .Include(s => s.Producto)
+                    .ThenInclude(p => p!.Familia)
+                .Include(s => s.Sede)
+                .Where(s => s.CantidadActual <= s.PuntoReposicion)
+                .AsQueryable();
+
+            if (idSede.HasValue)
+                query = query.Where(s => s.IdSede == idSede.Value);
+
+            if (idFamilia.HasValue)
+                query = query.Where(s => s.Producto!.IdFamilia == idFamilia.Value);
+
+            return await query
+                .OrderBy(s => s.CantidadActual)
+                .AsNoTracking()
+                .ToListAsync();
+        }
     }
 }

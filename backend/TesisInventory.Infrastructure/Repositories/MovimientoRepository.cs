@@ -120,5 +120,34 @@ namespace TesisInventory.Infrastructure.Repositories
             await _context.SaveChangesAsync();
             return movimiento;
         }
+
+        public async Task<IEnumerable<Movimiento>> GetDatosRotacionAsync(
+            int? idSede,
+            int? idFamilia,
+            DateTime fechaDesde,
+            DateTime fechaHasta)
+        {
+            // Ajustamos fechaHasta para incluir todo ese día
+            var endOfDay = fechaHasta.Date.AddDays(1).AddTicks(-1);
+
+            var query = _context.Movimiento
+                .Include(m => m.Producto)
+                    .ThenInclude(p => p!.Familia)
+                .Include(m => m.Sede)
+                .Where(m => m.Fecha >= fechaDesde && m.Fecha <= endOfDay)
+                .AsQueryable();
+
+            if (idSede.HasValue)
+                query = query.Where(m => m.IdSede == idSede.Value);
+
+            if (idFamilia.HasValue)
+                query = query.Where(m => m.Producto!.IdFamilia == idFamilia.Value);
+
+            return await query
+                .OrderBy(m => m.IdProducto)
+                .ThenBy(m => m.IdSede)
+                .ThenBy(m => m.Fecha)
+                .ToListAsync();
+        }
     }
 }

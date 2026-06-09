@@ -79,6 +79,40 @@ namespace TesisInventory.Infrastructure.Repositories
                 .ToListAsync();
         }
 
+        public async Task<System.Collections.Generic.IEnumerable<Transferencia>> GetDatosInformeAsync(
+            int? idSedeOrigen, int? idSedeDestino, int? idFamilia,
+            TesisInventory.Domain.Enums.MotivoTransferencia? motivo, TesisInventory.Domain.Enums.EstadoTransferencia? estado,
+            System.DateTime fechaDesde, System.DateTime fechaHasta)
+        {
+            var query = _context.Transferencia
+                .Include(t => t.Detalles)
+                    .ThenInclude(d => d.Producto)
+                        .ThenInclude(p => p.Familia)
+                .Include(t => t.SedeOrigen)
+                .Include(t => t.SedeDestino)
+                .Include(t => t.UsuarioSolicita)
+                .Include(t => t.HistorialTransferencias)
+                .Where(t => t.FechaSolicitud >= fechaDesde && t.FechaSolicitud <= fechaHasta.AddDays(1).AddTicks(-1))
+                .AsQueryable();
+
+            if (idSedeOrigen.HasValue)
+                query = query.Where(t => t.IdSedeOrigen == idSedeOrigen.Value);
+
+            if (idSedeDestino.HasValue)
+                query = query.Where(t => t.IdSedeDestino == idSedeDestino.Value);
+
+            if (motivo.HasValue)
+                query = query.Where(t => t.Motivo == motivo.Value);
+
+            if (estado.HasValue)
+                query = query.Where(t => t.Estado == estado.Value);
+
+            if (idFamilia.HasValue)
+                query = query.Where(t => t.Detalles.Any(d => d.Producto.IdFamilia == idFamilia.Value));
+
+            return await query.OrderByDescending(t => t.FechaSolicitud).ToListAsync();
+        }
+
         public async Task AddHistorialTransferenciaAsync(HistorialTransferencia historial)
         {
             _context.HistorialTransferencia.Add(historial);

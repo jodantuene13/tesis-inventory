@@ -51,7 +51,18 @@ export const routes: Routes = [
             {
                 path: 'informes',
                 children: [
-                    { path: 'stock-alertas', loadComponent: () => import('./pages/informes/alertas-stock/alertas-stock.component').then(m => m.AlertasStockComponent) },
+                    { 
+                        path: 'alertas-stock', 
+                        loadComponent: () => import('./pages/informes/alertas-stock/alertas-stock.component').then(m => m.AlertasStockComponent)
+                    },
+                    {
+                        path: 'rotacion-productos',
+                        loadComponent: () => import('./pages/informes/rotacion-productos/rotacion-productos.component').then(m => m.RotacionProductosComponent)
+                    },
+                    {
+                        path: 'transferencias',
+                        loadComponent: () => import('./pages/informes/transferencias/transferencias.component').then(m => m.TransferenciasComponent)
+                    },
                     { path: '', redirectTo: 'stock-alertas', pathMatch: 'full' }
                 ]
             },

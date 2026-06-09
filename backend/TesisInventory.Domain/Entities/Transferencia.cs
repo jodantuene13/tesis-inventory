@@ -12,6 +12,8 @@ namespace TesisInventory.Domain.Entities
         public DateTime FechaSolicitud { get; set; } = DateTime.UtcNow;
         public EstadoTransferencia Estado { get; set; } = EstadoTransferencia.Solicitada;
         public MotivoTransferencia Motivo { get; set; } = MotivoTransferencia.Definitiva;
+        public DateTime? FechaDevolucionEsperada { get; set; }
+        public DateTime? FechaDevolucionReal { get; set; }
         public int IdUsuarioSolicita { get; set; }
         public string? Observaciones { get; set; }
 

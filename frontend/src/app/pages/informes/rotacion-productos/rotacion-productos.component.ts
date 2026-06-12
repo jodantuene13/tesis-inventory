@@ -332,7 +332,7 @@ export class RotacionProductosComponent implements OnInit, AfterViewInit, OnDest
         maintainAspectRatio: false,
         plugins: {
           legend: { display: false },
-          tooltip: { callbacks: { label: ctx => ` Rotación: ${ctx.parsed.x} veces` } }
+          tooltip: { callbacks: { label: (ctx: any) => ` Rotación: ${ctx.parsed.x} veces` } }
         },
         scales: {
           x: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { font: { size: 11 } } },
@@ -369,7 +369,7 @@ export class RotacionProductosComponent implements OnInit, AfterViewInit, OnDest
         maintainAspectRatio: false,
         plugins: {
           legend: { display: false },
-          tooltip: { callbacks: { label: ctx => ` ${ctx.parsed.x} u. ingresadas` } }
+          tooltip: { callbacks: { label: (ctx: any) => ` ${ctx.parsed.x} u. ingresadas` } }
         },
         scales: {
           x: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { font: { size: 11 } } },
@@ -406,7 +406,7 @@ export class RotacionProductosComponent implements OnInit, AfterViewInit, OnDest
         maintainAspectRatio: false,
         plugins: {
           legend: { display: false },
-          tooltip: { callbacks: { label: ctx => ` ${ctx.parsed.x} u. egresadas` } }
+          tooltip: { callbacks: { label: (ctx: any) => ` ${ctx.parsed.x} u. egresadas` } }
         },
         scales: {
           x: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { font: { size: 11 } } },

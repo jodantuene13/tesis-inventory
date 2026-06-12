@@ -246,7 +246,7 @@ export class TransferenciasComponent implements OnInit, OnDestroy {
         maintainAspectRatio: false,
         plugins: {
           legend: { display: false },
-          tooltip: { callbacks: { label: ctx => ` ${ctx.parsed[horizontal ? 'x' : 'y']} transferencias` } }
+          tooltip: { callbacks: { label: (ctx: any) => ` ${ctx.parsed[horizontal ? 'x' : 'y']} transferencias` } }
         },
         scales: {
           x: { beginAtZero: true, grid: { color: '#f1f5f9' }, ticks: { font: { size: 11 } } },
@@ -281,7 +281,7 @@ export class TransferenciasComponent implements OnInit, OnDestroy {
         maintainAspectRatio: false,
         plugins: {
           legend: { display: false },
-          tooltip: { callbacks: { label: ctx => ` ${ctx.parsed.y} transferencias` } }
+          tooltip: { callbacks: { label: (ctx: any) => ` ${ctx.parsed.y} transferencias` } }
         },
         scales: {
           y: { beginAtZero: true, grid: { color: '#f1f5f9' }, ticks: { font: { size: 11 } } },
@@ -317,7 +317,7 @@ export class TransferenciasComponent implements OnInit, OnDestroy {
           legend: { display: false },
           tooltip: {
             callbacks: {
-              label: ctx => {
+              label: (ctx: any) => {
                 const val = ctx.parsed as number;
                 const pct = total > 0 ? ((val / total) * 100).toFixed(1) : '0';
                 return ` ${ctx.label}: ${val} (${pct}%)`;
@@ -362,7 +362,7 @@ export class TransferenciasComponent implements OnInit, OnDestroy {
         maintainAspectRatio: false,
         plugins: {
           legend: { position: 'bottom', labels: { font: { size: 11 }, boxWidth: 14 } },
-          tooltip: { callbacks: { label: ctx => ` ${ctx.parsed.y} préstamos activos` } }
+          tooltip: { callbacks: { label: (ctx: any) => ` ${ctx.parsed.y} préstamos activos` } }
         },
         scales: {
           y: { beginAtZero: true, grid: { color: '#f1f5f9' }, ticks: { font: { size: 11 } } },
@@ -397,10 +397,10 @@ export class TransferenciasComponent implements OnInit, OnDestroy {
         maintainAspectRatio: false,
         plugins: {
           legend: { display: false },
-          tooltip: { callbacks: { label: ctx => ` Rechazo: ${ctx.parsed.x}%` } }
+          tooltip: { callbacks: { label: (ctx: any) => ` Rechazo: ${ctx.parsed.x}%` } }
         },
         scales: {
-          x: { beginAtZero: true, max: 100, grid: { color: '#f1f5f9' }, ticks: { callback: v => v + '%', font: { size: 11 } } },
+          x: { beginAtZero: true, max: 100, grid: { color: '#f1f5f9' }, ticks: { callback: (v: any) => v + '%', font: { size: 11 } } },
           y: { grid: { display: false }, ticks: { font: { size: 11 } } }
         }
       }

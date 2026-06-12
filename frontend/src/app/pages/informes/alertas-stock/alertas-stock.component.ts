@@ -333,7 +333,7 @@ export class AlertasStockComponent implements OnInit, AfterViewInit, OnDestroy {
           legend: { position: 'top', labels: { font: { size: 11 }, boxWidth: 12 } },
           tooltip: {
             callbacks: {
-              label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.x} u.`
+              label: (ctx: any) => ` ${ctx.dataset.label}: ${ctx.parsed.x} u.`
             }
           }
         },
@@ -384,7 +384,7 @@ export class AlertasStockComponent implements OnInit, AfterViewInit, OnDestroy {
         maintainAspectRatio: false,
         plugins: {
           legend: { display: false },
-          tooltip: { callbacks: { label: ctx => ` ${ctx.parsed.x} alertas` } }
+          tooltip: { callbacks: { label: (ctx: any) => ` ${ctx.parsed.x} alertas` } }
         },
         scales: {
           x: { beginAtZero: true, ticks: { stepSize: 1, font: { size: 11 } }, grid: { color: 'rgba(0,0,0,0.04)' } },
@@ -423,7 +423,7 @@ export class AlertasStockComponent implements OnInit, AfterViewInit, OnDestroy {
         maintainAspectRatio: false,
         plugins: {
           legend: { display: false },
-          tooltip: { callbacks: { label: ctx => ` ${ctx.parsed.y} alertas` } }
+          tooltip: { callbacks: { label: (ctx: any) => ` ${ctx.parsed.y} alertas` } }
         },
         scales: {
           y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { font: { size: 11 } } },

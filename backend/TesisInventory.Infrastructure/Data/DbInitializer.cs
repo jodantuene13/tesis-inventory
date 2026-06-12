@@ -109,12 +109,17 @@ namespace TesisInventory.Infrastructure.Data
             // Seed Rubros
             if (!context.Rubro.Any())
             {
-                var rubros = new List<Rubro>();
-                string[] nombresRubros = { "Electrónica", "Computación", "Oficina", "Limpieza", "Ferretería", "Iluminación", "Muebles", "Seguridad", "Librería", "Indumentaria", "Herramientas", "Alimentos", "Bebidas", "Juguetes", "Deportes" };
-                for (int i = 0; i < 15; i++)
+                var rubros = new List<Rubro>
                 {
-                    rubros.Add(new Rubro { CodigoRubro = $"RUB-{(i + 1):D3}", Nombre = nombresRubros[i], Activo = true, FechaCreacion = DateTime.Now, FechaActualizacion = DateTime.Now });
-                }
+                    new Rubro { CodigoRubro = "ELEC", Nombre = "Electricidad", Activo = true, FechaCreacion = DateTime.Now, FechaActualizacion = DateTime.Now },
+                    new Rubro { CodigoRubro = "ILUM", Nombre = "Iluminación", Activo = true, FechaCreacion = DateTime.Now, FechaActualizacion = DateTime.Now },
+                    new Rubro { CodigoRubro = "SAN", Nombre = "Sanitario / Plomería", Activo = true, FechaCreacion = DateTime.Now, FechaActualizacion = DateTime.Now },
+                    new Rubro { CodigoRubro = "CLIM", Nombre = "Climatización", Activo = true, FechaCreacion = DateTime.Now, FechaActualizacion = DateTime.Now },
+                    new Rubro { CodigoRubro = "EQEM", Nombre = "Equipos Electromecánicos", Activo = true, FechaCreacion = DateTime.Now, FechaActualizacion = DateTime.Now },
+                    new Rubro { CodigoRubro = "SEG", Nombre = "Seguridad Edilicia", Activo = true, FechaCreacion = DateTime.Now, FechaActualizacion = DateTime.Now },
+                    new Rubro { CodigoRubro = "CERR", Nombre = "Cerrajería", Activo = true, FechaCreacion = DateTime.Now, FechaActualizacion = DateTime.Now },
+                    new Rubro { CodigoRubro = "PINT", Nombre = "Pintura", Activo = true, FechaCreacion = DateTime.Now, FechaActualizacion = DateTime.Now }
+                };
                 context.Rubro.AddRange(rubros);
                 context.SaveChanges();
             }
@@ -122,41 +127,58 @@ namespace TesisInventory.Infrastructure.Data
             // Seed Familias
             if (!context.Familia.Any())
             {
+                var rubrosFromDb = context.Rubro.ToDictionary(r => r.CodigoRubro, r => r.IdRubro);
                 var familias = new List<Familia>();
-                string[] nombresFamilias = { "Televisores", "Notebooks", "Escritorios", "Detergentes", "Clavos", "Lámparas LED", "Sillas", "Cámaras", "Cuadernos", "Remeras", "Taladros", "Galletas", "Gaseosas", "Juegos de Mesa", "Pelotas" };
-                for (int i = 0; i < 15; i++)
+
+                void AddFamilia(string rubroCodigo, string familiaCodigo, string nombre)
                 {
-                    familias.Add(new Familia { IdRubro = i + 1, CodigoFamilia = $"FAM-{(i + 1):D3}", Nombre = nombresFamilias[i], Activo = true, FechaCreacion = DateTime.Now, FechaActualizacion = DateTime.Now });
+                    if (rubrosFromDb.TryGetValue(rubroCodigo, out var rubroId))
+                    {
+                        familias.Add(new Familia 
+                        { 
+                            IdRubro = rubroId, 
+                            CodigoFamilia = familiaCodigo, 
+                            Nombre = nombre, 
+                            Activo = true, 
+                            FechaCreacion = DateTime.Now, 
+                            FechaActualizacion = DateTime.Now 
+                        });
+                    }
                 }
+
+                AddFamilia("ELEC", "TF", "Tomas y fichas");
+                AddFamilia("ELEC", "PROT", "Protección");
+                AddFamilia("ELEC", "CONT", "Control");
+                AddFamilia("ELEC", "COND", "Conductores");
+                AddFamilia("ELEC", "CAN", "Canalización");
+                AddFamilia("ELEC", "CG", "Cajas y gabinetes");
+                AddFamilia("ILUM", "LAM", "Lámparas y tubos");
+                AddFamilia("ILUM", "LUMN", "Luminarias");
+                AddFamilia("ILUM", "EMRG", "Emergencia y señalización");
+                AddFamilia("ILUM", "SLED", "Sistemas LED");
+                AddFamilia("SAN", "CC", "Conexiones y cañerías");
+                AddFamilia("SAN", "GRIF", "Grifería");
+                AddFamilia("SAN", "REPS", "Repuestos sanitarios");
+                AddFamilia("SAN", "TAP", "Tapas, rejillas y accesorios sanitarios");
+                AddFamilia("CLIM", "REF", "Refrigerantes");
+                AddFamilia("CLIM", "VENT", "Ventilación");
+                AddFamilia("EQEM", "BOMB", "Bombas y control hídrico");
+                AddFamilia("SEG", "HID", "Hydrantes"); // Wait, original output had "Hidrantes", let's use "Hidrantes"
+                AddFamilia("CERR", "CER", "Cerraduras");
+                AddFamilia("CERR", "CIE", "Cierrapuertas");
+                AddFamilia("PINT", "HER", "Herramientas de aplicación");
+                AddFamilia("PINT", "PR", "Pinturas y recubrimientos");
+                AddFamilia("PINT", "S", "Selladores y adhesivos");
+
                 context.Familia.AddRange(familias);
                 context.SaveChanges();
             }
 
             // Seed Productos
-            if (!context.Producto.Any())
-            {
-                var productos = new List<Producto>();
-                string[] nombresProductos = { "Smart TV 50 4K", "Notebook Dell i7 16GB", "Escritorio Madera Premium", "Detergente Ala 1L", "Clavos 2 pulgadas x100", "Lámpara LED 9W Philips", "Silla Ergonómica Pro", "Cámara IP Ezviz WiFi", "Cuaderno A4 Rayado", "Remera Algodón Básica", "Taladro Bosch 500W", "Galletas Oreo 117g", "Coca Cola 2L Retornable", "Juego Monopoly Clásico", "Pelota de Fútbol N5" };
-                string[] unidades = { "Unidad", "Unidad", "Unidad", "Litro", "Paquete", "Unidad", "Unidad", "Unidad", "Unidad", "Unidad", "Unidad", "Paquete", "Botella", "Unidad", "Unidad" };
-                for (int i = 0; i < 15; i++)
-                {
-                    productos.Add(new Producto { IdFamilia = i + 1, Sku = $"PRD-{(i + 1):D4}", Nombre = nombresProductos[i], UnidadMedida = unidades[i], Activo = true, FechaCreacion = DateTime.Now, FechaActualizacion = DateTime.Now });
-                }
-                context.Producto.AddRange(productos);
-                context.SaveChanges();
-            }
+            // (No product seeds for the new database)
 
             // Seed Stock
-            if (!context.Stock.Any())
-            {
-                var stocks = new List<Stock>();
-                for (int i = 1; i <= 15; i++)
-                {
-                    stocks.Add(new Stock { IdSede = 1, IdProducto = i, CantidadActual = i * 15, PuntoReposicion = 10, FechaActualizacion = DateTime.Now });
-                }
-                context.Stock.AddRange(stocks);
-                context.SaveChanges();
-            }
+            // (No stock seeds for the new database)
         }
     }
 }

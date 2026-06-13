@@ -63,7 +63,7 @@ export const routes: Routes = [
                         path: 'transferencias',
                         loadComponent: () => import('./pages/informes/transferencias/transferencias.component').then(m => m.TransferenciasComponent)
                     },
-                    { path: '', redirectTo: 'stock-alertas', pathMatch: 'full' }
+                    { path: '', redirectTo: 'alertas-stock', pathMatch: 'full' }
                 ]
             },
             // Configuration Module

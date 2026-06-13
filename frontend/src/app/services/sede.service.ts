@@ -1,4 +1,5 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
+import { API_BASE_URL } from '../tokens/api-url.token';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Sede } from '../models/sede.model';
@@ -7,7 +8,7 @@ import { Sede } from '../models/sede.model';
     providedIn: 'root'
 })
 export class SedeService {
-    private apiUrl = 'http://localhost:5139/api/sedes';
+    private readonly apiUrl = `${inject(API_BASE_URL)}/api/sedes`;
 
     constructor(private http: HttpClient) { }
 

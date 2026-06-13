@@ -1,4 +1,5 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
+import { API_BASE_URL } from '../tokens/api-url.token';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Familia, CreateFamilia, UpdateFamilia, FamiliaAsociaciones } from '../models/familia.model';
@@ -7,7 +8,7 @@ import { Familia, CreateFamilia, UpdateFamilia, FamiliaAsociaciones } from '../m
     providedIn: 'root'
 })
 export class FamiliaService {
-    private apiUrl = 'http://localhost:5139/api/Familias';
+    private readonly apiUrl = `${inject(API_BASE_URL)}/api/Familias`;
 
     constructor(private http: HttpClient) { }
 

@@ -8,6 +8,10 @@ using TesisInventory.Infrastructure.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Railway inyecta PORT; Kestrel necesita escuchar en ese puerto
+var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+builder.WebHost.UseUrls($"http://+:{port}");
+
 // Add services to the container.
 
 builder.Services.AddControllers();
@@ -77,11 +81,15 @@ builder.Services.AddAuthentication(x =>
     };
 });
 
-// CORS Config (for Angular)
+// CORS: en producción se lee de CORS_ORIGINS (ej: "https://frontend.up.railway.app")
+var corsOrigins = (builder.Configuration["Cors:AllowedOrigins"]
+    ?? "http://localhost:4200,http://127.0.0.1:4200")
+    .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAngular",
-        policy => policy.WithOrigins("http://localhost:4200", "http://127.0.0.1:4200")
+        policy => policy.WithOrigins(corsOrigins)
                         .AllowAnyHeader()
                         .AllowAnyMethod());
 });
@@ -114,7 +122,11 @@ if (app.Environment.IsDevelopment())
 
 app.UseMiddleware<TesisInventory.API.Middlewares.ErrorHandlingMiddleware>();
 
-app.UseHttpsRedirection();
+// Railway maneja SSL en el proxy; solo redirigir HTTPS en desarrollo local
+if (app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
 
 app.UseDefaultFiles();
 app.UseStaticFiles();
@@ -125,6 +137,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapGet("/api/health", () => Results.Ok(new { status = "healthy" }));
 
 app.MapFallbackToFile("index.html");
 

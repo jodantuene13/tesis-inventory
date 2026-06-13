@@ -1,5 +1,6 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
+import { API_BASE_URL } from '../tokens/api-url.token';
 import { Observable } from 'rxjs';
 import { SolicitudCompra, CreateSolicitudCompra, UpdateSolicitudCompraEstado } from '../models/solicitud-compra.model';
 
@@ -7,7 +8,7 @@ import { SolicitudCompra, CreateSolicitudCompra, UpdateSolicitudCompraEstado } f
   providedIn: 'root'
 })
 export class SolicitudCompraService {
-  private apiUrl = 'http://localhost:5139/api/SolicitudesCompra';
+  private readonly apiUrl = `${inject(API_BASE_URL)}/api/SolicitudesCompra`;
 
   constructor(private http: HttpClient) { }
 

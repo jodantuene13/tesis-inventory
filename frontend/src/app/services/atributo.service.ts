@@ -1,4 +1,5 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
+import { API_BASE_URL } from '../tokens/api-url.token';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Atributo, CreateAtributo, UpdateAtributo, AtributoOpcion, CreateAtributoOpcion, FamiliaAtributo, CreateFamiliaAtributo } from '../models/atributo.model';
@@ -7,7 +8,7 @@ import { Atributo, CreateAtributo, UpdateAtributo, AtributoOpcion, CreateAtribut
     providedIn: 'root'
 })
 export class AtributoService {
-    private apiUrl = 'http://localhost:5139/api/Atributos';
+    private readonly apiUrl = `${inject(API_BASE_URL)}/api/Atributos`;
 
     constructor(private http: HttpClient) { }
 

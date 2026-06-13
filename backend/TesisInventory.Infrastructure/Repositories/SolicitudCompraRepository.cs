@@ -1,8 +1,10 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using TesisInventory.Domain.Entities;
+using TesisInventory.Domain.Enums;
 using TesisInventory.Domain.Interfaces;
 using TesisInventory.Infrastructure.Persistence;
 
@@ -54,6 +56,35 @@ namespace TesisInventory.Infrastructure.Repositories
         {
             _context.SolicitudCompra.Update(solicitud);
             await _context.SaveChangesAsync();
+        }
+
+        public async Task<IEnumerable<SolicitudCompra>> GetDatosInformeAsync(
+            int? idSede,
+            EstadoSolicitudCompra? estado,
+            DateTime? fechaDesde,
+            DateTime? fechaHasta)
+        {
+            var query = _context.SolicitudCompra
+                .Include(s => s.Detalles)
+                    .ThenInclude(d => d.Producto)
+                        .ThenInclude(p => p!.Familia)
+                .Include(s => s.Sede)
+                .Include(s => s.UsuarioSolicitante)
+                .AsQueryable();
+
+            if (idSede.HasValue)
+                query = query.Where(s => s.IdSede == idSede.Value);
+
+            if (estado.HasValue)
+                query = query.Where(s => s.Estado == estado.Value);
+
+            if (fechaDesde.HasValue)
+                query = query.Where(s => s.FechaSolicitud >= fechaDesde.Value);
+
+            if (fechaHasta.HasValue)
+                query = query.Where(s => s.FechaSolicitud <= fechaHasta.Value.AddDays(1));
+
+            return await query.OrderByDescending(s => s.FechaSolicitud).ToListAsync();
         }
 
         public async Task<(IEnumerable<SolicitudCompra> Items, int TotalCount)> GetPagedAsync(

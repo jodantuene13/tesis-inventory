@@ -174,6 +174,58 @@ export interface FamiliaConsumoDto {
   cantidadProductos: number;
 }
 
+// ── Interfaces: Solicitudes de Compra ─────────────────────────────────────
+
+export interface SolicitudesPorEntidadDto {
+  nombre: string;
+  total: number;
+  aprobadas: number;
+  rechazadas: number;
+  pendientes: number;
+  cumplimientoTotal: number;
+  cumplimientoParcial: number;
+  noConcretadas: number;
+  tiempoPromedioDecisionDias: number;
+  tiempoPromedioStockDias: number;
+}
+
+export interface SolicitudPendienteDto {
+  idSolicitudCompra: number;
+  usuario: string;
+  sede: string;
+  fechaSolicitud: string;
+  diasEsperando: number;
+  productos: string;
+  motivoSolicitud: string;
+}
+
+export interface ProductoSolicitadoDto {
+  idProducto: number;
+  producto: string;
+  sku: string;
+  familia: string;
+  totalUnidades: number;
+  vecesSolicitado: number;
+  vecesEnAprobadas: number;
+}
+
+export interface InformeSolicitudesCompraDto {
+  totalSolicitudes: number;
+  totalAprobadas: number;
+  totalRechazadas: number;
+  totalPendientes: number;
+  tiempoPromedioDecisionDias: number;
+  tiempoPromedioStockDias: number;
+  porcentajeCumplimientoTotal: number;
+  porUsuario: SolicitudesPorEntidadDto[];
+  porSede: SolicitudesPorEntidadDto[];
+  pendientes: SolicitudPendienteDto[];
+  pendientesHasta5Dias: number;
+  pendientesHasta10Dias: number;
+  pendientesHasta30Dias: number;
+  productosMasSolicitados: ProductoSolicitadoDto[];
+}
+
 // ── Service ───────────────────────────────────────────────────────────────────
 
 @Injectable({
@@ -241,6 +293,19 @@ export class InformesService {
     if (fechaDesde) params = params.set('fechaDesde', fechaDesde);
     if (fechaHasta) params = params.set('fechaHasta', fechaHasta);
     return this.http.get<FamiliaConsumoDto[]>(`${this.apiUrl}/familias-consumo`, { params });
+  }
+
+  getInformeSolicitudesCompra(
+    idSede?: number,
+    fechaDesde?: string,
+    fechaHasta?: string,
+    topN: number = 10
+  ): Observable<InformeSolicitudesCompraDto> {
+    let params = new HttpParams().set('topN', topN.toString());
+    if (idSede) params = params.set('idSede', idSede.toString());
+    if (fechaDesde) params = params.set('fechaDesde', fechaDesde);
+    if (fechaHasta) params = params.set('fechaHasta', fechaHasta);
+    return this.http.get<InformeSolicitudesCompraDto>(`${this.apiUrl}/solicitudes-compra`, { params });
   }
 
   getInformeTransferencias(

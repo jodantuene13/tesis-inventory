@@ -63,6 +63,10 @@ export const routes: Routes = [
                         path: 'transferencias',
                         loadComponent: () => import('./pages/informes/transferencias/transferencias.component').then(m => m.TransferenciasComponent)
                     },
+                    {
+                        path: 'solicitudes-compra',
+                        loadComponent: () => import('./pages/informes/solicitudes-compra/solicitudes-compra.component').then(m => m.SolicitudesCompraInformeComponent)
+                    },
                     { path: '', redirectTo: 'alertas-stock', pathMatch: 'full' }
                 ]
             },

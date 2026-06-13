@@ -140,6 +140,30 @@ namespace TesisInventory.API.Controllers
             }
         }
 
+        [HttpGet("solicitudes-compra")]
+        public async Task<IActionResult> GetInformeSolicitudesCompra(
+            [FromQuery] int? idSede = null,
+            [FromQuery] string? fechaDesde = null,
+            [FromQuery] string? fechaHasta = null,
+            [FromQuery] int topN = 10)
+        {
+            try
+            {
+                var sedeEfectiva = idSede ?? TryGetCurrentSedeId();
+                var hoy = DateTime.UtcNow.Date;
+                var desde = fechaDesde != null && DateTime.TryParse(fechaDesde, out var d) ? d : hoy.AddDays(-30);
+                var hasta = fechaHasta != null && DateTime.TryParse(fechaHasta, out var h) ? h : hoy;
+
+                var resultado = await _informesService.GetInformeSolicitudesCompraAsync(
+                    sedeEfectiva, desde, hasta, topN);
+                return Ok(resultado);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { Message = ex.Message });
+            }
+        }
+
         [HttpGet("transferencias")]
         // [Authorize(Roles = "Admin,Deposito")]
         public async Task<ActionResult<InformeTransferenciaDto>> GetInformeTransferencias(

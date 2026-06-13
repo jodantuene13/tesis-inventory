@@ -1,5 +1,6 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
+import { API_BASE_URL } from '../tokens/api-url.token';
 import { Observable } from 'rxjs';
 
 // ── Stock bajo y alertas ──────────────────────────────────────────────────────
@@ -156,7 +157,7 @@ export interface InformeTransferenciaDto {
   providedIn: 'root'
 })
 export class InformesService {
-  private apiUrl = 'http://localhost:5139/api/Informes';
+  private readonly apiUrl = `${inject(API_BASE_URL)}/api/Informes`;
 
   constructor(private http: HttpClient) {}
 

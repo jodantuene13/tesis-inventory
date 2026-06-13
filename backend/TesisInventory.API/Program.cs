@@ -8,9 +8,12 @@ using TesisInventory.Infrastructure.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Railway inyecta PORT; Kestrel necesita escuchar en ese puerto
-var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
-builder.WebHost.UseUrls($"http://+:{port}");
+// Railway inyecta PORT; en desarrollo local launchSettings.json mantiene el control
+var railwayPort = Environment.GetEnvironmentVariable("PORT");
+if (railwayPort != null)
+{
+    builder.WebHost.UseUrls($"http://+:{railwayPort}");
+}
 
 // Add services to the container.
 

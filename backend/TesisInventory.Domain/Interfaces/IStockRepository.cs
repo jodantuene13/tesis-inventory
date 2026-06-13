@@ -36,5 +36,13 @@ namespace TesisInventory.Domain.Interfaces
         Task<IEnumerable<Stock>> GetStocksEnBajoStockAsync(
             int? idSede = null,
             int? idFamilia = null);
+
+        /// <summary>
+        /// Retorna todos los registros de Stock con CantidadActual &gt; 0,
+        /// con filtros opcionales de sede y familia. Usado para stock inmovilizado.
+        /// </summary>
+        Task<IEnumerable<Stock>> GetAllStocksAsync(
+            int? idSede = null,
+            int? idFamilia = null);
     }
 }

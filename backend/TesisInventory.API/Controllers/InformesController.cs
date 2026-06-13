@@ -94,6 +94,52 @@ namespace TesisInventory.API.Controllers
                 return BadRequest(new { Message = ex.Message });
             }
         }
+        [HttpGet("stock-inmovilizado")]
+        public async Task<IActionResult> GetStockInmovilizado(
+            [FromQuery] int? idSede = null,
+            [FromQuery] int? idFamilia = null,
+            [FromQuery] string? fechaDesde = null,
+            [FromQuery] string? fechaHasta = null)
+        {
+            try
+            {
+                var sedeEfectiva = idSede ?? TryGetCurrentSedeId();
+                var hoy = DateTime.UtcNow.Date;
+                var desde = fechaDesde != null && DateTime.TryParse(fechaDesde, out var d) ? d : hoy.AddDays(-30);
+                var hasta = fechaHasta != null && DateTime.TryParse(fechaHasta, out var h) ? h : hoy;
+
+                var resultado = await _informesService.GetStockInmovilizadoAsync(sedeEfectiva, idFamilia, desde, hasta);
+                return Ok(resultado);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { Message = ex.Message });
+            }
+        }
+
+        [HttpGet("familias-consumo")]
+        public async Task<IActionResult> GetFamiliasConsumo(
+            [FromQuery] int? idSede = null,
+            [FromQuery] int? idFamilia = null,
+            [FromQuery] string? fechaDesde = null,
+            [FromQuery] string? fechaHasta = null)
+        {
+            try
+            {
+                var sedeEfectiva = idSede ?? TryGetCurrentSedeId();
+                var hoy = DateTime.UtcNow.Date;
+                var desde = fechaDesde != null && DateTime.TryParse(fechaDesde, out var d) ? d : hoy.AddDays(-30);
+                var hasta = fechaHasta != null && DateTime.TryParse(fechaHasta, out var h) ? h : hoy;
+
+                var resultado = await _informesService.GetFamiliasConsumoAsync(sedeEfectiva, idFamilia, desde, hasta);
+                return Ok(resultado);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { Message = ex.Message });
+            }
+        }
+
         [HttpGet("transferencias")]
         // [Authorize(Roles = "Admin,Deposito")]
         public async Task<ActionResult<InformeTransferenciaDto>> GetInformeTransferencias(

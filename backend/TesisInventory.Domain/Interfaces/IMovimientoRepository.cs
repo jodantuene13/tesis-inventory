@@ -31,5 +31,13 @@ namespace TesisInventory.Domain.Interfaces
             int? idFamilia,
             DateTime fechaDesde,
             DateTime fechaHasta);
+
+        /// <summary>
+        /// Retorna todos los ingresos (sin filtro de fecha) para las sedes/familias indicadas.
+        /// Usado para determinar el último ingreso histórico por producto en stock inmovilizado.
+        /// </summary>
+        Task<IEnumerable<Movimiento>> GetIngresosAsync(
+            int? idSede,
+            int? idFamilia);
     }
 }

@@ -151,6 +151,29 @@ export interface InformeTransferenciaDto {
   detalleMovimientos: TransferenciaDetalleDto[];
 }
 
+// ── Interfaces: Stock Inmovilizado ────────────────────────────────────────────
+
+export interface ProductoInmovilizadoDto {
+  idProducto: number;
+  producto: string;
+  sku: string;
+  familia: string;
+  sede: string;
+  stockActual: number;
+  ultimoIngreso?: string;
+  diasSinEgreso: number;
+}
+
+// ── Interfaces: Familias más consumidas ───────────────────────────────────────
+
+export interface FamiliaConsumoDto {
+  familia: string;
+  totalIngresos: number;
+  totalEgresos: number;
+  ratioConsumo: number;
+  cantidadProductos: number;
+}
+
 // ── Service ───────────────────────────────────────────────────────────────────
 
 @Injectable({
@@ -190,6 +213,34 @@ export class InformesService {
     if (fechaHasta) params = params.set('fechaHasta', fechaHasta);
 
     return this.http.get<InformeRotacionDto>(`${this.apiUrl}/rotacion-productos`, { params });
+  }
+
+  getStockInmovilizado(
+    idSede?: number,
+    idFamilia?: number,
+    fechaDesde?: string,
+    fechaHasta?: string
+  ): Observable<ProductoInmovilizadoDto[]> {
+    let params = new HttpParams();
+    if (idSede) params = params.set('idSede', idSede.toString());
+    if (idFamilia) params = params.set('idFamilia', idFamilia.toString());
+    if (fechaDesde) params = params.set('fechaDesde', fechaDesde);
+    if (fechaHasta) params = params.set('fechaHasta', fechaHasta);
+    return this.http.get<ProductoInmovilizadoDto[]>(`${this.apiUrl}/stock-inmovilizado`, { params });
+  }
+
+  getFamiliasConsumo(
+    idSede?: number,
+    idFamilia?: number,
+    fechaDesde?: string,
+    fechaHasta?: string
+  ): Observable<FamiliaConsumoDto[]> {
+    let params = new HttpParams();
+    if (idSede) params = params.set('idSede', idSede.toString());
+    if (idFamilia) params = params.set('idFamilia', idFamilia.toString());
+    if (fechaDesde) params = params.set('fechaDesde', fechaDesde);
+    if (fechaHasta) params = params.set('fechaHasta', fechaHasta);
+    return this.http.get<FamiliaConsumoDto[]>(`${this.apiUrl}/familias-consumo`, { params });
   }
 
   getInformeTransferencias(

@@ -43,5 +43,15 @@ namespace TesisInventory.Application.Interfaces
         Task<IEnumerable<FamiliaConsumoDto>> GetFamiliasConsumoAsync(
             int? idSede, int? idFamilia,
             DateTime fechaDesde, DateTime fechaHasta);
+
+        /// <summary>
+        /// Retorna el informe completo de solicitudes de compra:
+        /// KPIs, agrupación por usuario/sede, pendientes y productos más solicitados.
+        /// </summary>
+        Task<InformeSolicitudesCompraDto> GetInformeSolicitudesCompraAsync(
+            int? idSede,
+            DateTime fechaDesde,
+            DateTime fechaHasta,
+            int topN = 10);
     }
 }

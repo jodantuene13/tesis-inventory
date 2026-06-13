@@ -15,17 +15,20 @@ namespace TesisInventory.Application.Services
         private readonly IStockRepository _stockRepository;
         private readonly IMovimientoRepository _movimientoRepository;
         private readonly ITransferenciaRepository _transferenciaRepository;
+        private readonly ISolicitudCompraRepository _solicitudCompraRepository;
 
         public InformesService(
             IAlertaStockRepository alertaRepository,
             IStockRepository stockRepository,
             IMovimientoRepository movimientoRepository,
-            ITransferenciaRepository transferenciaRepository)
+            ITransferenciaRepository transferenciaRepository,
+            ISolicitudCompraRepository solicitudCompraRepository)
         {
             _alertaRepository = alertaRepository;
             _stockRepository = stockRepository;
             _movimientoRepository = movimientoRepository;
             _transferenciaRepository = transferenciaRepository;
+            _solicitudCompraRepository = solicitudCompraRepository;
         }
 
         // ── Informe 1: Alertas de Stock ───────────────────────────────────────
@@ -494,6 +497,139 @@ namespace TesisInventory.Application.Services
                 .ToList();
 
             return resultado;
+        }
+
+        // ── Informe 6: Solicitudes de Compra ─────────────────────────────────────
+
+        public async Task<InformeSolicitudesCompraDto> GetInformeSolicitudesCompraAsync(
+            int? idSede,
+            DateTime fechaDesde,
+            DateTime fechaHasta,
+            int topN = 10)
+        {
+            var hoy = DateTime.UtcNow.Date;
+
+            // Solicitudes del período seleccionado (para Tabs 1 y 3 y KPIs)
+            var solicitudes = (await _solicitudCompraRepository.GetDatosInformeAsync(
+                idSede, null, fechaDesde, fechaHasta)).ToList();
+
+            // Todas las pendientes (sin filtro de período, estado actual)
+            var todasPendientes = (await _solicitudCompraRepository.GetDatosInformeAsync(
+                idSede, EstadoSolicitudCompra.Pendiente, null, null)).ToList();
+
+            // ── KPIs ─────────────────────────────────────────────────────────
+            int total      = solicitudes.Count;
+            int aprobadas  = solicitudes.Count(s => s.Estado == EstadoSolicitudCompra.Aprobada);
+            int rechazadas = solicitudes.Count(s => s.Estado == EstadoSolicitudCompra.Rechazada);
+            int pendientes = solicitudes.Count(s => s.Estado == EstadoSolicitudCompra.Pendiente);
+            int cumplTotal = solicitudes.Count(s => s.Etiqueta == EtiquetaSolicitudCompra.IngresadaAlStock);
+
+            var conDecision = solicitudes.Where(s => s.FechaDecision.HasValue).ToList();
+            double tiempoDecision = conDecision.Any()
+                ? Math.Round(conDecision.Average(s => (s.FechaDecision!.Value - s.FechaSolicitud).TotalDays), 1)
+                : 0;
+
+            var conStock = solicitudes
+                .Where(s => s.Etiqueta == EtiquetaSolicitudCompra.IngresadaAlStock && s.FechaDecision.HasValue)
+                .ToList();
+            double tiempoStock = conStock.Any()
+                ? Math.Round(conStock.Average(s => (s.FechaDecision!.Value - s.FechaSolicitud).TotalDays), 1)
+                : 0;
+
+            // ── Tab 1: Por usuario ────────────────────────────────────────────
+            var porUsuario = solicitudes
+                .GroupBy(s => s.UsuarioSolicitante?.NombreUsuario ?? "Desconocido")
+                .Select(g => BuildEntidadDto(g.Key, g.ToList()))
+                .OrderByDescending(d => d.Total)
+                .ToList();
+
+            // ── Tab 1: Por sede ───────────────────────────────────────────────
+            var porSede = solicitudes
+                .GroupBy(s => s.Sede?.NombreSede ?? "Sin sede")
+                .Select(g => BuildEntidadDto(g.Key, g.ToList()))
+                .OrderByDescending(d => d.Total)
+                .ToList();
+
+            // ── Tab 2: Pendientes ─────────────────────────────────────────────
+            var listaPendientes = todasPendientes.Select(s => new SolicitudPendienteDto
+            {
+                IdSolicitudCompra = s.IdSolicitudCompra,
+                Usuario           = s.UsuarioSolicitante?.NombreUsuario ?? "Desconocido",
+                Sede              = s.Sede?.NombreSede ?? "Sin sede",
+                FechaSolicitud    = s.FechaSolicitud,
+                DiasEsperando     = (int)(hoy - s.FechaSolicitud.Date).TotalDays,
+                Productos         = string.Join(", ", s.Detalles.Select(d => d.Producto?.Nombre ?? "?")),
+                MotivoSolicitud   = s.MotivoSolicitud ?? string.Empty
+            }).OrderByDescending(p => p.DiasEsperando).ToList();
+
+            int pend5  = listaPendientes.Count(p => p.DiasEsperando <= 5);
+            int pend10 = listaPendientes.Count(p => p.DiasEsperando <= 10);
+            int pend30 = listaPendientes.Count(p => p.DiasEsperando <= 30);
+
+            // ── Tab 3: Productos más solicitados ──────────────────────────────
+            var productosSolicitados = solicitudes
+                .SelectMany(s => s.Detalles.Select(d => new { Detalle = d, Solicitud = s }))
+                .Where(x => x.Detalle.Producto != null)
+                .GroupBy(x => x.Detalle.IdProducto)
+                .Select(g =>
+                {
+                    var solicitudesDelProd = g.Select(x => x.Solicitud).Distinct().ToList();
+                    return new ProductoSolicitadoDto
+                    {
+                        IdProducto       = g.Key,
+                        Producto         = g.First().Detalle.Producto!.Nombre,
+                        Sku              = g.First().Detalle.Producto!.Sku,
+                        Familia          = g.First().Detalle.Producto!.Familia?.Nombre ?? string.Empty,
+                        TotalUnidades    = g.Sum(x => x.Detalle.Cantidad),
+                        VecesSolicitado  = solicitudesDelProd.Count,
+                        VecesEnAprobadas = solicitudesDelProd.Count(s => s.Estado == EstadoSolicitudCompra.Aprobada)
+                    };
+                })
+                .OrderByDescending(p => p.TotalUnidades)
+                .Take(topN)
+                .ToList();
+
+            return new InformeSolicitudesCompraDto
+            {
+                TotalSolicitudes            = total,
+                TotalAprobadas              = aprobadas,
+                TotalRechazadas             = rechazadas,
+                TotalPendientes             = pendientes,
+                TiempoPromedioDecisionDias  = tiempoDecision,
+                TiempoPromedioStockDias     = tiempoStock,
+                PorcentajeCumplimientoTotal = total > 0 ? Math.Round((double)cumplTotal / total * 100, 1) : 0,
+                PorUsuario                  = porUsuario,
+                PorSede                     = porSede,
+                Pendientes                  = listaPendientes,
+                PendientesHasta5Dias        = pend5,
+                PendientesHasta10Dias       = pend10,
+                PendientesHasta30Dias       = pend30,
+                ProductosMasSolicitados     = productosSolicitados
+            };
+        }
+
+        private static SolicitudesPorEntidadDto BuildEntidadDto(string nombre, List<Domain.Entities.SolicitudCompra> lista)
+        {
+            var conDecision = lista.Where(s => s.FechaDecision.HasValue).ToList();
+            var conStock    = lista.Where(s => s.Etiqueta == EtiquetaSolicitudCompra.IngresadaAlStock && s.FechaDecision.HasValue).ToList();
+
+            return new SolicitudesPorEntidadDto
+            {
+                Nombre                   = nombre,
+                Total                    = lista.Count,
+                Aprobadas                = lista.Count(s => s.Estado == EstadoSolicitudCompra.Aprobada),
+                Rechazadas               = lista.Count(s => s.Estado == EstadoSolicitudCompra.Rechazada),
+                Pendientes               = lista.Count(s => s.Estado == EstadoSolicitudCompra.Pendiente),
+                CumplimientoTotal        = lista.Count(s => s.Etiqueta == EtiquetaSolicitudCompra.IngresadaAlStock),
+                CumplimientoParcial      = lista.Count(s => s.Etiqueta == EtiquetaSolicitudCompra.ParcialmenteIngresada),
+                NoConcretadas            = lista.Count(s => s.Etiqueta == EtiquetaSolicitudCompra.NoConcretada),
+                TiempoPromedioDecisionDias = conDecision.Any()
+                    ? Math.Round(conDecision.Average(s => (s.FechaDecision!.Value - s.FechaSolicitud).TotalDays), 1)
+                    : 0,
+                TiempoPromedioStockDias  = conStock.Any()
+                    ? Math.Round(conStock.Average(s => (s.FechaDecision!.Value - s.FechaSolicitud).TotalDays), 1)
+                    : 0
+            };
         }
 
         // ── Helpers ───────────────────────────────────────────────────────────────

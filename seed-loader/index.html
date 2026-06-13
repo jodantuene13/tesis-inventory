@@ -1,0 +1,1519 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>🌱 TesisInventory — Seed Loader</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <!-- SheetJS for XLSX parsing -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+  <style>
+    :root {
+      --bg-primary: #0a0e1a;
+      --bg-secondary: #0f1629;
+      --bg-card: rgba(15, 22, 41, 0.85);
+      --bg-glass: rgba(255,255,255,0.04);
+      --border: rgba(99, 130, 255, 0.15);
+      --border-hover: rgba(99, 130, 255, 0.4);
+      --accent: #6382ff;
+      --accent-light: #8ba3ff;
+      --accent-glow: rgba(99, 130, 255, 0.3);
+      --success: #22c55e;
+      --success-bg: rgba(34,197,94,0.12);
+      --error: #ef4444;
+      --error-bg: rgba(239,68,68,0.12);
+      --warn: #f59e0b;
+      --warn-bg: rgba(245,158,11,0.12);
+      --skip: #6b7280;
+      --text-primary: #e8ecf5;
+      --text-secondary: #8892b0;
+      --text-muted: #4b5671;
+      --radius: 14px;
+      --radius-sm: 8px;
+      --shadow: 0 8px 32px rgba(0,0,0,0.4);
+      --shadow-glow: 0 0 40px rgba(99, 130, 255, 0.15);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Background gradient blobs */
+    body::before {
+      content: '';
+      position: fixed;
+      top: -200px; left: -200px;
+      width: 700px; height: 700px;
+      background: radial-gradient(circle, rgba(99,130,255,0.08) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+    body::after {
+      content: '';
+      position: fixed;
+      bottom: -200px; right: -100px;
+      width: 600px; height: 600px;
+      background: radial-gradient(circle, rgba(139,163,255,0.06) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .app-container {
+      position: relative; z-index: 1;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 32px 20px 60px;
+    }
+
+    /* ─── HEADER ─── */
+    .app-header {
+      text-align: center;
+      margin-bottom: 48px;
+    }
+    .app-header .logo {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .app-header .logo-icon {
+      font-size: 36px;
+      filter: drop-shadow(0 0 16px rgba(99,130,255,0.5));
+    }
+    .app-header h1 {
+      font-size: 28px;
+      font-weight: 800;
+      background: linear-gradient(135deg, #e8ecf5 0%, #8ba3ff 60%, #6382ff 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .app-header p {
+      color: var(--text-secondary);
+      font-size: 14px;
+      font-weight: 400;
+      margin-top: 6px;
+    }
+
+    /* ─── STEPPER ─── */
+    .stepper {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+      margin-bottom: 40px;
+    }
+    .step {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      position: relative;
+    }
+    .step-num {
+      width: 38px; height: 38px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; font-weight: 700;
+      border: 2px solid var(--border);
+      color: var(--text-muted);
+      background: var(--bg-secondary);
+      transition: all 0.3s;
+    }
+    .step.active .step-num {
+      border-color: var(--accent);
+      color: white;
+      background: var(--accent);
+      box-shadow: 0 0 20px var(--accent-glow);
+    }
+    .step.done .step-num {
+      border-color: var(--success);
+      color: var(--success);
+      background: var(--success-bg);
+    }
+    .step-label {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+    .step.active .step-label { color: var(--accent-light); }
+    .step.done .step-label { color: var(--success); }
+    .step-line {
+      width: 60px; height: 2px;
+      background: var(--border);
+      margin: 0 4px;
+      flex-shrink: 0;
+    }
+    .step-line.done { background: var(--success); }
+    .step-line.active { background: var(--accent); }
+
+    /* ─── CARD ─── */
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 32px;
+      backdrop-filter: blur(16px);
+      box-shadow: var(--shadow);
+      margin-bottom: 24px;
+      transition: border-color 0.3s;
+    }
+    .card:hover { border-color: var(--border-hover); }
+
+    .card-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 20px;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .card-title span { font-size: 20px; }
+
+    /* ─── FORM ─── */
+    .form-group { margin-bottom: 18px; }
+    label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 8px;
+    }
+    input[type="text"], input[type="email"] {
+      width: 100%;
+      background: var(--bg-glass);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 12px 16px;
+      color: var(--text-primary);
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      outline: none;
+      transition: all 0.2s;
+    }
+    input[type="text"]:focus, input[type="email"]:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+
+    /* ─── BUTTONS ─── */
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 12px 24px;
+      border-radius: var(--radius-sm);
+      border: none;
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #5b7af8, #8ba3ff);
+      color: white;
+      box-shadow: 0 4px 16px rgba(99,130,255,0.35);
+    }
+    .btn-primary:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 24px rgba(99,130,255,0.5);
+    }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+    .btn-success {
+      background: linear-gradient(135deg, #16a34a, #22c55e);
+      color: white;
+      box-shadow: 0 4px 16px rgba(34,197,94,0.3);
+    }
+    .btn-success:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 24px rgba(34,197,94,0.45);
+    }
+    .btn-success:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+    .btn-ghost {
+      background: var(--bg-glass);
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+    }
+    .btn-ghost:hover { border-color: var(--border-hover); color: var(--text-primary); }
+
+    /* ─── STATUS BADGE ─── */
+    .badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 4px 12px;
+      border-radius: 999px;
+      font-size: 12px; font-weight: 600;
+    }
+    .badge-success { background: var(--success-bg); color: var(--success); border: 1px solid rgba(34,197,94,0.3); }
+    .badge-error { background: var(--error-bg); color: var(--error); border: 1px solid rgba(239,68,68,0.3); }
+    .badge-warn { background: var(--warn-bg); color: var(--warn); border: 1px solid rgba(245,158,11,0.3); }
+    .badge-info { background: rgba(99,130,255,0.1); color: var(--accent-light); border: 1px solid rgba(99,130,255,0.3); }
+    .badge-neutral { background: rgba(107,114,128,0.15); color: var(--skip); border: 1px solid rgba(107,114,128,0.3); }
+
+    /* ─── AUTH STATUS ─── */
+    .auth-status {
+      display: flex; align-items: center; gap: 12px;
+      padding: 14px 18px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      background: var(--bg-glass);
+      margin-top: 16px;
+      font-size: 13px;
+    }
+    .auth-status.authenticated { border-color: rgba(34,197,94,0.3); background: var(--success-bg); }
+    .auth-status.error { border-color: rgba(239,68,68,0.3); background: var(--error-bg); }
+    .dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .dot-green { background: var(--success); box-shadow: 0 0 8px var(--success); }
+    .dot-red { background: var(--error); }
+    .dot-gray { background: var(--text-muted); }
+
+    /* ─── DROPZONE ─── */
+    .dropzone {
+      border: 2px dashed var(--border);
+      border-radius: var(--radius);
+      padding: 48px 32px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      position: relative;
+    }
+    .dropzone:hover, .dropzone.dragover {
+      border-color: var(--accent);
+      background: rgba(99,130,255,0.04);
+    }
+    .dropzone input[type="file"] {
+      position: absolute; inset: 0;
+      width: 100%; height: 100%;
+      opacity: 0; cursor: pointer;
+    }
+    .dropzone-icon { font-size: 48px; margin-bottom: 12px; display: block; }
+    .dropzone h3 { font-size: 16px; font-weight: 600; margin-bottom: 6px; }
+    .dropzone p { font-size: 13px; color: var(--text-secondary); }
+
+    /* ─── ENTITY PREVIEW TABS ─── */
+    .tab-bar {
+      display: flex; gap: 4px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 20px;
+      overflow-x: auto;
+    }
+    .tab {
+      padding: 8px 16px;
+      font-size: 13px; font-weight: 500;
+      color: var(--text-muted);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      white-space: nowrap;
+      transition: all 0.2s;
+      border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+    }
+    .tab:hover { color: var(--text-secondary); background: var(--bg-glass); }
+    .tab.active { color: var(--accent-light); border-bottom-color: var(--accent); }
+
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* ─── TABLE ─── */
+    .table-wrap {
+      overflow-x: auto;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      max-height: 320px;
+      overflow-y: auto;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+    thead th {
+      background: rgba(99,130,255,0.08);
+      color: var(--text-secondary);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      padding: 10px 12px;
+      text-align: left;
+      position: sticky; top: 0;
+      border-bottom: 1px solid var(--border);
+    }
+    tbody tr { border-bottom: 1px solid var(--border); transition: background 0.15s; }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: var(--bg-glass); }
+    tbody td { padding: 9px 12px; color: var(--text-secondary); }
+
+    /* ─── ENTITY SUMMARY ─── */
+    .entity-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+    .entity-card {
+      background: var(--bg-glass);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 16px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .entity-card:hover { border-color: var(--border-hover); }
+    .entity-card.selected { border-color: var(--accent); background: rgba(99,130,255,0.06); }
+    .entity-card .ec-icon { font-size: 28px; margin-bottom: 8px; display: block; }
+    .entity-card .ec-count { font-size: 26px; font-weight: 800; color: var(--text-primary); }
+    .entity-card .ec-label { font-size: 11px; color: var(--text-muted); font-weight: 500; margin-top: 2px; }
+    .entity-card input[type="checkbox"] { display: none; }
+    .entity-card.selected::after {
+      content: '✓';
+      position: absolute;
+      top: 8px; right: 10px;
+      font-size: 14px;
+      color: var(--accent);
+      font-weight: 700;
+    }
+    .entity-card { position: relative; }
+
+    /* ─── PROGRESS ─── */
+    .progress-bar-wrap {
+      background: var(--bg-glass);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      height: 8px;
+      overflow: hidden;
+      margin: 16px 0;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #5b7af8, #8ba3ff);
+      border-radius: 999px;
+      transition: width 0.3s ease;
+      box-shadow: 0 0 12px rgba(99,130,255,0.5);
+    }
+    .progress-text {
+      font-size: 13px;
+      color: var(--text-secondary);
+      display: flex;
+      justify-content: space-between;
+    }
+
+    /* ─── LOG ─── */
+    .log-container {
+      background: #060a14;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 16px;
+      font-family: 'Fira Code', 'Consolas', monospace;
+      font-size: 12px;
+      height: 380px;
+      overflow-y: auto;
+      scroll-behavior: smooth;
+    }
+    .log-entry {
+      display: flex;
+      gap: 10px;
+      padding: 3px 0;
+      line-height: 1.6;
+      border-bottom: 1px solid rgba(255,255,255,0.02);
+    }
+    .log-time { color: var(--text-muted); flex-shrink: 0; }
+    .log-ok { color: var(--success); }
+    .log-err { color: var(--error); }
+    .log-skip { color: var(--skip); }
+    .log-info { color: var(--accent-light); }
+    .log-warn { color: var(--warn); }
+
+    /* ─── STATS GRID ─── */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .stat-card {
+      background: var(--bg-glass);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 16px;
+      text-align: center;
+    }
+    .stat-num { font-size: 28px; font-weight: 800; }
+    .stat-label { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+    .stat-created .stat-num { color: var(--success); }
+    .stat-errors .stat-num { color: var(--error); }
+    .stat-skipped .stat-num { color: var(--skip); }
+    .stat-total .stat-num { color: var(--accent-light); }
+
+    /* ─── SECTION DIVIDER ─── */
+    .section-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin: 24px 0 12px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .section-title::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    /* ─── ALERTS ─── */
+    .alert {
+      padding: 12px 16px;
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      margin-bottom: 16px;
+      display: flex; align-items: flex-start; gap: 10px;
+    }
+    .alert-warn { background: var(--warn-bg); border: 1px solid rgba(245,158,11,0.3); color: var(--warn); }
+    .alert-info { background: rgba(99,130,255,0.08); border: 1px solid rgba(99,130,255,0.2); color: var(--accent-light); }
+    .alert-success { background: var(--success-bg); border: 1px solid rgba(34,197,94,0.3); color: var(--success); }
+
+    /* ─── ANIMATIONS ─── */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .fade-in { animation: fadeIn 0.3s ease; }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+    .pulse { animation: pulse 1.5s infinite; }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    .spin { animation: spin 1s linear infinite; display: inline-block; }
+
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 600px) {
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+      .entity-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    .hidden { display: none !important; }
+
+    /* ─── STEP PANELS ─── */
+    .step-panel { display: none; }
+    .step-panel.active { display: block; animation: fadeIn 0.35s ease; }
+
+    /* ─── BUTTONS ROW ─── */
+    .btn-row {
+      display: flex; gap: 12px; align-items: center;
+      margin-top: 20px;
+      flex-wrap: wrap;
+    }
+
+    .btn-row .spacer { flex: 1; }
+
+    /* Options config */
+    .option-row {
+      display: flex; align-items: center; gap: 12px;
+      padding: 10px 14px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      background: var(--bg-glass);
+      margin-bottom: 10px;
+      cursor: pointer;
+      transition: all 0.2s;
+      user-select: none;
+    }
+    .option-row:hover { border-color: var(--border-hover); }
+    .option-row input[type="checkbox"] { accent-color: var(--accent); width: 16px; height: 16px; cursor: pointer; }
+    .option-row label { cursor: pointer; font-weight: 500; color: var(--text-primary); font-size: 13px; text-transform: none; letter-spacing: 0; margin: 0; }
+    .option-row .sub { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+    .option-info { flex: 1; }
+    .option-count { font-size: 12px; color: var(--accent-light); font-weight: 600; }
+  </style>
+</head>
+<body>
+<div class="app-container">
+
+  <!-- Header -->
+  <div class="app-header">
+    <div class="logo">
+      <span class="logo-icon">🌱</span>
+      <h1>TesisInventory — Seed Loader</h1>
+    </div>
+    <p>Herramienta de carga inicial de datos desde Excel · Mantenimiento UCC</p>
+  </div>
+
+  <!-- Stepper -->
+  <div class="stepper" id="stepper">
+    <div class="step" id="step-dot-1">
+      <div class="step-num">1</div>
+      <div class="step-label">Conexión</div>
+    </div>
+    <div class="step-line" id="step-line-1"></div>
+    <div class="step" id="step-dot-2">
+      <div class="step-num">2</div>
+      <div class="step-label">Importar XLSX</div>
+    </div>
+    <div class="step-line" id="step-line-2"></div>
+    <div class="step" id="step-dot-3">
+      <div class="step-num">3</div>
+      <div class="step-label">Preview</div>
+    </div>
+    <div class="step-line" id="step-line-3"></div>
+    <div class="step" id="step-dot-4">
+      <div class="step-num">4</div>
+      <div class="step-label">Ejecutar</div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════
+       PASO 1: CONEXIÓN / LOGIN
+       ══════════════════════════════════════════════════ -->
+  <div class="step-panel active" id="panel-1">
+    <div class="card">
+      <div class="card-title"><span>🔐</span> Configurar conexión</div>
+
+      <div class="form-group">
+        <label>URL Base de la API</label>
+        <input type="text" id="apiUrl" value="http://localhost:5139" placeholder="http://localhost:5139"/>
+      </div>
+      <div class="form-group">
+        <label>Email de usuario (test-login)</label>
+        <input type="email" id="loginEmail" value="admin@ucc.edu.ar" placeholder="admin@ucc.edu.ar"/>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-primary" id="btnLogin" onclick="doLogin()">
+          <span>🔑</span> Conectar
+        </button>
+      </div>
+
+      <div id="authStatus" class="auth-status hidden">
+        <div class="dot dot-gray" id="authDot"></div>
+        <div id="authMsg">—</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════
+       PASO 2: IMPORTAR XLSX
+       ══════════════════════════════════════════════════ -->
+  <div class="step-panel" id="panel-2">
+    <div class="card">
+      <div class="card-title"><span>📂</span> Importar archivo Excel</div>
+
+      <div class="alert alert-info">
+        ℹ️ El archivo debe ser el Excel de clasificación de Mantenimiento UCC con las hojas:
+        <strong>01_Rubros, 02_Familias, 03_Atributos, 04_Familia_Atributos, 05_Productos_Clasificados</strong>
+      </div>
+
+      <div class="dropzone" id="dropzone"
+           ondragover="event.preventDefault();this.classList.add('dragover')"
+           ondragleave="this.classList.remove('dragover')"
+           ondrop="handleDrop(event)">
+        <input type="file" id="fileInput" accept=".xlsx,.xls" onchange="handleFile(this.files[0])"/>
+        <span class="dropzone-icon">📊</span>
+        <h3>Arrastrá el archivo o hacé clic para seleccionarlo</h3>
+        <p>Formatos soportados: .xlsx, .xls</p>
+      </div>
+
+      <div id="fileInfo" class="hidden" style="margin-top: 16px;">
+        <div class="alert alert-success">
+          <span>✅</span>
+          <div id="fileInfoText"></div>
+        </div>
+        <div class="entity-grid" id="entitySummary"></div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-ghost" onclick="goStep(1)">← Volver</button>
+        <div class="spacer"></div>
+        <button class="btn btn-primary" id="btnNextStep2" onclick="goStep(3)" disabled>
+          Ver Preview →
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════
+       PASO 3: PREVIEW Y CONFIGURACIÓN
+       ══════════════════════════════════════════════════ -->
+  <div class="step-panel" id="panel-3">
+    <div class="card">
+      <div class="card-title"><span>🔍</span> Preview de datos</div>
+
+      <!-- Tab bar -->
+      <div class="tab-bar" id="previewTabBar"></div>
+      <div id="previewTabContents"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><span>⚙️</span> Configurar carga</div>
+
+      <p style="font-size:13px; color:var(--text-secondary); margin-bottom:16px;">
+        Seleccioná qué entidades querés cargar. El orden de ejecución es siempre:
+        Rubros → Familias → Atributos → Opciones LIST → Familia-Atributos → Productos.
+      </p>
+
+      <div id="entityOptions"></div>
+
+      <div class="btn-row">
+        <button class="btn btn-ghost" onclick="goStep(2)">← Volver</button>
+        <div class="spacer"></div>
+        <button class="btn btn-success" id="btnExecute" onclick="goStep(4)">
+          <span>🚀</span> Ejecutar carga
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════
+       PASO 4: EJECUCIÓN
+       ══════════════════════════════════════════════════ -->
+  <div class="step-panel" id="panel-4">
+    <div class="card">
+      <div class="card-title"><span>🚀</span> Ejecutando carga</div>
+
+      <!-- Stats -->
+      <div class="stats-grid">
+        <div class="stat-card stat-total">
+          <div class="stat-num" id="statTotal">0</div>
+          <div class="stat-label">Total</div>
+        </div>
+        <div class="stat-card stat-created">
+          <div class="stat-num" id="statCreated">0</div>
+          <div class="stat-label">Creados</div>
+        </div>
+        <div class="stat-card stat-errors">
+          <div class="stat-num" id="statErrors">0</div>
+          <div class="stat-label">Errores</div>
+        </div>
+        <div class="stat-card stat-skipped">
+          <div class="stat-num" id="statSkipped">0</div>
+          <div class="stat-label">Skipped</div>
+        </div>
+      </div>
+
+      <!-- Progress -->
+      <div class="progress-text">
+        <span id="progressLabel">Preparando...</span>
+        <span id="progressPct">0%</span>
+      </div>
+      <div class="progress-bar-wrap">
+        <div class="progress-bar-fill" id="progressBar" style="width:0%"></div>
+      </div>
+
+      <!-- Log -->
+      <div class="section-title">Log de operaciones</div>
+      <div class="log-container" id="logContainer"></div>
+
+      <div class="btn-row" id="execBtnRow">
+        <button class="btn btn-ghost" onclick="goStep(3)" id="btnBackFromExec">← Volver</button>
+        <div class="spacer"></div>
+        <button class="btn btn-primary" id="btnStartExec" onclick="startExecution()">
+          <span>▶</span> Iniciar
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════
+const state = {
+  currentStep: 1,
+  apiUrl: '',
+  token: '',
+  userData: null,
+  workbook: null,
+  parsedData: {
+    rubros: [],
+    familias: [],
+    atributos: [],
+    familiaAtributos: [],
+    productos: []
+  },
+  // Maps code → created ID
+  idMaps: {
+    rubros: {},     // codigoRubro → idRubro
+    familias: {},   // codigoFamilia → idFamilia
+    atributos: {},  // codigoAtributo → idAtributo
+    opciones: {}    // "idAtributo:codigoOpcion" → idOpcion
+  },
+  selectedEntities: {
+    rubros: true,
+    familias: true,
+    atributos: true,
+    familiaAtributos: true,
+    productos: true
+  },
+  stats: { total: 0, created: 0, errors: 0, skipped: 0 },
+  isRunning: false
+};
+
+// ═══════════════════════════════════════════════════════
+// STEP NAVIGATION
+// ═══════════════════════════════════════════════════════
+function goStep(n) {
+  document.querySelectorAll('.step-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById(`panel-${n}`).classList.add('active');
+  state.currentStep = n;
+  updateStepper();
+
+  if (n === 3) buildPreview();
+  if (n === 4) resetExecPanel();
+}
+
+function updateStepper() {
+  for (let i = 1; i <= 4; i++) {
+    const dot = document.getElementById(`step-dot-${i}`);
+    dot.classList.remove('active','done');
+    if (i < state.currentStep) dot.classList.add('done');
+    if (i === state.currentStep) dot.classList.add('active');
+    if (i < 4) {
+      const line = document.getElementById(`step-line-${i}`);
+      line.classList.remove('done','active');
+      if (i < state.currentStep) line.classList.add('done');
+      if (i === state.currentStep) line.classList.add('active');
+    }
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// STEP 1: LOGIN
+// ═══════════════════════════════════════════════════════
+async function doLogin() {
+  const email = document.getElementById('loginEmail').value.trim();
+  const baseUrl = document.getElementById('apiUrl').value.trim().replace(/\/$/, '');
+  const btn = document.getElementById('btnLogin');
+  const status = document.getElementById('authStatus');
+  const dot = document.getElementById('authDot');
+  const msg = document.getElementById('authMsg');
+
+  if (!email || !baseUrl) { alert('Completá todos los campos'); return; }
+
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spin">⏳</span> Conectando...';
+  status.classList.remove('hidden','authenticated','error');
+  dot.className = 'dot dot-gray pulse';
+  msg.textContent = 'Conectando...';
+  status.classList.remove('hidden');
+
+  try {
+    const res = await fetch(`${baseUrl}/api/Auth/test-login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email })
+    });
+    const data = await res.json();
+
+    if (!res.ok) throw new Error(data.message || `HTTP ${res.status}`);
+
+    state.token = data.token;
+    state.apiUrl = baseUrl;
+    state.userData = data.user;
+
+    dot.className = 'dot dot-green';
+    msg.innerHTML = `<strong>${data.user.nombreUsuario}</strong> · ${data.user.email} · Rol: ${data.user.nombreRol}`;
+    status.classList.add('authenticated');
+    btn.innerHTML = '<span>✅</span> Conectado';
+
+    setTimeout(() => goStep(2), 800);
+  } catch(e) {
+    dot.className = 'dot dot-red';
+    msg.textContent = `Error: ${e.message}`;
+    status.classList.add('error');
+    btn.disabled = false;
+    btn.innerHTML = '<span>🔑</span> Conectar';
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// STEP 2: FILE IMPORT
+// ═══════════════════════════════════════════════════════
+function handleDrop(e) {
+  e.preventDefault();
+  document.getElementById('dropzone').classList.remove('dragover');
+  const file = e.dataTransfer.files[0];
+  if (file) handleFile(file);
+}
+
+function handleFile(file) {
+  if (!file) return;
+  if (!file.name.match(/\.xlsx?$/i)) {
+    alert('Por favor seleccioná un archivo .xlsx o .xls');
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const wb = XLSX.read(e.target.result, { type: 'binary' });
+      state.workbook = wb;
+      parseWorkbook(wb);
+      showFileInfo(file);
+    } catch(err) {
+      alert('Error al leer el archivo: ' + err.message);
+    }
+  };
+  reader.readAsBinaryString(file);
+}
+
+function findSheet(wb, ...names) {
+  for (const n of names) {
+    if (wb.SheetNames.includes(n)) return wb.Sheets[n];
+    const match = wb.SheetNames.find(s => s.toLowerCase().includes(n.toLowerCase()));
+    if (match) return wb.Sheets[match];
+  }
+  return null;
+}
+
+function parseWorkbook(wb) {
+  // Parse Rubros
+  const shRubros = findSheet(wb, '01_Rubros', 'Rubros', 'rubros');
+  if (shRubros) {
+    const rows = XLSX.utils.sheet_to_json(shRubros, { defval: '' });
+    state.parsedData.rubros = rows
+      .filter(r => r['rubro_id'] || r['rubro'])
+      .map(r => ({
+        codigoRubro: String(r['rubro_id'] || '').trim(),
+        nombre: String(r['rubro'] || '').trim(),
+        descripcion: String(r['descripcion'] || '').trim(),
+        activo: true
+      }))
+      .filter(r => r.codigoRubro && r.nombre);
+  }
+
+  // Parse Familias
+  const shFamilias = findSheet(wb, '02_Familias', 'Familias', 'familias');
+  if (shFamilias) {
+    const rows = XLSX.utils.sheet_to_json(shFamilias, { defval: '' });
+    state.parsedData.familias = rows
+      .filter(r => r['familia_id'] || r['familia'])
+      .map(r => ({
+        codigoFamilia: String(r['familia_id'] || '').trim(),
+        codigoRubro: String(r['rubro_id'] || '').trim(),
+        nombre: String(r['familia'] || '').trim(),
+        descripcion: String(r['descripcion'] || '').trim(),
+        activo: true
+      }))
+      .filter(r => r.codigoFamilia && r.nombre && r.codigoRubro);
+  }
+
+  // Parse Atributos
+  const shAtributos = findSheet(wb, '03_Atributos', 'Atributos', 'atributos');
+  if (shAtributos) {
+    const rows = XLSX.utils.sheet_to_json(shAtributos, { defval: '' });
+    state.parsedData.atributos = rows
+      .filter(r => r['atributo_id'])
+      .map(r => {
+        const tipoDatoRaw = String(r['tipo_dato_default'] || r['tipo_dato'] || 'Texto').trim();
+        return {
+          codigoAtributo: String(r['atributo_id'] || '').trim(),
+          nombre: String(r['atributo'] || '').trim(),
+          tipoDato: mapTipoDato(tipoDatoRaw),
+          tipoDatoRaw,
+          unidad: String(r['unidad_sugerida'] || r['unidad'] || '').trim() || null,
+          descripcion: String(r['descripcion'] || '').trim() || null,
+          activo: true,
+          valoresSugeridos: String(r['valores_sugeridos'] || '').trim()
+        };
+      })
+      .filter(r => r.codigoAtributo && r.nombre);
+  }
+
+  // Parse Familia Atributos
+  const shFA = findSheet(wb, '04_Familia_Atributos', 'Familia_Atributos', 'familia_atributos', '04_FamiliaAtributos');
+  if (shFA) {
+    const rows = XLSX.utils.sheet_to_json(shFA, { defval: '' });
+    state.parsedData.familiaAtributos = rows
+      .filter(r => r['familia_id'] && r['atributo_id'])
+      .map(r => ({
+        codigoFamilia: String(r['familia_id'] || '').trim(),
+        codigoAtributo: String(r['atributo_id'] || '').trim(),
+        obligatorio: String(r['obligatoriedad'] || '').toLowerCase() === 'obligatorio',
+        activo: true
+      }))
+      .filter(r => r.codigoFamilia && r.codigoAtributo);
+  }
+
+  // Parse Productos
+  const shProd = findSheet(wb, '05_Productos_Clasificados', 'Productos_Clasificados', 'Productos', 'productos', '05_Productos');
+  if (shProd) {
+    const rows = XLSX.utils.sheet_to_json(shProd, { defval: '' });
+    state.parsedData.productos = rows
+      .filter(r => r['producto_original'] || r['nombre'])
+      .map(r => ({
+        nombre: String(r['producto_original'] || r['nombre'] || '').trim(),
+        unidadMedida: String(r['unidad_original'] || r['unidad'] || 'Ud').trim() || 'Ud',
+        codigoRubro: String(r['rubro_id'] || '').trim(),
+        codigoFamilia: String(r['familia_id'] || '').trim(),
+        activo: true
+      }))
+      .filter(r => r.nombre && r.codigoRubro && r.codigoFamilia);
+  }
+}
+
+function mapTipoDato(raw) {
+  const map = {
+    'texto': 'TEXT',
+    'text': 'TEXT',
+    'texto largo': 'TEXT',
+    'número': 'NUMBER',
+    'numero': 'NUMBER',
+    'number': 'NUMBER',
+    'decimal': 'DECIMAL',
+    'lista': 'LIST',
+    'list': 'LIST',
+    'booleano': 'BOOL',
+    'bool': 'BOOL',
+    'boolean': 'BOOL'
+  };
+  return map[raw.toLowerCase()] || 'TEXT';
+}
+
+function showFileInfo(file) {
+  const d = state.parsedData;
+  document.getElementById('fileInfoText').innerHTML =
+    `<strong>${file.name}</strong> (${(file.size/1024).toFixed(1)} KB) importado correctamente.`;
+
+  const summary = document.getElementById('entitySummary');
+  summary.innerHTML = '';
+  const entities = [
+    { key: 'rubros', icon: '📁', label: 'Rubros', count: d.rubros.length },
+    { key: 'familias', icon: '📂', label: 'Familias', count: d.familias.length },
+    { key: 'atributos', icon: '🏷️', label: 'Atributos', count: d.atributos.length },
+    { key: 'familiaAtributos', icon: '🔗', label: 'Fam-Atributos', count: d.familiaAtributos.length },
+    { key: 'productos', icon: '📦', label: 'Productos', count: d.productos.length }
+  ];
+  entities.forEach(e => {
+    const el = document.createElement('div');
+    el.className = 'entity-card';
+    el.innerHTML = `
+      <span class="ec-icon">${e.icon}</span>
+      <div class="ec-count">${e.count}</div>
+      <div class="ec-label">${e.label}</div>
+    `;
+    summary.appendChild(el);
+  });
+
+  document.getElementById('fileInfo').classList.remove('hidden');
+  document.getElementById('btnNextStep2').disabled = false;
+}
+
+// ═══════════════════════════════════════════════════════
+// STEP 3: PREVIEW
+// ═══════════════════════════════════════════════════════
+function buildPreview() {
+  buildTabPreview();
+  buildEntityOptions();
+}
+
+function buildTabPreview() {
+  const tabBar = document.getElementById('previewTabBar');
+  const tabContents = document.getElementById('previewTabContents');
+  tabBar.innerHTML = '';
+  tabContents.innerHTML = '';
+
+  const tabs = [
+    { id: 'rubros', label: '📁 Rubros', cols: ['codigoRubro','nombre'], data: state.parsedData.rubros },
+    { id: 'familias', label: '📂 Familias', cols: ['codigoFamilia','codigoRubro','nombre'], data: state.parsedData.familias },
+    { id: 'atributos', label: '🏷️ Atributos', cols: ['codigoAtributo','nombre','tipoDato','unidad'], data: state.parsedData.atributos },
+    { id: 'familiaAtributos', label: '🔗 Fam-Atributos', cols: ['codigoFamilia','codigoAtributo','obligatorio'], data: state.parsedData.familiaAtributos },
+    { id: 'productos', label: '📦 Productos', cols: ['nombre','unidadMedida','codigoRubro','codigoFamilia'], data: state.parsedData.productos }
+  ];
+
+  tabs.forEach((tab, i) => {
+    // Tab
+    const tabEl = document.createElement('div');
+    tabEl.className = `tab${i === 0 ? ' active' : ''}`;
+    tabEl.textContent = `${tab.label} (${tab.data.length})`;
+    tabEl.onclick = () => {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+      tabEl.classList.add('active');
+      document.getElementById(`tab-content-${tab.id}`).classList.add('active');
+    };
+    tabBar.appendChild(tabEl);
+
+    // Content
+    const content = document.createElement('div');
+    content.className = `tab-content${i === 0 ? ' active' : ''}`;
+    content.id = `tab-content-${tab.id}`;
+
+    if (tab.data.length === 0) {
+      content.innerHTML = `<div class="alert alert-warn">⚠️ No se encontraron datos para esta entidad en el archivo.</div>`;
+    } else {
+      const preview = tab.data.slice(0, 50);
+      content.innerHTML = `
+        <div style="font-size:12px;color:var(--text-muted);margin-bottom:8px;">
+          Mostrando ${preview.length} de ${tab.data.length} registros
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>${tab.cols.map(c => `<th>${c}</th>`).join('')}</tr>
+            </thead>
+            <tbody>
+              ${preview.map(row => `
+                <tr>${tab.cols.map(c => `<td>${String(row[c] ?? '—')}</td>`).join('')}</tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      `;
+    }
+    tabContents.appendChild(content);
+  });
+}
+
+function buildEntityOptions() {
+  const container = document.getElementById('entityOptions');
+  const d = state.parsedData;
+  const options = [
+    { key: 'rubros', icon: '📁', label: 'Rubros', count: d.rubros.length, desc: 'Clasificación de primer nivel' },
+    { key: 'familias', icon: '📂', label: 'Familias', count: d.familias.length, desc: 'Clasificación de segundo nivel' },
+    { key: 'atributos', icon: '🏷️', label: 'Atributos + Opciones LIST', count: d.atributos.length, desc: 'Catálogo maestro de atributos' },
+    { key: 'familiaAtributos', icon: '🔗', label: 'Asignaciones Familia-Atributo', count: d.familiaAtributos.length, desc: 'Vinculación de atributos a familias' },
+    { key: 'productos', icon: '📦', label: 'Productos', count: d.productos.length, desc: 'Con atributos básicos obligatorios' }
+  ];
+
+  container.innerHTML = options.map(opt => `
+    <div class="option-row" onclick="toggleOption('${opt.key}')">
+      <input type="checkbox" id="opt-${opt.key}" ${state.selectedEntities[opt.key] ? 'checked' : ''}>
+      <span style="font-size:20px">${opt.icon}</span>
+      <div class="option-info">
+        <label for="opt-${opt.key}">${opt.label}</label>
+        <div class="sub">${opt.desc}</div>
+      </div>
+      <span class="option-count">${opt.count} ítems</span>
+    </div>
+  `).join('');
+}
+
+function toggleOption(key) {
+  state.selectedEntities[key] = !state.selectedEntities[key];
+  const cb = document.getElementById(`opt-${key}`);
+  if (cb) cb.checked = state.selectedEntities[key];
+}
+
+// ═══════════════════════════════════════════════════════
+// STEP 4: EXECUTION
+// ═══════════════════════════════════════════════════════
+function resetExecPanel() {
+  document.getElementById('logContainer').innerHTML = '';
+  state.stats = { total: 0, created: 0, errors: 0, skipped: 0 };
+  updateStats();
+  updateProgress(0, 'Listo para iniciar');
+  document.getElementById('btnStartExec').disabled = false;
+  document.getElementById('btnBackFromExec').disabled = false;
+}
+
+function log(type, msg) {
+  const container = document.getElementById('logContainer');
+  const time = new Date().toLocaleTimeString('es-AR');
+  const classMap = { ok: 'log-ok', err: 'log-err', skip: 'log-skip', info: 'log-info', warn: 'log-warn' };
+  const icons = { ok: '✅', err: '❌', skip: '⏭️', info: 'ℹ️', warn: '⚠️' };
+  const entry = document.createElement('div');
+  entry.className = 'log-entry';
+  entry.innerHTML = `
+    <span class="log-time">${time}</span>
+    <span class="${classMap[type] || 'log-info'}">${icons[type] || ''} ${msg}</span>
+  `;
+  container.appendChild(entry);
+  container.scrollTop = container.scrollHeight;
+}
+
+function updateStats() {
+  document.getElementById('statTotal').textContent = state.stats.total;
+  document.getElementById('statCreated').textContent = state.stats.created;
+  document.getElementById('statErrors').textContent = state.stats.errors;
+  document.getElementById('statSkipped').textContent = state.stats.skipped;
+}
+
+function updateProgress(pct, label) {
+  document.getElementById('progressBar').style.width = pct + '%';
+  document.getElementById('progressPct').textContent = Math.round(pct) + '%';
+  document.getElementById('progressLabel').textContent = label;
+}
+
+async function apiPost(endpoint, body) {
+  const res = await fetch(`${state.apiUrl}${endpoint}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${state.token}`
+    },
+    body: JSON.stringify(body)
+  });
+  const text = await res.text();
+  let data;
+  try { data = JSON.parse(text); } catch { data = { message: text }; }
+  return { ok: res.ok, status: res.status, data };
+}
+
+async function apiGet(endpoint) {
+  const res = await fetch(`${state.apiUrl}${endpoint}`, {
+    headers: { 'Authorization': `Bearer ${state.token}` }
+  });
+  const data = await res.json();
+  return { ok: res.ok, data };
+}
+
+async function startExecution() {
+  if (state.isRunning) return;
+  state.isRunning = true;
+
+  document.getElementById('btnStartExec').disabled = true;
+  document.getElementById('btnBackFromExec').disabled = true;
+
+  // Count total operations
+  let total = 0;
+  if (state.selectedEntities.rubros) total += state.parsedData.rubros.length;
+  if (state.selectedEntities.familias) total += state.parsedData.familias.length;
+  if (state.selectedEntities.atributos) {
+    total += state.parsedData.atributos.length;
+    // Count LIST options
+    state.parsedData.atributos.forEach(a => {
+      if (a.tipoDato === 'LIST' && a.valoresSugeridos) {
+        total += a.valoresSugeridos.split(';').filter(v => v.trim()).length;
+      }
+    });
+  }
+  if (state.selectedEntities.familiaAtributos) total += state.parsedData.familiaAtributos.length;
+  if (state.selectedEntities.productos) total += state.parsedData.productos.length;
+  state.stats.total = total;
+  updateStats();
+
+  let done = 0;
+  const progress = (label) => {
+    done++;
+    updateProgress((done / total) * 100, label);
+    updateStats();
+  };
+
+  // ──── STEP 1: Pre-cargar IDs existentes ────
+  log('info', 'Obteniendo datos existentes en la base...');
+  try {
+    const rubrosExist = await apiGet('/api/Rubros?includeInactive=true');
+    if (rubrosExist.ok) {
+      rubrosExist.data.forEach(r => { state.idMaps.rubros[r.codigoRubro] = r.idRubro; });
+      log('info', `Rubros existentes: ${Object.keys(state.idMaps.rubros).length}`);
+    }
+    const familiasExist = await apiGet('/api/Familias?includeInactive=true');
+    if (familiasExist.ok) {
+      familiasExist.data.forEach(f => { state.idMaps.familias[f.codigoFamilia] = f.idFamilia; });
+      log('info', `Familias existentes: ${Object.keys(state.idMaps.familias).length}`);
+    }
+    const atributosExist = await apiGet('/api/Atributos?includeInactive=true');
+    if (atributosExist.ok) {
+      atributosExist.data.forEach(a => { state.idMaps.atributos[a.codigoAtributo] = a.idAtributo; });
+      log('info', `Atributos existentes: ${Object.keys(state.idMaps.atributos).length}`);
+    }
+  } catch(e) {
+    log('warn', `Error obteniendo datos existentes: ${e.message}`);
+  }
+
+  // ──── STEP 2: Rubros ────
+  if (state.selectedEntities.rubros && state.parsedData.rubros.length > 0) {
+    log('info', `━━━ RUBROS (${state.parsedData.rubros.length}) ━━━`);
+    for (const rubro of state.parsedData.rubros) {
+      if (state.idMaps.rubros[rubro.codigoRubro]) {
+        log('skip', `Rubro ya existe: ${rubro.codigoRubro} — ${rubro.nombre} (ID: ${state.idMaps.rubros[rubro.codigoRubro]})`);
+        state.stats.skipped++;
+      } else {
+        try {
+          const r = await apiPost('/api/Rubros', {
+            codigoRubro: rubro.codigoRubro,
+            nombre: rubro.nombre,
+            activo: true
+          });
+          if (r.ok) {
+            state.idMaps.rubros[rubro.codigoRubro] = r.data.idRubro;
+            log('ok', `Rubro creado: ${rubro.codigoRubro} — ${rubro.nombre} (ID: ${r.data.idRubro})`);
+            state.stats.created++;
+          } else {
+            log('err', `Error rubro ${rubro.codigoRubro}: ${r.data.message || r.status}`);
+            state.stats.errors++;
+          }
+        } catch(e) {
+          log('err', `Excepción rubro ${rubro.codigoRubro}: ${e.message}`);
+          state.stats.errors++;
+        }
+      }
+      progress(`Rubros: ${rubro.nombre}`);
+      await sleep(80);
+    }
+  }
+
+  // ──── STEP 3: Familias ────
+  if (state.selectedEntities.familias && state.parsedData.familias.length > 0) {
+    log('info', `━━━ FAMILIAS (${state.parsedData.familias.length}) ━━━`);
+    for (const fam of state.parsedData.familias) {
+      const idRubro = state.idMaps.rubros[fam.codigoRubro];
+      if (!idRubro) {
+        log('warn', `Familia ${fam.codigoFamilia}: Rubro ${fam.codigoRubro} no encontrado. Skip.`);
+        state.stats.skipped++;
+        progress(`Familias: ${fam.nombre}`);
+        continue;
+      }
+      if (state.idMaps.familias[fam.codigoFamilia]) {
+        log('skip', `Familia ya existe: ${fam.codigoFamilia} — ${fam.nombre} (ID: ${state.idMaps.familias[fam.codigoFamilia]})`);
+        state.stats.skipped++;
+      } else {
+        try {
+          const r = await apiPost('/api/Familias', {
+            idRubro,
+            codigoFamilia: fam.codigoFamilia,
+            nombre: fam.nombre,
+            activo: true
+          });
+          if (r.ok) {
+            state.idMaps.familias[fam.codigoFamilia] = r.data.idFamilia;
+            log('ok', `Familia creada: ${fam.codigoFamilia} — ${fam.nombre} (ID: ${r.data.idFamilia})`);
+            state.stats.created++;
+          } else {
+            log('err', `Error familia ${fam.codigoFamilia}: ${r.data.message || r.status}`);
+            state.stats.errors++;
+          }
+        } catch(e) {
+          log('err', `Excepción familia ${fam.codigoFamilia}: ${e.message}`);
+          state.stats.errors++;
+        }
+      }
+      progress(`Familias: ${fam.nombre}`);
+      await sleep(80);
+    }
+  }
+
+  // ──── STEP 4: Atributos + Opciones ────
+  if (state.selectedEntities.atributos && state.parsedData.atributos.length > 0) {
+    log('info', `━━━ ATRIBUTOS (${state.parsedData.atributos.length}) ━━━`);
+    for (const atr of state.parsedData.atributos) {
+      let idAtributo = state.idMaps.atributos[atr.codigoAtributo];
+      if (idAtributo) {
+        log('skip', `Atributo ya existe: ${atr.codigoAtributo} — ${atr.nombre} (ID: ${idAtributo})`);
+        state.stats.skipped++;
+      } else {
+        try {
+          const r = await apiPost('/api/Atributos', {
+            codigoAtributo: atr.codigoAtributo,
+            nombre: atr.nombre,
+            tipoDato: atr.tipoDato,
+            unidad: atr.unidad || null,
+            descripcion: atr.descripcion || null,
+            activo: true
+          });
+          if (r.ok) {
+            idAtributo = r.data.idAtributo;
+            state.idMaps.atributos[atr.codigoAtributo] = idAtributo;
+            log('ok', `Atributo creado: ${atr.codigoAtributo} — ${atr.nombre} (${atr.tipoDato}) (ID: ${idAtributo})`);
+            state.stats.created++;
+          } else {
+            log('err', `Error atributo ${atr.codigoAtributo}: ${r.data.message || r.status}`);
+            state.stats.errors++;
+          }
+        } catch(e) {
+          log('err', `Excepción atributo ${atr.codigoAtributo}: ${e.message}`);
+          state.stats.errors++;
+        }
+      }
+      progress(`Atributos: ${atr.nombre}`);
+      await sleep(60);
+
+      // Opciones LIST
+      if (atr.tipoDato === 'LIST' && atr.valoresSugeridos && idAtributo) {
+        const opciones = atr.valoresSugeridos.split(';').map(v => v.trim()).filter(v => v);
+        for (const opcion of opciones) {
+          const opKey = `${idAtributo}:${opcion}`;
+          if (state.idMaps.opciones[opKey]) {
+            state.stats.skipped++;
+          } else {
+            try {
+              const ro = await apiPost(`/api/Atributos/${idAtributo}/opciones`, {
+                codigoOpcion: opcion,
+                valor: opcion,
+                activo: true
+              });
+              if (ro.ok) {
+                state.idMaps.opciones[opKey] = ro.data.idAtributoOpcion;
+                log('ok', `  Opción LIST: ${atr.codigoAtributo} → "${opcion}"`);
+                state.stats.created++;
+              } else if (ro.status === 409 || (ro.data.message && ro.data.message.toLowerCase().includes('exist'))) {
+                state.stats.skipped++;
+              } else {
+                log('warn', `  Opción LIST ${atr.codigoAtributo} "${opcion}": ${ro.data.message || ro.status}`);
+                state.stats.errors++;
+              }
+            } catch(e) {
+              log('warn', `  Excepción opción ${opcion}: ${e.message}`);
+              state.stats.errors++;
+            }
+          }
+          progress(`Opciones: ${atr.nombre} → ${opcion}`);
+          await sleep(40);
+        }
+      }
+    }
+  }
+
+  // ──── STEP 5: Familia-Atributos ────
+  if (state.selectedEntities.familiaAtributos && state.parsedData.familiaAtributos.length > 0) {
+    log('info', `━━━ FAMILIA-ATRIBUTOS (${state.parsedData.familiaAtributos.length}) ━━━`);
+    for (const fa of state.parsedData.familiaAtributos) {
+      const idFamilia = state.idMaps.familias[fa.codigoFamilia];
+      const idAtributo = state.idMaps.atributos[fa.codigoAtributo];
+
+      if (!idFamilia || !idAtributo) {
+        log('warn', `FA skip: fam=${fa.codigoFamilia}(${idFamilia}) atr=${fa.codigoAtributo}(${idAtributo})`);
+        state.stats.skipped++;
+        progress(`FA: ${fa.codigoFamilia}→${fa.codigoAtributo}`);
+        await sleep(20);
+        continue;
+      }
+
+      try {
+        const r = await apiPost(`/api/Atributos/familia/${idFamilia}`, {
+          idAtributo,
+          obligatorio: fa.obligatorio,
+          activo: true
+        });
+        if (r.ok) {
+          log('ok', `FA: ${fa.codigoFamilia}→${fa.codigoAtributo} [${fa.obligatorio ? 'obligatorio' : 'opcional'}]`);
+          state.stats.created++;
+        } else if (r.status === 409 || (r.data.message && r.data.message.toLowerCase().includes('ya está'))) {
+          log('skip', `FA ya existe: ${fa.codigoFamilia}→${fa.codigoAtributo}`);
+          state.stats.skipped++;
+        } else {
+          log('err', `Error FA ${fa.codigoFamilia}→${fa.codigoAtributo}: ${r.data.message || r.status}`);
+          state.stats.errors++;
+        }
+      } catch(e) {
+        log('err', `Excepción FA ${fa.codigoFamilia}→${fa.codigoAtributo}: ${e.message}`);
+        state.stats.errors++;
+      }
+      progress(`FA: ${fa.codigoFamilia} → ${fa.codigoAtributo}`);
+      await sleep(50);
+    }
+  }
+
+  // ──── STEP 6: Productos ────
+  if (state.selectedEntities.productos && state.parsedData.productos.length > 0) {
+    log('info', `━━━ PRODUCTOS (${state.parsedData.productos.length}) ━━━`);
+
+    // Build a map of familia → basic obligatory attributes (ATR-001, ATR-002, ATR-003)
+    const ATR001 = state.idMaps.atributos['ATR-001'];
+    const ATR002 = state.idMaps.atributos['ATR-002'];
+    const ATR003 = state.idMaps.atributos['ATR-003'];
+
+    if (!ATR001 || !ATR002 || !ATR003) {
+      log('warn', `⚠️ Atributos ATR-001/002/003 no encontrados. Se crearán productos sin atributos básicos.`);
+    }
+
+    // Deduplicate products by name
+    const seen = new Set();
+    const uniqueProducts = state.parsedData.productos.filter(p => {
+      if (seen.has(p.nombre)) return false;
+      seen.add(p.nombre);
+      return true;
+    });
+
+    if (uniqueProducts.length < state.parsedData.productos.length) {
+      log('info', `Deduplicados ${state.parsedData.productos.length - uniqueProducts.length} productos duplicados.`);
+    }
+
+    for (const prod of uniqueProducts) {
+      const idRubro = state.idMaps.rubros[prod.codigoRubro];
+      const idFamilia = state.idMaps.familias[prod.codigoFamilia];
+
+      if (!idRubro || !idFamilia) {
+        log('warn', `Producto skip: "${prod.nombre.substring(0,40)}..." — rubro/familia no resueltos`);
+        state.stats.skipped++;
+        progress(`Productos: ${prod.nombre}`);
+        await sleep(20);
+        continue;
+      }
+
+      // Build attributes array
+      const atributos = [];
+      if (ATR001) atributos.push({
+        idAtributo: ATR001,
+        valorTexto: prod.nombre.substring(0, 200),
+        valorNumero: null, valorDecimal: null, valorBool: null, valorLista: null
+      });
+      if (ATR002) atributos.push({
+        idAtributo: ATR002,
+        valorTexto: prod.nombre.substring(0, 200),
+        valorNumero: null, valorDecimal: null, valorBool: null, valorLista: null
+      });
+      if (ATR003) atributos.push({
+        idAtributo: ATR003,
+        valorTexto: null, valorNumero: null, valorDecimal: null, valorBool: null,
+        valorLista: prod.unidadMedida || 'Ud'
+      });
+
+      try {
+        const r = await apiPost('/api/Productos', {
+          idRubro,
+          idFamilia,
+          nombre: prod.nombre,
+          unidadMedida: prod.unidadMedida || 'Ud',
+          activo: true,
+          puntoReposicion: 0,
+          atributos
+        });
+        if (r.ok) {
+          log('ok', `Producto: "${prod.nombre.substring(0,50)}${prod.nombre.length>50?'...':''}" (ID: ${r.data.idProducto})`);
+          state.stats.created++;
+        } else if (r.status === 409) {
+          log('skip', `Producto ya existe: "${prod.nombre.substring(0,50)}"`);
+          state.stats.skipped++;
+        } else {
+          log('err', `Error producto "${prod.nombre.substring(0,40)}": ${r.data.message || r.status}`);
+          state.stats.errors++;
+        }
+      } catch(e) {
+        log('err', `Excepción producto: ${e.message}`);
+        state.stats.errors++;
+      }
+      progress(`Productos: ${prod.nombre}`);
+      await sleep(100);
+    }
+  }
+
+  // ──── FINAL ────
+  updateProgress(100, '✅ Proceso completado');
+  log('info', '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+  log('info', `RESUMEN FINAL:`);
+  log('ok', `  Creados:  ${state.stats.created}`);
+  log('skip', `  Skipped:  ${state.stats.skipped}`);
+  log(state.stats.errors > 0 ? 'err' : 'info', `  Errores:  ${state.stats.errors}`);
+  log('info', `  Total:    ${state.stats.total}`);
+
+  state.isRunning = false;
+  document.getElementById('btnBackFromExec').disabled = false;
+  document.getElementById('btnStartExec').textContent = '✅ Completado';
+}
+
+function sleep(ms) {
+  return new Promise(res => setTimeout(res, ms));
+}
+
+// Init stepper
+updateStepper();
+</script>
+</body>
+</html>

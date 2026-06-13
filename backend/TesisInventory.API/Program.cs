@@ -77,13 +77,29 @@ builder.Services.AddAuthentication(x =>
     };
 });
 
-// CORS Config (for Angular)
+// CORS Config (for Angular + Seed Loader via XAMPP / file://)
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAngular",
-        policy => policy.WithOrigins("http://localhost:4200", "http://127.0.0.1:4200")
-                        .AllowAnyHeader()
-                        .AllowAnyMethod());
+        policy => policy
+            .WithOrigins(
+                "http://localhost:4200",
+                "http://127.0.0.1:4200",
+                // Seed loader via XAMPP (puerto 80)
+                "http://localhost",
+                "http://127.0.0.1",
+                "http://localhost:80",
+                "http://127.0.0.1:80"
+            )
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .SetIsOriginAllowed(origin =>
+            {
+                // Permitir también file:// (null origin) y cualquier localhost
+                if (string.IsNullOrEmpty(origin) || origin == "null") return true;
+                var uri = new Uri(origin);
+                return uri.Host == "localhost" || uri.Host == "127.0.0.1";
+            }));
 });
 
 var app = builder.Build();

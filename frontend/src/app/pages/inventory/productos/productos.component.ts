@@ -155,15 +155,15 @@ export class ProductosComponent implements OnInit {
                         console.log(`Buscando atributo ID ${fa.idAtributo}`, ev, existingValues);
 
                         if (ev) {
-                            if (fa.tipoDatoAtributo === 'STRING') val = ev.valorTexto;
+                            if (fa.tipoDatoAtributo === 'TEXT') val = ev.valorTexto;
                             else if (fa.tipoDatoAtributo === 'NUMBER') val = Number(ev.valorNumero);
                             else if (fa.tipoDatoAtributo === 'DECIMAL') val = parseFloat(ev.valorDecimal);
-                            else if (fa.tipoDatoAtributo === 'BOOLEAN') val = (ev.valorBool === true || ev.valorBool === 'true');
+                            else if (fa.tipoDatoAtributo === 'BOOL') val = (ev.valorBool === true || ev.valorBool === 'true');
                             else if (fa.tipoDatoAtributo === 'LIST') val = ev.valorLista ? ev.valorLista.toString() : null;
                         }
                     }
 
-                    if (fa.tipoDatoAtributo === 'BOOLEAN' && val === null) val = false; // Default booleano
+                    if (fa.tipoDatoAtributo === 'BOOL' && val === null) val = false; // Default booleano
 
                     const validators = fa.obligatorio ? [Validators.required] : [];
                     const formGroupControl = this.fb.group({
@@ -267,10 +267,10 @@ export class ProductosComponent implements OnInit {
         const attrsPayload: CreateProductoAtributoValor[] = formVal.atributosForm.map((af: any) => {
             let attrVal: CreateProductoAtributoValor = { idAtributo: af.idAtributo };
 
-            if (af.tipoDato === 'STRING') attrVal.valorTexto = af.valor;
+            if (af.tipoDato === 'TEXT') attrVal.valorTexto = af.valor;
             else if (af.tipoDato === 'NUMBER') attrVal.valorNumero = Number(af.valor);
             else if (af.tipoDato === 'DECIMAL') attrVal.valorDecimal = parseFloat(af.valor);
-            else if (af.tipoDato === 'BOOLEAN') attrVal.valorBool = af.valor === true || af.valor === 'true';
+            else if (af.tipoDato === 'BOOL') attrVal.valorBool = af.valor === true || af.valor === 'true';
             else if (af.tipoDato === 'LIST') attrVal.valorLista = af.valor;
 
             return attrVal;
@@ -295,10 +295,10 @@ export class ProductosComponent implements OnInit {
                     if (!originalAttr) {
                         isChanged = true;
                     } else {
-                        if (af.tipoDato === 'STRING' && (newAttrDto?.valorTexto || '') !== (originalAttr.valorTexto || '')) isChanged = true;
+                        if (af.tipoDato === 'TEXT' && (newAttrDto?.valorTexto || '') !== (originalAttr.valorTexto || '')) isChanged = true;
                         if (af.tipoDato === 'NUMBER' && newAttrDto?.valorNumero != originalAttr.valorNumero) isChanged = true;
                         if (af.tipoDato === 'DECIMAL' && newAttrDto?.valorDecimal != originalAttr.valorDecimal) isChanged = true;
-                        if (af.tipoDato === 'BOOLEAN') {
+                        if (af.tipoDato === 'BOOL') {
                             const originalBool = originalAttr.valorBool === true || originalAttr.valorBool === 'true' as any;
                             if (newAttrDto?.valorBool !== originalBool) isChanged = true;
                         }

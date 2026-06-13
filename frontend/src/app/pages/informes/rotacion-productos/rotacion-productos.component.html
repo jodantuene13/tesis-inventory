@@ -226,6 +226,20 @@
           </svg>
           Egresos
         </button>
+        <button class="tab-btn" id="tab-inmovilizado" [class.active]="activeTab === 'inmovilizado'" (click)="setTab('inmovilizado')">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="15" height="15">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+          </svg>
+          Stock Inmovilizado
+        </button>
+        <button class="tab-btn" id="tab-familias" [class.active]="activeTab === 'familias'" (click)="setTab('familias')">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="15" height="15">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+          Familia más consumida
+        </button>
       </div>
 
       <!-- ══ TAB 1: ROTACIÓN ════════════════════════════════════════════════ -->
@@ -442,6 +456,152 @@
         </div>
 
       </div><!-- /tab egresos -->
+
+      <!-- ══ TAB 4: STOCK INMOVILIZADO ════════════════════════════════════════ -->
+      <div *ngIf="activeTab === 'inmovilizado'" class="tab-content animate-fade-in">
+
+        <div class="ds-card chart-card">
+          <div class="ds-card__header">
+            <div>
+              <h3 class="ds-card__title">Top {{ filtros.topN }} productos con stock inmovilizado</h3>
+              <p class="ds-card__subtitle">
+                Productos con stock disponible que no registraron egresos en el período seleccionado.
+                Sede: {{ sedeSeleccionadaNombre }}.
+              </p>
+            </div>
+          </div>
+          <div class="ds-card__body chart-body">
+            <canvas #chartInmovilizado id="chart-inmovilizado"></canvas>
+          </div>
+        </div>
+
+        <div class="ds-card table-card">
+          <div class="ds-card__header">
+            <h3 class="ds-card__title">Detalle de productos sin movimiento de egreso</h3>
+            <div class="table-toolbar">
+              <div class="search-box">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="14" height="14">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                <input type="text" placeholder="Buscar producto o familia..." [(ngModel)]="busquedaInm" class="search-input" id="search-inmovilizado" />
+              </div>
+            </div>
+          </div>
+          <div class="table-scroll-wrap">
+            <table class="ds-table informe-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Producto</th>
+                  <th>Familia</th>
+                  <th>Sede</th>
+                  <th>Stock actual</th>
+                  <th>Último ingreso</th>
+                  <th>Días sin egreso</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let p of datosInmFiltrados; let i = index">
+                  <td class="cell-num">{{ i + 1 }}</td>
+                  <td class="cell-primary">{{ p.producto }}</td>
+                  <td>{{ p.familia }}</td>
+                  <td><span class="sede-chip">{{ p.sede }}</span></td>
+                  <td>
+                    <span class="rotacion-badge" style="background:rgba(239,68,68,0.1);color:#dc2626;">
+                      {{ p.stockActual }} u.
+                    </span>
+                  </td>
+                  <td>{{ formatFecha(p.ultimoIngreso) }}</td>
+                  <td>
+                    <span class="badge" [ngClass]="p.diasSinEgreso > 60 ? 'badge-tend-baja' : p.diasSinEgreso > 30 ? 'badge-tend-media' : 'badge-tend-alta'">
+                      +{{ p.diasSinEgreso }} días
+                    </span>
+                  </td>
+                </tr>
+                <tr *ngIf="datosInmFiltrados.length === 0">
+                  <td colspan="7" class="cell-empty">
+                    Todos los productos registraron egresos en el período seleccionado.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="table-footer-bar">
+            <span class="table-footer-count">Mostrando {{ datosInmFiltrados.length }} de {{ datosInmovilizado.length }} productos</span>
+            <button class="btn btn-ghost btn--sm ver-mas-btn" *ngIf="!verMasInm && datosInmovilizado.length > 20" (click)="verMasInm = true">
+              Ver todos ({{ datosInmovilizado.length }}) ›
+            </button>
+            <button class="btn btn-ghost btn--sm ver-mas-btn" *ngIf="verMasInm" (click)="verMasInm = false">
+              ‹ Mostrar primeros 20
+            </button>
+          </div>
+        </div>
+
+      </div><!-- /tab inmovilizado -->
+
+      <!-- ══ TAB 5: FAMILIA MÁS CONSUMIDA ═════════════════════════════════════ -->
+      <div *ngIf="activeTab === 'familias'" class="tab-content animate-fade-in">
+
+        <div class="ds-card chart-card">
+          <div class="ds-card__header">
+            <div>
+              <h3 class="ds-card__title">Top 10 familias por consumo — Egresos vs Ingresos</h3>
+              <p class="ds-card__subtitle">
+                Ratio = Egresos / Ingresos. Una familia con ratio cercano a 1 consume todo lo que ingresa.
+                Sede: {{ sedeSeleccionadaNombre }}.
+              </p>
+            </div>
+          </div>
+          <div class="ds-card__body chart-body" style="min-height: 320px;">
+            <canvas #chartFamilias id="chart-familias"></canvas>
+          </div>
+        </div>
+
+        <div class="ds-card table-card">
+          <div class="ds-card__header">
+            <h3 class="ds-card__title">Ranking de familias por consumo</h3>
+          </div>
+          <div class="table-scroll-wrap">
+            <table class="ds-table informe-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Familia</th>
+                  <th>Ingresos (u.)</th>
+                  <th>Egresos (u.)</th>
+                  <th>Ratio consumo</th>
+                  <th>Productos activos</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let f of datosFamiliasFiltrados; let i = index">
+                  <td class="cell-num">{{ i + 1 }}</td>
+                  <td class="cell-primary">{{ f.familia }}</td>
+                  <td class="cell-ingreso">+{{ f.totalIngresos }} u.</td>
+                  <td class="cell-egreso">-{{ f.totalEgresos }} u.</td>
+                  <td class="cell-rotacion">
+                    <span class="rotacion-badge">{{ f.ratioConsumo }}</span>
+                  </td>
+                  <td>{{ f.cantidadProductos }}</td>
+                </tr>
+                <tr *ngIf="datosFamiliasFiltrados.length === 0">
+                  <td colspan="6" class="cell-empty">No hay datos de familias para los filtros seleccionados.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="table-footer-bar">
+            <span class="table-footer-count">Mostrando {{ datosFamiliasFiltrados.length }} de {{ datosFamilias.length }} familias</span>
+            <button class="btn btn-ghost btn--sm ver-mas-btn" *ngIf="!verMasFam && datosFamilias.length > 10" (click)="verMasFam = true">
+              Ver más ({{ datosFamilias.length }}) ›
+            </button>
+            <button class="btn btn-ghost btn--sm ver-mas-btn" *ngIf="verMasFam" (click)="verMasFam = false">
+              ‹ Mostrar Top 10
+            </button>
+          </div>
+        </div>
+
+      </div><!-- /tab familias -->
 
     </ng-container><!-- /!cargando && !error -->
 

@@ -409,6 +409,93 @@ namespace TesisInventory.Application.Services
             return informe;
         }
 
+        // ── Informe 4: Stock Inmovilizado ─────────────────────────────────────────
+
+        public async Task<IEnumerable<ProductoInmovilizadoDto>> GetStockInmovilizadoAsync(
+            int? idSede, int? idFamilia,
+            DateTime fechaDesde, DateTime fechaHasta)
+        {
+            // Productos que tuvieron EGRESOS en el período (los excluimos)
+            var movimientosPeriodo = (await _movimientoRepository.GetDatosRotacionAsync(
+                idSede, idFamilia, fechaDesde, fechaHasta)).ToList();
+
+            var conEgresoPeriodo = movimientosPeriodo
+                .Where(m => m.TipoMovimiento == TipoMovimiento.Egreso)
+                .Select(m => (m.IdProducto, m.IdSede))
+                .ToHashSet();
+
+            // Todos los stocks activos (CantidadActual > 0) para la sede/familia
+            var todosLosStocks = (await _stockRepository.GetAllStocksAsync(idSede, idFamilia)).ToList();
+
+            // Último ingreso histórico por (producto, sede) para mostrar como dato
+            var todosLosIngresos = (await _movimientoRepository.GetIngresosAsync(idSede, idFamilia)).ToList();
+
+            var ultimosIngresos = todosLosIngresos
+                .GroupBy(m => (m.IdProducto, m.IdSede))
+                .ToDictionary(g => g.Key, g => g.First().Fecha); // vienen ordenados desc
+
+            var hoy = DateTime.UtcNow.Date;
+            int diasSinEgreso = Math.Max(1, (int)(hoy - fechaDesde.Date).TotalDays);
+
+            var resultado = todosLosStocks
+                .Where(s => !conEgresoPeriodo.Contains((s.IdProducto, s.IdSede)))
+                .Select(s =>
+                {
+                    ultimosIngresos.TryGetValue((s.IdProducto, s.IdSede), out var ultimoIngreso);
+                    return new ProductoInmovilizadoDto
+                    {
+                        IdProducto    = s.IdProducto,
+                        Producto      = s.Producto?.Nombre ?? string.Empty,
+                        Sku           = s.Producto?.Sku ?? string.Empty,
+                        Familia       = s.Producto?.Familia?.Nombre ?? string.Empty,
+                        Sede          = s.Sede?.NombreSede ?? string.Empty,
+                        StockActual   = s.CantidadActual,
+                        UltimoIngreso = ultimoIngreso == default ? null : (DateTime?)ultimoIngreso,
+                        DiasSinEgreso = diasSinEgreso
+                    };
+                })
+                .OrderByDescending(p => p.StockActual)
+                .ToList();
+
+            return resultado;
+        }
+
+        // ── Informe 5: Familias que más se consumen ───────────────────────────────
+
+        public async Task<IEnumerable<FamiliaConsumoDto>> GetFamiliasConsumoAsync(
+            int? idSede, int? idFamilia,
+            DateTime fechaDesde, DateTime fechaHasta)
+        {
+            var movimientos = (await _movimientoRepository.GetDatosRotacionAsync(
+                idSede, idFamilia, fechaDesde, fechaHasta)).ToList();
+
+            var resultado = movimientos
+                .Where(m => !string.IsNullOrEmpty(m.Producto?.Familia?.Nombre))
+                .GroupBy(m => m.Producto!.Familia!.Nombre)
+                .Select(g =>
+                {
+                    int ingresos  = g.Where(m => m.TipoMovimiento == TipoMovimiento.Ingreso).Sum(m => m.Cantidad);
+                    int egresos   = g.Where(m => m.TipoMovimiento == TipoMovimiento.Egreso).Sum(m => m.Cantidad);
+                    int productos = g.Select(m => m.IdProducto).Distinct().Count();
+                    double ratio  = ingresos > 0
+                        ? Math.Round((double)egresos / ingresos, 2)
+                        : (egresos > 0 ? 99.0 : 0.0);
+
+                    return new FamiliaConsumoDto
+                    {
+                        Familia           = g.Key,
+                        TotalIngresos     = ingresos,
+                        TotalEgresos      = egresos,
+                        RatioConsumo      = ratio,
+                        CantidadProductos = productos
+                    };
+                })
+                .OrderByDescending(f => f.RatioConsumo)
+                .ToList();
+
+            return resultado;
+        }
+
         // ── Helpers ───────────────────────────────────────────────────────────────
 
         private static string CalcularCriticidad(int stockActual, int puntoReposicion)

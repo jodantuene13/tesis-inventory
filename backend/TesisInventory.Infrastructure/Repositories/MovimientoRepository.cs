@@ -149,5 +149,27 @@ namespace TesisInventory.Infrastructure.Repositories
                 .ThenBy(m => m.Fecha)
                 .ToListAsync();
         }
+
+        public async Task<IEnumerable<Movimiento>> GetIngresosAsync(
+            int? idSede,
+            int? idFamilia)
+        {
+            var query = _context.Movimiento
+                .Include(m => m.Producto)
+                    .ThenInclude(p => p!.Familia)
+                .Include(m => m.Sede)
+                .Where(m => m.TipoMovimiento == TipoMovimiento.Ingreso)
+                .AsQueryable();
+
+            if (idSede.HasValue)
+                query = query.Where(m => m.IdSede == idSede.Value);
+
+            if (idFamilia.HasValue)
+                query = query.Where(m => m.Producto!.IdFamilia == idFamilia.Value);
+
+            return await query
+                .OrderByDescending(m => m.Fecha)
+                .ToListAsync();
+        }
     }
 }

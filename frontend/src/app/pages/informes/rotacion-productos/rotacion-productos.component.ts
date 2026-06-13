@@ -4,12 +4,15 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { forkJoin } from 'rxjs';
 import { Chart, registerables } from 'chart.js';
 import {
   InformesService,
   ProductoRotacionDto,
   ProductoMovimientoDto,
-  InformeRotacionDto
+  InformeRotacionDto,
+  ProductoInmovilizadoDto,
+  FamiliaConsumoDto
 } from '../../../services/informes.service';
 import { FamiliaService } from '../../../services/familia.service';
 import { Familia } from '../../../models/familia.model';
@@ -28,9 +31,11 @@ type PeriodoPreset = '30' | '90' | 'custom';
 })
 export class RotacionProductosComponent implements OnInit, AfterViewInit, OnDestroy {
 
-  @ViewChild('chartRotacion')   chartRotacionRef!:  ElementRef<HTMLCanvasElement>;
-  @ViewChild('chartIngresos')   chartIngresosRef!:  ElementRef<HTMLCanvasElement>;
-  @ViewChild('chartEgresos')    chartEgresosRef!:   ElementRef<HTMLCanvasElement>;
+  @ViewChild('chartRotacion')    chartRotacionRef!:    ElementRef<HTMLCanvasElement>;
+  @ViewChild('chartIngresos')    chartIngresosRef!:    ElementRef<HTMLCanvasElement>;
+  @ViewChild('chartEgresos')     chartEgresosRef!:     ElementRef<HTMLCanvasElement>;
+  @ViewChild('chartInmovilizado') chartInmovilizadoRef!: ElementRef<HTMLCanvasElement>;
+  @ViewChild('chartFamilias')    chartFamiliasRef!:    ElementRef<HTMLCanvasElement>;
 
   // ── Filtros ──────────────────────────────────────────────────────────────────
   filtros = {
@@ -50,7 +55,7 @@ export class RotacionProductosComponent implements OnInit, AfterViewInit, OnDest
   topNOptions = [5, 10, 20];
 
   // ── Tabs ─────────────────────────────────────────────────────────────────────
-  activeTab: 'rotacion' | 'ingresos' | 'egresos' = 'rotacion';
+  activeTab: 'rotacion' | 'ingresos' | 'egresos' | 'inmovilizado' | 'familias' = 'rotacion';
 
   // ── Ordenamiento ──────────────────────────────────────────────────────────────
   sortColRot:  keyof ProductoRotacionDto   = 'indiceRotacion';
@@ -64,28 +69,35 @@ export class RotacionProductosComponent implements OnInit, AfterViewInit, OnDest
   busquedaRot = '';
   busquedaIng = '';
   busquedaEgr = '';
+  busquedaInm = '';
 
   // ── Ver más ───────────────────────────────────────────────────────────────────
   verMasIng = false;
   verMasEgr = false;
+  verMasInm = false;
+  verMasFam = false;
 
   // ── Estado ────────────────────────────────────────────────────────────────────
   cargando = false;
   error: string | null = null;
 
   // ── Datos ─────────────────────────────────────────────────────────────────────
-  datosRotacion:   ProductoRotacionDto[]   = [];
+  datosRotacion:    ProductoRotacionDto[]    = [];
   datosMayorIngreso: ProductoMovimientoDto[] = [];
   datosMayorEgreso:  ProductoMovimientoDto[] = [];
+  datosInmovilizado: ProductoInmovilizadoDto[] = [];
+  datosFamilias:    FamiliaConsumoDto[]      = [];
   rotacionPromedio = 0;
   saldoNetoTotal   = 0;
   fechaDesdeLabel  = '';
   fechaHastaLabel  = '';
 
   // ── Charts ────────────────────────────────────────────────────────────────────
-  private chartRotacion: Chart | null = null;
-  private chartIngresos: Chart | null = null;
-  private chartEgresos:  Chart | null = null;
+  private chartRotacion:    Chart | null = null;
+  private chartIngresos:    Chart | null = null;
+  private chartEgresos:     Chart | null = null;
+  private chartInmovilizado: Chart | null = null;
+  private chartFamilias:    Chart | null = null;
   private chartsReady = false;
 
   constructor(
@@ -107,6 +119,8 @@ export class RotacionProductosComponent implements OnInit, AfterViewInit, OnDest
     this.chartRotacion?.destroy();
     this.chartIngresos?.destroy();
     this.chartEgresos?.destroy();
+    this.chartInmovilizado?.destroy();
+    this.chartFamilias?.destroy();
   }
 
   // ── Helpers de fecha ─────────────────────────────────────────────────────────
@@ -148,22 +162,30 @@ export class RotacionProductosComponent implements OnInit, AfterViewInit, OnDest
     this.cargando = true;
     this.error = null;
 
-    this.informesService.getRotacionProductos(
-      this.filtros.idSede ?? undefined,
-      this.filtros.idFamilia ?? undefined,
-      this.filtros.fechaDesde,
-      this.filtros.fechaHasta
-    ).subscribe({
-      next: (data: InformeRotacionDto) => {
-        this.datosRotacion     = data.rotacion;
-        this.datosMayorIngreso = data.mayorIngreso;
-        this.datosMayorEgreso  = data.mayorEgreso;
-        this.rotacionPromedio  = data.rotacionPromedio;
-        this.saldoNetoTotal    = data.saldoNetoTotal;
-        this.fechaDesdeLabel   = data.fechaDesde;
-        this.fechaHastaLabel   = data.fechaHasta;
+    const sede     = this.filtros.idSede ?? undefined;
+    const familia  = this.filtros.idFamilia ?? undefined;
+    const desde    = this.filtros.fechaDesde;
+    const hasta    = this.filtros.fechaHasta;
+
+    forkJoin({
+      rotacion:     this.informesService.getRotacionProductos(sede, familia, desde, hasta),
+      inmovilizado: this.informesService.getStockInmovilizado(sede, familia, desde, hasta),
+      familias:     this.informesService.getFamiliasConsumo(sede, familia, desde, hasta)
+    }).subscribe({
+      next: ({ rotacion, inmovilizado, familias }) => {
+        this.datosRotacion     = rotacion.rotacion;
+        this.datosMayorIngreso = rotacion.mayorIngreso;
+        this.datosMayorEgreso  = rotacion.mayorEgreso;
+        this.rotacionPromedio  = rotacion.rotacionPromedio;
+        this.saldoNetoTotal    = rotacion.saldoNetoTotal;
+        this.fechaDesdeLabel   = rotacion.fechaDesde;
+        this.fechaHastaLabel   = rotacion.fechaHasta;
+        this.datosInmovilizado = inmovilizado;
+        this.datosFamilias     = familias;
         this.verMasIng = false;
         this.verMasEgr = false;
+        this.verMasInm = false;
+        this.verMasFam = false;
         this.cargando = false;
         this.cdr.detectChanges();
 
@@ -187,7 +209,7 @@ export class RotacionProductosComponent implements OnInit, AfterViewInit, OnDest
       fechaDesde: this.defaultFechaDesde(30),
       fechaHasta: this.today()
     };
-    this.busquedaRot = ''; this.busquedaIng = ''; this.busquedaEgr = '';
+    this.busquedaRot = ''; this.busquedaIng = ''; this.busquedaEgr = ''; this.busquedaInm = '';
     this.cargarDatos();
   }
 
@@ -265,6 +287,19 @@ export class RotacionProductosComponent implements OnInit, AfterViewInit, OnDest
     return this.verMasEgr ? data : data.slice(0, 20);
   }
 
+  get datosInmFiltrados(): ProductoInmovilizadoDto[] {
+    let data = this.datosInmovilizado;
+    if (this.busquedaInm) {
+      const q = this.busquedaInm.toLowerCase();
+      data = data.filter(p => p.producto.toLowerCase().includes(q) || p.familia.toLowerCase().includes(q));
+    }
+    return this.verMasInm ? data : data.slice(0, 20);
+  }
+
+  get datosFamiliasFiltrados(): FamiliaConsumoDto[] {
+    return this.verMasFam ? this.datosFamilias : this.datosFamilias.slice(0, 10);
+  }
+
   // ── Ordenamiento ──────────────────────────────────────────────────────────────
 
   sortRot(col: keyof ProductoRotacionDto): void {
@@ -287,7 +322,7 @@ export class RotacionProductosComponent implements OnInit, AfterViewInit, OnDest
 
   // ── Tabs ─────────────────────────────────────────────────────────────────────
 
-  setTab(tab: 'rotacion' | 'ingresos' | 'egresos'): void {
+  setTab(tab: 'rotacion' | 'ingresos' | 'egresos' | 'inmovilizado' | 'familias'): void {
     this.activeTab = tab;
     setTimeout(() => this.renderCharts(), 100);
   }
@@ -295,9 +330,11 @@ export class RotacionProductosComponent implements OnInit, AfterViewInit, OnDest
   // ── Charts ────────────────────────────────────────────────────────────────────
 
   private renderCharts(): void {
-    if (this.activeTab === 'rotacion')  this.renderChartRotacion();
-    if (this.activeTab === 'ingresos')  this.renderChartIngresos();
-    if (this.activeTab === 'egresos')   this.renderChartEgresos();
+    if (this.activeTab === 'rotacion')    this.renderChartRotacion();
+    if (this.activeTab === 'ingresos')    this.renderChartIngresos();
+    if (this.activeTab === 'egresos')     this.renderChartEgresos();
+    if (this.activeTab === 'inmovilizado') this.renderChartInmovilizado();
+    if (this.activeTab === 'familias')    this.renderChartFamilias();
   }
 
   private renderChartRotacion(): void {
@@ -416,6 +453,91 @@ export class RotacionProductosComponent implements OnInit, AfterViewInit, OnDest
     });
   }
 
+  private renderChartInmovilizado(): void {
+    const canvas = this.chartInmovilizadoRef?.nativeElement;
+    if (!canvas) return;
+    this.chartInmovilizado?.destroy();
+
+    const top = this.datosInmFiltrados.slice(0, this.filtros.topN);
+
+    this.chartInmovilizado = new Chart(canvas, {
+      type: 'bar',
+      data: {
+        labels: top.map(p => p.producto),
+        datasets: [{
+          label: 'Stock inmovilizado',
+          data: top.map(p => p.stockActual),
+          backgroundColor: 'rgba(239,68,68,0.75)',
+          borderColor: 'rgba(239,68,68,1)',
+          borderWidth: 1.5,
+          borderRadius: 6,
+          barThickness: 22
+        }]
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: { callbacks: { label: (ctx: any) => ` ${ctx.parsed.x} u. sin salida` } }
+        },
+        scales: {
+          x: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { font: { size: 11 } } },
+          y: { grid: { display: false }, ticks: { font: { size: 11 } } }
+        }
+      }
+    });
+  }
+
+  private renderChartFamilias(): void {
+    const canvas = this.chartFamiliasRef?.nativeElement;
+    if (!canvas) return;
+    this.chartFamilias?.destroy();
+
+    const top = this.datosFamilias.slice(0, 10);
+
+    this.chartFamilias = new Chart(canvas, {
+      type: 'bar',
+      data: {
+        labels: top.map(f => f.familia),
+        datasets: [
+          {
+            label: 'Egresos (consumo)',
+            data: top.map(f => f.totalEgresos),
+            backgroundColor: 'rgba(20,184,166,0.8)',
+            borderColor: 'rgba(20,184,166,1)',
+            borderWidth: 1.5,
+            borderRadius: 6,
+            barThickness: 16
+          },
+          {
+            label: 'Ingresos',
+            data: top.map(f => f.totalIngresos),
+            backgroundColor: 'rgba(99,102,241,0.5)',
+            borderColor: 'rgba(99,102,241,1)',
+            borderWidth: 1.5,
+            borderRadius: 6,
+            barThickness: 16
+          }
+        ]
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: true, position: 'top' },
+          tooltip: { callbacks: { label: (ctx: any) => ` ${ctx.dataset.label}: ${ctx.parsed.x} u.` } }
+        },
+        scales: {
+          x: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { font: { size: 11 } } },
+          y: { grid: { display: false }, ticks: { font: { size: 11 } } }
+        }
+      }
+    });
+  }
+
   // ── Exportar CSV ──────────────────────────────────────────────────────────────
 
   exportarCSV(): void {
@@ -434,6 +556,18 @@ export class RotacionProductosComponent implements OnInit, AfterViewInit, OnDest
         csv += `"${p.producto}","${p.sku}","${p.familia}","${p.sede}",${p.totalUnidades},${p.cantidadOperaciones},"${p.ultimaFecha ?? ''}"\n`;
       });
       filename = 'ingresos';
+    } else if (this.activeTab === 'inmovilizado') {
+      csv = 'Producto,SKU,Familia,Sede,Stock Actual,Último Ingreso,Días sin Egreso\n';
+      this.datosInmFiltrados.forEach(p => {
+        csv += `"${p.producto}","${p.sku}","${p.familia}","${p.sede}",${p.stockActual},"${p.ultimoIngreso ? this.formatFecha(p.ultimoIngreso) : ''}",${p.diasSinEgreso}\n`;
+      });
+      filename = 'inmovilizado';
+    } else if (this.activeTab === 'familias') {
+      csv = 'Familia,Ingresos,Egresos,Ratio Consumo,Productos\n';
+      this.datosFamiliasFiltrados.forEach(f => {
+        csv += `"${f.familia}",${f.totalIngresos},${f.totalEgresos},${f.ratioConsumo},${f.cantidadProductos}\n`;
+      });
+      filename = 'familias-consumo';
     } else {
       csv = 'Producto,SKU,Familia,Sede,Total Unidades,Cantidad Operaciones,Última Fecha\n';
       this.datosEgrFiltrados.forEach(p => {

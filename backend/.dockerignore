@@ -1,0 +1,8 @@
+**/bin/
+**/obj/
+**/.vs/
+**/FixDbApp/
+*.user
+*.suo
+.git
+.gitignore

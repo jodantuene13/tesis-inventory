@@ -1,4 +1,5 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
+import { API_BASE_URL } from '../tokens/api-url.token';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Rubro, CreateRubro, UpdateRubro } from '../models/rubro.model';
@@ -7,7 +8,7 @@ import { Rubro, CreateRubro, UpdateRubro } from '../models/rubro.model';
     providedIn: 'root'
 })
 export class RubroService {
-    private apiUrl = 'http://localhost:5139/api/Rubros';
+    private readonly apiUrl = `${inject(API_BASE_URL)}/api/Rubros`;
 
     constructor(private http: HttpClient) { }
 

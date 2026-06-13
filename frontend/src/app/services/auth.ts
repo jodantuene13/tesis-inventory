@@ -1,4 +1,5 @@
-import { Injectable, NgZone } from '@angular/core';
+import { Injectable, NgZone, inject } from '@angular/core';
+import { API_BASE_URL } from '../tokens/api-url.token';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { BehaviorSubject, Observable } from 'rxjs';
@@ -11,7 +12,7 @@ declare const google: any;
   providedIn: 'root'
 })
 export class AuthService {
-  private apiUrl = 'http://localhost:5139/api/auth'; // Adjust port if needed
+  private readonly apiUrl = `${inject(API_BASE_URL)}/api/auth`;
   private tokenKey = 'inventory_token';
   private userKey = 'inventory_user';
 

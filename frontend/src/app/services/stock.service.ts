@@ -1,5 +1,6 @@
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
+import { API_BASE_URL } from '../tokens/api-url.token';
 import { Observable } from 'rxjs';
 import { IncrementarStockDto, Movimiento, RegistrarConsumoDto, RegistrarTransferenciaDto, Stock } from '../models/stock.model';
 
@@ -7,7 +8,7 @@ import { IncrementarStockDto, Movimiento, RegistrarConsumoDto, RegistrarTransfer
     providedIn: 'root'
 })
 export class StockService {
-    private apiUrl = 'http://localhost:5139/api/Stock';
+    private readonly apiUrl = `${inject(API_BASE_URL)}/api/Stock`;
 
     constructor(private http: HttpClient) { }
 

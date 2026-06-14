@@ -27,6 +27,7 @@ export class AdminLayoutComponent implements OnInit, OnDestroy {
     isSidebarOpen = false;
 
     isAdmin = false;
+    isDarkMode = false;
     sedes: Sede[] = [];
     selectedSedeId!: number;
     isSedeDropdownOpen = false;
@@ -71,6 +72,13 @@ export class AdminLayoutComponent implements OnInit, OnDestroy {
         this.contextSub = this.sedeContextService.sedeEnContexto$.subscribe(sedeId => {
             this.selectedSedeId = sedeId;
         });
+
+        // Restore dark mode preference
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'dark') {
+            this.isDarkMode = true;
+            document.documentElement.setAttribute('data-theme', 'dark');
+        }
 
         // Cerrar sidebar automáticamente al navegar en mobile
         this.routerSub = this.router.events
@@ -145,6 +153,17 @@ export class AdminLayoutComponent implements OnInit, OnDestroy {
 
     toggleInformesMenu() {
         this.isInformesMenuOpen = !this.isInformesMenuOpen;
+    }
+
+    toggleDarkMode() {
+        this.isDarkMode = !this.isDarkMode;
+        if (this.isDarkMode) {
+            document.documentElement.setAttribute('data-theme', 'dark');
+            localStorage.setItem('theme', 'dark');
+        } else {
+            document.documentElement.removeAttribute('data-theme');
+            localStorage.setItem('theme', 'light');
+        }
     }
 
     logout() {

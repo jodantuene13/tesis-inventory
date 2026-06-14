@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
 import { StockService } from '../../../services/stock.service';
 import { UserService } from '../../../services/user.service';
 import { SedeContextService } from '../../../services/sede-context.service';
@@ -10,7 +11,7 @@ import { Subscription } from 'rxjs';
 @Component({
   selector: 'app-remitos',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, PaginationComponent],
   templateUrl: './remitos.component.html',
   styleUrls: ['./remitos.component.css']
 })
@@ -28,7 +29,7 @@ export class RemitosComponent implements OnInit {
 
   // Pagination
   page: number = 1;
-  pageSize: number = 20;
+  pageSize: number = 10;
   totalCount: number = 0;
   get totalPages(): number {
     return Math.ceil(this.totalCount / this.pageSize) || 1;
@@ -114,18 +115,15 @@ export class RemitosComponent implements OnInit {
     this.hasSearched = false;
   }
 
-  prevPage() {
-    if (this.page > 1) {
-      this.page--;
-      this.search();
-    }
+  onPageChange(p: number): void {
+    this.page = p;
+    this.search();
   }
 
-  nextPage() {
-    if (this.page < this.totalPages) {
-      this.page++;
-      this.search();
-    }
+  onPageSizeChange(size: number): void {
+    this.pageSize = size;
+    this.page = 1;
+    this.search();
   }
 
   openDetalleModal(operacion: OperacionStockResponseDto) {

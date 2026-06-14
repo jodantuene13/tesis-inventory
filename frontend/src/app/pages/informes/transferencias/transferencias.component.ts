@@ -13,6 +13,7 @@ import { SedeService } from '../../../services/sede.service';
 import { Familia } from '../../../models/familia.model';
 import { FamiliaService } from '../../../services/familia.service';
 import { AuthService } from '../../../services/auth';
+import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
 import {
   Chart,
   BarController, BarElement,
@@ -31,7 +32,7 @@ Chart.register(
 @Component({
   selector: 'app-transferencias',
   standalone: true,
-  imports: [CommonModule, FormsModule, DecimalPipe],
+  imports: [CommonModule, FormsModule, DecimalPipe, PaginationComponent],
   templateUrl: './transferencias.component.html',
   styleUrls: ['./transferencias.component.css']
 })
@@ -79,8 +80,8 @@ export class TransferenciasComponent implements OnInit, OnDestroy {
   error: string = '';
 
   // ── Paginación ────────────────────────────────────────────────────────────
-  currentPage: number = 1;
-  pageSize: number = 50;
+  page: number = 1;
+  pageSize: number = 10;
 
   // ── Charts (referencias por id) ───────────────────────────────────────────
   private charts: Map<string, Chart> = new Map();
@@ -154,7 +155,7 @@ export class TransferenciasComponent implements OnInit, OnDestroy {
       next: (res) => {
         this.informe = res;
         this.loading = false;
-        this.currentPage = 1;
+        this.page = 1;
         setTimeout(() => this.renderChartsForTab(this.activeTab), 60);
       },
       error: () => {
@@ -173,7 +174,7 @@ export class TransferenciasComponent implements OnInit, OnDestroy {
   // ── Paginación ────────────────────────────────────────────────────────────
   get paginatedDetalles(): TransferenciaDetalleDto[] {
     if (!this.informe?.detalleMovimientos) return [];
-    const start = (this.currentPage - 1) * this.pageSize;
+    const start = (this.page - 1) * this.pageSize;
     return this.informe.detalleMovimientos.slice(start, start + this.pageSize);
   }
 
@@ -182,16 +183,12 @@ export class TransferenciasComponent implements OnInit, OnDestroy {
     return Math.max(1, Math.ceil(this.informe.detalleMovimientos.length / this.pageSize));
   }
 
-  get paginacionDesde(): number {
-    return (this.currentPage - 1) * this.pageSize + 1;
+  get totalCount(): number {
+    return this.informe?.detalleMovimientos?.length ?? 0;
   }
 
-  get paginacionHasta(): number {
-    return Math.min(this.currentPage * this.pageSize, this.informe?.detalleMovimientos?.length ?? 0);
-  }
-
-  prevPage(): void { if (this.currentPage > 1) this.currentPage--; }
-  nextPage(): void { if (this.currentPage < this.totalPages) this.currentPage++; }
+  onPageChange(p: number): void { this.page = p; }
+  onPageSizeChange(size: number): void { this.pageSize = size; this.page = 1; }
 
   // ── Renderizado de gráficos ────────────────────────────────────────────────
   private destroyAllCharts(): void {

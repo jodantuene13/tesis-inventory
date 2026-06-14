@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
 import { StockService } from '../../../services/stock.service';
 import { RubroService } from '../../../services/rubro.service';
 import { FamiliaService } from '../../../services/familia.service';
@@ -12,7 +13,7 @@ import { Subscription } from 'rxjs';
 @Component({
   selector: 'app-historial-movimientos',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, PaginationComponent],
   templateUrl: './historial-movimientos.component.html',
   styleUrls: ['./historial-movimientos.component.css']
 })
@@ -32,7 +33,7 @@ export class HistorialMovimientosComponent implements OnInit {
 
   // Pagination
   page: number = 1;
-  pageSize: number = 50;
+  pageSize: number = 10;
   totalCount: number = 0;
   totalPages: number = 1;
 
@@ -181,18 +182,15 @@ export class HistorialMovimientosComponent implements OnInit {
     this.hasSearched = false;
   }
 
-  prevPage() {
-    if (this.page > 1) {
-      this.page--;
-      this.search();
-    }
+  onPageChange(p: number): void {
+    this.page = p;
+    this.search();
   }
 
-  nextPage() {
-    if (this.page < this.totalPages) {
-      this.page++;
-      this.search();
-    }
+  onPageSizeChange(size: number): void {
+    this.pageSize = size;
+    this.page = 1;
+    this.search();
   }
 
   openDetalleModal(movimiento: Movimiento) {

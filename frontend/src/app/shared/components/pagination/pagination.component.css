@@ -1,0 +1,2 @@
+/* Los estilos principales viven en styles.css (.pg-btn, .pagination-*).
+   Este archivo existe para que Angular no rompa la referencia en styleUrls. */

@@ -167,9 +167,33 @@
 .sidebar-footer {
   padding: 0.75rem;
   border-top: 1px solid rgba(255,255,255,0.06);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
+
+.theme-btn {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  color: rgba(255,255,255,0.35);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.theme-btn:hover {
+  background: rgba(165, 180, 252, 0.12);
+  color: #e0e7ff;
+}
+.theme-btn svg { width: 16px; height: 16px; }
+
 .logout-btn {
-  width: 100%;
+  flex: 1;
   display: flex;
   align-items: center;
   gap: 0.625rem;
@@ -422,3 +446,7 @@
     padding: 1.25rem 1.5rem;
   }
 }
+
+/* Dark mode for this component lives in styles.css (global)
+   because Angular's view encapsulation prevents [data-theme="dark"]
+   on <html> from matching _ngcontent-scoped selectors here. */

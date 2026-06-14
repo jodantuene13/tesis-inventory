@@ -9,9 +9,9 @@
     </div>
   </div>
 
-  <!-- Barra de Filtros (Similar a Stock Local) -->
-  <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200 mb-6">
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+  <!-- Barra de Filtros -->
+  <div class="filter-bar">
+    <div class="w-full grid grid-cols-1 md:grid-cols-3 gap-4">
       
       <!-- Buscador -->
       <div class="col-span-1 relative">
@@ -115,19 +115,19 @@
     </div>
 
     <!-- Timeline / Log Design -->
-    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden" *ngIf="paginatedTransferencias.length > 0">
-      <table class="min-w-full divide-y divide-gray-200">
-        <thead class="bg-gray-50">
+    <div class="bg-white/40 backdrop-blur-sm rounded-3xl shadow-2xl overflow-hidden border border-white/40" *ngIf="paginatedTransferencias.length > 0">
+      <table class="min-w-full divide-y divide-gray-100">
+        <thead class="bg-gray-900/5">
           <tr>
-            <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider w-32">Fecha</th>
-            <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Desde</th>
-            <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Hacia</th>
-            <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Productos</th>
-            <th class="px-6 py-3 text-center text-xs font-bold text-gray-500 uppercase tracking-wider w-36">Estado</th>
-            <th class="px-6 py-3 text-right text-xs font-bold text-gray-500 uppercase tracking-wider w-24">Acciones</th>
+            <th class="px-6 py-5 text-left text-xs font-black text-gray-600 uppercase tracking-wider w-32">Fecha</th>
+            <th class="px-6 py-5 text-left text-xs font-black text-gray-600 uppercase tracking-wider">Desde</th>
+            <th class="px-6 py-5 text-left text-xs font-black text-gray-600 uppercase tracking-wider">Hacia</th>
+            <th class="px-6 py-5 text-left text-xs font-black text-gray-600 uppercase tracking-wider">Productos</th>
+            <th class="px-6 py-5 text-center text-xs font-black text-gray-600 uppercase tracking-wider w-36">Estado</th>
+            <th class="px-6 py-5 text-right text-xs font-black text-gray-600 uppercase tracking-wider w-24">Acciones</th>
           </tr>
         </thead>
-        <tbody class="bg-white divide-y divide-gray-200">
+        <tbody class="divide-y divide-gray-100">
           <tr *ngFor="let row of paginatedTransferencias" class="hover:bg-gray-50 transition-colors">
             
             <!-- Fecha e ID -->
@@ -209,26 +209,14 @@
         </tbody>
       </table>
 
-      <!-- Paginación -->
-      <div class="bg-gray-50 px-4 py-3 border-t border-gray-200 sm:px-6 flex items-center justify-between">
-        <div class="flex-1 flex justify-between sm:hidden">
-          <button (click)="prevPage()" [disabled]="page === 1" [ngClass]="{'opacity-50 cursor-not-allowed': page === 1}" class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">Anterior</button>
-          <button (click)="nextPage()" [disabled]="page === totalPages" [ngClass]="{'opacity-50 cursor-not-allowed': page === totalPages}" class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">Siguiente</button>
-        </div>
-        <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-          <div>
-            <p class="text-sm text-gray-700">
-              Mostrando <span class="font-medium">{{ (page - 1) * pageSize + 1 }}</span> a <span class="font-medium">{{ (page * pageSize) > totalCount ? totalCount : (page * pageSize) }}</span> de <span class="font-medium">{{ totalCount }}</span> resultados
-            </p>
-          </div>
-          <div>
-            <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-              <button (click)="prevPage()" [disabled]="page === 1" [ngClass]="{'opacity-50 cursor-not-allowed': page === 1}" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
-              </button>
-            </nav>
-          </div>
-        </div>
-      </div>
+      <app-pagination
+        [page]="page"
+        [pageSize]="pageSize"
+        [totalPages]="totalPages"
+        [totalCount]="totalCount"
+        (pageChange)="onPageChange($event)"
+        (pageSizeChange)="onPageSizeChange($event)">
+      </app-pagination>
     </div>
   </div>
 

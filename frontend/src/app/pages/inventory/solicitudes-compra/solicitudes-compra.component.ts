@@ -9,13 +9,14 @@ import { SolicitudCompra, EstadoSolicitudCompra, EtiquetaSolicitudCompra, Create
 import { Stock } from '../../../models/stock.model';
 import Swal from 'sweetalert2';
 import { OperacionesMultiplesModalComponent } from '../../../shared/components/operaciones-multiples-modal/operaciones-multiples-modal.component';
+import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
 import { DetalleOperacionStockDto } from '../../../models/stock.model';
 import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-solicitudes-compra',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, OperacionesMultiplesModalComponent],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, OperacionesMultiplesModalComponent, PaginationComponent],
   templateUrl: './solicitudes-compra.component.html',
   styleUrls: ['./solicitudes-compra.component.css']
 })
@@ -337,18 +338,15 @@ export class SolicitudesCompraComponent implements OnInit, OnDestroy {
     });
   }
 
-  nextPage(): void {
-    if (this.page < this.totalPages) {
-      this.page++;
-      this.loadSolicitudes();
-    }
+  onPageChange(p: number): void {
+    this.page = p;
+    this.loadSolicitudes();
   }
 
-  prevPage(): void {
-    if (this.page > 1) {
-      this.page--;
-      this.loadSolicitudes();
-    }
+  onPageSizeChange(size: number): void {
+    this.pageSize = size;
+    this.page = 1;
+    this.loadSolicitudes();
   }
 
   // --- Multi-operation modal logic ---

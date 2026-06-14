@@ -13,10 +13,12 @@ export interface TransferenciaLog extends Transferencia {
   tipo: 'Entrante' | 'Saliente';
 }
 
+import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
+
 @Component({
   selector: 'app-historico-transferencias',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, PaginationComponent],
   templateUrl: './historico-transferencias.component.html',
   styleUrls: []
 })
@@ -208,18 +210,15 @@ export class HistoricoTransferenciasComponent implements OnInit, OnDestroy {
     this.cargarHistorico();
   }
 
-  nextPage() {
-    if (this.page < this.totalPages) {
-      this.page++;
-      this.updatePagination();
-    }
+  onPageChange(p: number): void {
+    this.page = p;
+    this.updatePagination();
   }
 
-  prevPage() {
-    if (this.page > 1) {
-      this.page--;
-      this.updatePagination();
-    }
+  onPageSizeChange(size: number): void {
+    this.pageSize = size;
+    this.page = 1;
+    this.applyFilters();
   }
 
   getEstadoBadgeConfig(estado: EstadoTransferencia): { bg: string, text: string, textCol: string, icon: string } {

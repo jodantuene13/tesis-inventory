@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormsModule, FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
+import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
 import { ProductoService } from '../../../services/producto.service';
 import { RubroService } from '../../../services/rubro.service';
 import { FamiliaService } from '../../../services/familia.service';
@@ -16,7 +17,7 @@ import Swal from 'sweetalert2';
 @Component({
     selector: 'app-productos',
     standalone: true,
-    imports: [CommonModule, ReactiveFormsModule, FormsModule],
+    imports: [CommonModule, ReactiveFormsModule, FormsModule, PaginationComponent],
     templateUrl: './productos.component.html',
     styleUrls: ['./productos.component.css']
 })
@@ -27,7 +28,7 @@ export class ProductosComponent implements OnInit {
     
     // Paginación
     page = 1;
-    pageSize = 50;
+    pageSize = 10;
     totalPages = 1;
     totalCount = 0;
     
@@ -477,17 +478,14 @@ export class ProductosComponent implements OnInit {
         this.productos = result.slice(startIndex, startIndex + this.pageSize);
     }
 
-    nextPage(): void {
-        if (this.page < this.totalPages) {
-            this.page++;
-            this.applyFilters();
-        }
+    onPageChange(p: number): void {
+        this.page = p;
+        this.applyFilters();
     }
 
-    prevPage(): void {
-        if (this.page > 1) {
-            this.page--;
-            this.applyFilters();
-        }
+    onPageSizeChange(size: number): void {
+        this.pageSize = size;
+        this.page = 1;
+        this.applyFilters();
     }
 }

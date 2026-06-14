@@ -16,11 +16,12 @@ import { Familia } from '../../../models/familia.model';
 import Swal from 'sweetalert2';
 import { FichaProductoModalComponent } from '../../../shared/components/ficha-producto-modal/ficha-producto-modal.component';
 import { OperacionesMultiplesModalComponent } from '../../../shared/components/operaciones-multiples-modal/operaciones-multiples-modal.component';
+import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
 
 @Component({
   selector: 'app-stock',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, FichaProductoModalComponent, OperacionesMultiplesModalComponent],
+  imports: [CommonModule, FormsModule, RouterModule, FichaProductoModalComponent, OperacionesMultiplesModalComponent, PaginationComponent],
   templateUrl: './stock.html',
   styleUrls: ['./stock.css']
 })
@@ -36,7 +37,7 @@ export class StockComponent implements OnInit {
   // Paginación
   totalCount: number = 0;
   page: number = 1;
-  pageSize: number = 50;
+  pageSize: number = 10;
   totalPages: number = 1;
 
   // Filtros
@@ -181,18 +182,15 @@ export class StockComponent implements OnInit {
     this.clearFilters();
   }
 
-  nextPage(): void {
-    if (this.page < this.totalPages) {
-      this.page++;
-      this.loadStocks();
-    }
+  onPageChange(p: number): void {
+    this.page = p;
+    this.loadStocks();
   }
 
-  prevPage(): void {
-    if (this.page > 1) {
-      this.page--;
-      this.loadStocks();
-    }
+  onPageSizeChange(size: number): void {
+    this.pageSize = size;
+    this.page = 1;
+    this.loadStocks();
   }
 
   // Modals hooks

@@ -4,6 +4,7 @@ import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } 
 import { SolicitudCompraService } from '../../../services/solicitud-compra.service';
 import { StockService } from '../../../services/stock.service';
 import { SedeContextService } from '../../../services/sede-context.service';
+import { AuthService } from '../../../services/auth';
 import { SolicitudCompra, EstadoSolicitudCompra, EtiquetaSolicitudCompra, CreateSolicitudCompra } from '../../../models/solicitud-compra.model';
 import { Stock } from '../../../models/stock.model';
 import Swal from 'sweetalert2';
@@ -79,16 +80,20 @@ export class SolicitudesCompraComponent implements OnInit, OnDestroy {
   EstadoEnum = EstadoSolicitudCompra;
   EtiquetaEnum = EtiquetaSolicitudCompra;
 
+  canCrearSolicitud = false;
+
   private contextSub!: Subscription;
 
   constructor(
     private solicitudService: SolicitudCompraService,
     private stockService: StockService,
-    private sedeContextService: SedeContextService
+    private sedeContextService: SedeContextService,
+    private authService: AuthService
   ) {
   }
 
   ngOnInit(): void {
+    this.canCrearSolicitud = this.authService.hasPermiso('Solicitudes_Crear');
     this.contextSub = this.sedeContextService.sedeEnContexto$.subscribe(() => {
       this.loadSolicitudes();
       this.loadProductos();

@@ -31,6 +31,8 @@ export class TransferenciasListComponent implements OnInit, OnDestroy {
   isLoading = false;
   private contextSub!: Subscription;
 
+  canCrearTransferencia = false;
+
   // Indicators
   indicatorEntrantes: number = 0;
   indicatorSalientes: number = 0;
@@ -72,6 +74,7 @@ export class TransferenciasListComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
+    this.canCrearTransferencia = this.authService.hasPermiso('Transferencias_Crear');
     this.contextSub = this.sedeContextService.sedeEnContexto$.subscribe(() => {
       this.cargarDatos();
     });

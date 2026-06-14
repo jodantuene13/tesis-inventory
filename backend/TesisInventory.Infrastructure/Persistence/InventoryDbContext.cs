@@ -17,6 +17,7 @@ namespace TesisInventory.Infrastructure.Persistence
         public DbSet<Permiso> Permiso { get; set; }
         public DbSet<RolPermiso> RolPermiso { get; set; }
         public DbSet<RolSede> RolSede { get; set; }
+        public DbSet<UsuarioSede> UsuarioSede { get; set; }
 
         // Inventory DbSets
         public DbSet<Rubro> Rubro { get; set; }
@@ -58,6 +59,8 @@ namespace TesisInventory.Infrastructure.Persistence
             modelBuilder.Entity<Usuario>().Property(u => u.FechaRegistro).HasColumnName("fechaRegistro");
             modelBuilder.Entity<Usuario>().Property(u => u.IdRol).HasColumnName("idRol");
             modelBuilder.Entity<Usuario>().Property(u => u.IdSede).HasColumnName("idSede");
+            modelBuilder.Entity<Usuario>().Property(u => u.TodasLasSedes).HasColumnName("todasLasSedes").HasDefaultValue(false);
+            modelBuilder.Entity<Usuario>().Property(u => u.LimitarOperacionSedePrimaria).HasColumnName("limitarOperacionSedePrimaria").HasDefaultValue(false);
 
             modelBuilder.Entity<Rol>().Property(r => r.IdRol).HasColumnName("idRol");
             modelBuilder.Entity<Rol>().Property(r => r.NombreRol).HasColumnName("nombreRol");
@@ -107,6 +110,19 @@ namespace TesisInventory.Infrastructure.Persistence
                 .HasOne(rs => rs.Sede)
                 .WithMany(s => s.RolesSedes)
                 .HasForeignKey(rs => rs.IdSede)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<UsuarioSede>().ToTable("UsuarioSede");
+            modelBuilder.Entity<UsuarioSede>().HasKey(us => new { us.IdUsuario, us.IdSede });
+            modelBuilder.Entity<UsuarioSede>()
+                .HasOne(us => us.Usuario)
+                .WithMany(u => u.UsuariosSedes)
+                .HasForeignKey(us => us.IdUsuario)
+                .OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<UsuarioSede>()
+                .HasOne(us => us.Sede)
+                .WithMany(s => s.UsuariosSedes)
+                .HasForeignKey(us => us.IdSede)
                 .OnDelete(DeleteBehavior.Cascade);
 
             // Audit

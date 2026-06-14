@@ -4,6 +4,7 @@ using System.Security.Claims;
 using TesisInventory.Application.DTOs.SolicitudesCompra;
 using TesisInventory.Application.Interfaces;
 using TesisInventory.Domain.Enums;
+using TesisInventory.API.Filters;
 
 namespace TesisInventory.API.Controllers
 {
@@ -67,6 +68,7 @@ namespace TesisInventory.API.Controllers
         }
 
         [HttpPost]
+        [RequirePermiso("Solicitudes_Crear")]
         public async Task<IActionResult> Create([FromBody] CreateSolicitudCompraDto dto)
         {
             try

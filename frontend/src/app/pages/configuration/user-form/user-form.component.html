@@ -1,68 +1,117 @@
-<div class="container mx-auto p-4 max-w-lg">
-    <h2 class="text-2xl font-bold mb-4">{{ isEditMode ? 'Editar Usuario' : 'Registrar Nuevo Usuario' }}</h2>
-    <form (ngSubmit)="onSubmit()" #userForm="ngForm" class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
+<div class="container mx-auto p-4 max-w-2xl">
+    <h2 class="text-2xl font-bold mb-6">{{ isEditMode ? 'Editar Usuario' : 'Registrar Nuevo Usuario' }}</h2>
 
-        <div class="mb-4">
-            <label class="block text-gray-700 text-sm font-bold mb-2" for="nombreUsuario">
-                Nombre de Usuario
-            </label>
-            <input [(ngModel)]="user.nombreUsuario" name="nombreUsuario" id="nombreUsuario" type="text" required
-                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+    <form (ngSubmit)="onSubmit()" #userForm="ngForm" class="space-y-6">
+
+        <!-- ── Datos básicos ─────────────────────────────────────────────── -->
+        <div class="bg-white shadow-md rounded px-8 pt-6 pb-6">
+            <h3 class="text-base font-bold text-gray-600 uppercase tracking-wide border-b pb-2 mb-4">Datos del usuario</h3>
+
+            <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="nombreUsuario">Nombre de Usuario</label>
+                <input [(ngModel)]="user.nombreUsuario" name="nombreUsuario" id="nombreUsuario" type="text" required
+                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+            </div>
+
+            <div class="mb-4" *ngIf="!isEditMode">
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="email">Correo Institucional</label>
+                <input [(ngModel)]="user.email" name="email" id="email" type="email" required
+                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+            </div>
+
+            <div class="mb-4" *ngIf="!isEditMode">
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="password">Contraseña</label>
+                <input [(ngModel)]="user.password" name="password" id="password" type="password" required
+                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="rol">Rol</label>
+                <select [(ngModel)]="user.idRol" name="idRol" id="rol" required
+                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    <option [ngValue]="null" disabled>Seleccionar rol...</option>
+                    <option *ngFor="let role of roles" [value]="role.idRol">{{ role.nombreRol }}</option>
+                </select>
+            </div>
+
+            <div *ngIf="isEditMode" class="mb-2 flex items-center">
+                <input [(ngModel)]="user.estado" name="estado" id="estado" type="checkbox"
+                    class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                <label for="estado" class="ml-2 block text-sm font-bold text-gray-900">Usuario Activo</label>
+            </div>
         </div>
 
-        <div class="mb-4" *ngIf="!isEditMode">
-            <label class="block text-gray-700 text-sm font-bold mb-2" for="email">
-                Correo Institucional
-            </label>
-            <input [(ngModel)]="user.email" name="email" id="email" type="email" required
-                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+        <!-- ── Configuración de acceso a sedes ──────────────────────────── -->
+        <div class="bg-white shadow-md rounded px-8 pt-6 pb-6">
+            <h3 class="text-base font-bold text-gray-600 uppercase tracking-wide border-b pb-2 mb-4">Acceso a Sedes</h3>
+
+            <!-- Sede primaria -->
+            <div class="mb-5">
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="sede">
+                    Sede primaria
+                    <span class="text-xs font-normal text-gray-400 ml-1">(sede de operación principal)</span>
+                </label>
+                <select [(ngModel)]="user.idSede" name="idSede" id="sede" required
+                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    <option [ngValue]="null" disabled>Seleccionar sede primaria...</option>
+                    <option *ngFor="let sede of sedes" [value]="sede.idSede">{{ sede.nombreSede }}</option>
+                </select>
+            </div>
+
+            <!-- todasLasSedes -->
+            <div class="mb-4 p-3 bg-blue-50 rounded border border-blue-200">
+                <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" [(ngModel)]="user.todasLasSedes" name="todasLasSedes"
+                        (change)="onTodasLasSedesChange()"
+                        class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                    <span class="text-sm font-bold text-blue-800">Puede visualizar TODAS las sedes</span>
+                </label>
+                <p class="text-xs text-blue-600 mt-1 ml-6">Si está activo, el usuario ve el inventario de cualquier sede sin restricción.</p>
+            </div>
+
+            <!-- Sedes permitidas (multiselect checkboxes) -->
+            <div [class.opacity-50]="user.todasLasSedes" [class.pointer-events-none]="user.todasLasSedes" class="mb-5">
+                <label class="block text-gray-700 text-sm font-bold mb-2">
+                    Sedes permitidas
+                    <span class="text-xs font-normal text-gray-400 ml-1">(se ignora si "todas las sedes" está activo)</span>
+                </label>
+                <div class="max-h-40 overflow-y-auto border border-gray-200 rounded p-3 bg-gray-50">
+                    <div *ngFor="let sede of sedes" class="mb-1.5">
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox"
+                                [checked]="hasSede(sede.idSede)"
+                                [disabled]="user.todasLasSedes"
+                                (change)="toggleSede(sede.idSede, $event)"
+                                class="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500">
+                            <span class="text-sm text-gray-700">{{ sede.nombreSede }}</span>
+                        </label>
+                    </div>
+                    <div *ngIf="sedes.length === 0" class="text-xs text-gray-400 text-center py-2">No hay sedes disponibles.</div>
+                </div>
+            </div>
+
+            <!-- limitarOperacionSedePrimaria -->
+            <div class="p-3 bg-orange-50 rounded border border-orange-200">
+                <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" [(ngModel)]="user.limitarOperacionSedePrimaria" name="limitarOperacion"
+                        class="h-4 w-4 text-orange-600 border-gray-300 rounded focus:ring-orange-500">
+                    <span class="text-sm font-bold text-orange-800">Limitar operación a sede primaria</span>
+                </label>
+                <p class="text-xs text-orange-700 mt-1 ml-6">El usuario puede ver otras sedes pero sólo puede crear/modificar registros en su sede primaria.</p>
+            </div>
         </div>
 
-        <div class="mb-4" *ngIf="!isEditMode">
-            <label class="block text-gray-700 text-sm font-bold mb-2" for="password">
-                Contraseña
-            </label>
-            <input [(ngModel)]="user.password" name="password" id="password" type="password" required
-                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-        </div>
-
-        <div class="mb-4">
-            <label class="block text-gray-700 text-sm font-bold mb-2" for="rol">
-                Rol
-            </label>
-            <select [(ngModel)]="user.idRol" name="idRol" id="rol"
-                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                <option *ngFor="let role of roles" [value]="role.idRol">{{ role.nombreRol }}</option>
-            </select>
-        </div>
-
-        <div class="mb-6">
-            <label class="block text-gray-700 text-sm font-bold mb-2" for="sede">
-                Sede
-            </label>
-            <select [(ngModel)]="user.idSede" name="idSede" id="sede"
-                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                <option *ngFor="let sede of sedes" [value]="sede.idSede">{{ sede.nombreSede }}</option>
-            </select>
-        </div>
-
-        <div class="mb-4 flex items-center">
-            <input [(ngModel)]="user.estado" name="estado" id="estado" type="checkbox"
-                class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
-            <label for="estado" class="ml-2 block text-gray-900 text-sm font-bold">
-                Usuario Activo
-            </label>
-        </div>
-
-        <div class="flex items-center justify-between">
-            <button type="submit" [disabled]="!userForm.form.valid"
-                class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
-                {{ isEditMode ? 'Guardar Cambios' : 'Registrar' }}
-            </button>
+        <!-- ── Acciones ───────────────────────────────────────────────────── -->
+        <div class="flex items-center justify-between pb-4">
             <a routerLink="/configuration/users"
-                class="inline-block align-baseline font-bold text-sm text-blue-500 hover:text-blue-800">
+                class="font-bold text-sm text-gray-600 hover:text-gray-800 transition">
                 Cancelar
             </a>
+            <button type="submit" [disabled]="!userForm.form.valid"
+                class="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-bold py-2 px-6 rounded shadow focus:outline-none transition">
+                {{ isEditMode ? 'Guardar Cambios' : 'Registrar Usuario' }}
+            </button>
         </div>
+
     </form>
 </div>

@@ -4,6 +4,7 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using TesisInventory.Application.DTOs.Transferencias;
 using TesisInventory.Application.Interfaces;
+using TesisInventory.API.Filters;
 
 namespace TesisInventory.API.Controllers
 {
@@ -64,6 +65,7 @@ namespace TesisInventory.API.Controllers
         }
 
         [HttpPost]
+        [RequirePermiso("Transferencias_Crear")]
         public async Task<IActionResult> Create([FromBody] CreateTransferenciaDto dto)
         {
             if (!ModelState.IsValid)
@@ -91,6 +93,7 @@ namespace TesisInventory.API.Controllers
         }
 
         [HttpPut("{id}/aceptar")]
+        [RequirePermiso("Transferencias_Crear")]
         public async Task<IActionResult> Aceptar(int id, [FromBody] ResolverTransferenciaDto dto)
         {
             var userId = GetCurrentUserId();
@@ -99,6 +102,7 @@ namespace TesisInventory.API.Controllers
         }
 
         [HttpPut("{id}/rechazar")]
+        [RequirePermiso("Transferencias_Crear")]
         public async Task<IActionResult> Rechazar(int id, [FromBody] ResolverTransferenciaDto dto)
         {
             var userId = GetCurrentUserId();

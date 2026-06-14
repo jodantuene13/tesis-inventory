@@ -8,6 +8,7 @@ import { FamiliaService } from '../../../services/familia.service';
 import { ProductoService } from '../../../services/producto.service';
 import { SedeService } from '../../../services/sede.service';
 import { SedeContextService } from '../../../services/sede-context.service';
+import { AuthService } from '../../../services/auth';
 import { Subscription } from 'rxjs';
 import { IncrementarStockDto, RegistrarConsumoDto, RegistrarTransferenciaDto, Stock, OperacionStockMultipleDto, DetalleOperacionStockDto, Movimiento } from '../../../models/stock.model';
 import { Rubro } from '../../../models/rubro.model';
@@ -27,6 +28,8 @@ export class StockComponent implements OnInit {
   stocks: Stock[] = [];
   rubros: Rubro[] = [];
   familias: Familia[] = [];
+
+  canOperarStock = false;
   
   private contextSub!: Subscription;
 
@@ -85,10 +88,12 @@ export class StockComponent implements OnInit {
     private rubroService: RubroService,
     private familiaService: FamiliaService,
     private productoService: ProductoService,
-    private sedeContextService: SedeContextService
+    private sedeContextService: SedeContextService,
+    private authService: AuthService
   ) { }
 
   ngOnInit(): void {
+    this.canOperarStock = this.authService.hasPermiso('Inventario_StockLocal_OpMultiples_VerCrear');
     this.loadRubros();
     // Suscribirse a cambios de sede para recargar
     this.contextSub = this.sedeContextService.sedeEnContexto$.subscribe(() => {

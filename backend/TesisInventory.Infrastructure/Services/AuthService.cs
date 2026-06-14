@@ -52,20 +52,26 @@ namespace TesisInventory.Infrastructure.Services
             return email.EndsWith("@ucc.edu.ar", StringComparison.OrdinalIgnoreCase);
         }
 
-        public Task<string> GenerateJwtTokenAsync(Usuario usuario)
+        public Task<string> GenerateJwtTokenAsync(Usuario usuario, IEnumerable<string> permisos)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.ASCII.GetBytes(_configuration["Jwt:Secret"]);
+
+            var claims = new List<Claim>
+            {
+                new Claim("id",              usuario.IdUsuario.ToString()),
+                new Claim(ClaimTypes.Email,  usuario.Email),
+                new Claim(ClaimTypes.Role,   usuario.Rol?.NombreRol ?? "User"),
+                new Claim("sede_id",         usuario.IdSede.ToString())
+            };
+
+            foreach (var permiso in permisos)
+                claims.Add(new Claim("permiso", permiso));
+
             var tokenDescriptor = new SecurityTokenDescriptor
             {
-                Subject = new ClaimsIdentity(new[]
-                {
-                    new Claim("id", usuario.IdUsuario.ToString()),
-                    new Claim(ClaimTypes.Email, usuario.Email),
-                    new Claim(ClaimTypes.Role, usuario.Rol?.NombreRol ?? "User"),
-                    new Claim("sede_id", usuario.IdSede.ToString())
-                }),
-                Expires = DateTime.UtcNow.AddDays(1), // Expiración de 1 día
+                Subject = new ClaimsIdentity(claims),
+                Expires = DateTime.UtcNow.AddDays(1),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
             };
             var token = tokenHandler.CreateToken(tokenDescriptor);

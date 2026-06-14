@@ -91,6 +91,10 @@ export class AuthService {
     return !!localStorage.getItem(this.tokenKey);
   }
 
+  hasPermiso(permiso: string): boolean {
+    return this.userSubject.getValue()?.permisos?.includes(permiso) ?? false;
+  }
+
   private getUserFromStorage(): User | null {
     const user = localStorage.getItem(this.userKey);
     return user ? JSON.parse(user) : null;

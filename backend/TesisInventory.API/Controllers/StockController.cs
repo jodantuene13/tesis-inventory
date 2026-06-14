@@ -3,12 +3,13 @@ using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using TesisInventory.Application.DTOs.Stock;
 using TesisInventory.Application.Interfaces;
+using TesisInventory.API.Filters;
 
 namespace TesisInventory.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    // [Authorize] // Asume que todos estos endpoints requieren autenticación
+    [Authorize]
     public class StockController : ControllerBase
     {
         private readonly IStockService _stockService;
@@ -96,6 +97,7 @@ namespace TesisInventory.API.Controllers
         }
 
         [HttpPost("incremento")]
+        [RequirePermiso("Inventario_StockLocal_OpMultiples_VerCrear")]
         public async Task<IActionResult> IncrementarStock([FromBody] IncrementarStockDto dto)
         {
             if (!ModelState.IsValid)
@@ -116,6 +118,7 @@ namespace TesisInventory.API.Controllers
         }
 
         [HttpPost("consumo")]
+        [RequirePermiso("Inventario_StockLocal_OpMultiples_VerCrear")]
         public async Task<IActionResult> RegistrarConsumo([FromBody] RegistrarConsumoDto dto)
         {
             if (!ModelState.IsValid)
@@ -156,6 +159,7 @@ namespace TesisInventory.API.Controllers
         }
 
         [HttpPost("operacion-multiple")]
+        [RequirePermiso("Inventario_StockLocal_OpMultiples_VerCrear")]
         public async Task<IActionResult> ProcesarOperacionMultiple([FromBody] OperacionStockMultipleDto dto)
         {
             if (!ModelState.IsValid)

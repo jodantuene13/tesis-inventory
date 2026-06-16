@@ -9,7 +9,7 @@ Esta épica resuelve la necesidad de administrar el control de acceso y la estru
 - **Relación con el problema**: Garantiza que solo personal autorizado acceda al sistema y que cada operación quede trazada a un responsable específico, mitigando la falta de control en los inventarios actuales.
 
 ────────────────────────────────────────
-6.2 Alcance funcional de la épica
+6.2 Alcance funcional de la épica 
 ────────────────────────────────────────
 **Funcionalidades incluidas:**
 1.  Listado de usuarios existentes con paginación/scroll.

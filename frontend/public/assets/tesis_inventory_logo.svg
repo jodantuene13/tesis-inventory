@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 540 200" width="540" height="200">
+  <defs>
+    <!-- Gradiente diagonal: cyan (top-left) → blue-violet → purple (bottom-right) -->
+    <linearGradient id="lg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%"   stop-color="#00D4FF"/>
+      <stop offset="42%"  stop-color="#5533EE"/>
+      <stop offset="100%" stop-color="#8B2EFF"/>
+    </linearGradient>
+
+    <!--
+      Mask para la T:
+        - blanco = visible (barra + tallo)
+        - negro  = transparente (recorte interior pill)
+    -->
+    <mask id="tm">
+      <!-- Barra horizontal (pill grande) -->
+      <rect x="22" y="28" width="214" height="62" rx="31" fill="white"/>
+      <!-- Tallo vertical izquierdo -->
+      <rect x="22" y="76" width="42" height="97" rx="14" fill="white"/>
+      <!-- Recorte interior (hueco pill dentro de la barra) -->
+      <rect x="50" y="47" width="158" height="24" rx="12" fill="black"/>
+    </mask>
+  </defs>
+
+  <!-- T con gradiente y máscara (hueco verdaderamente transparente) -->
+  <rect x="22" y="28" width="214" height="145" fill="url(#lg)" mask="url(#tm)"/>
+
+  <!-- "esis" en bold navy -->
+  <text x="248" y="90"
+    font-family="'Segoe UI Black','Arial Black','Helvetica Neue','Nunito',sans-serif"
+    font-weight="900"
+    font-size="83"
+    fill="#0C0E42"
+    letter-spacing="-2">esis</text>
+
+  <!-- "Inventory" en azul cyan -->
+  <text x="254" y="132"
+    font-family="'Segoe UI','Arial','Helvetica Neue','Nunito',sans-serif"
+    font-weight="600"
+    font-size="32"
+    fill="#00AADE"
+    letter-spacing="0.8">Inventory</text>
+</svg>

@@ -15,10 +15,12 @@ namespace TesisInventory.Domain.Entities
         public MotivoMovimiento Motivo { get; set; }
         public int IdUsuario { get; set; }
         public string? Observaciones { get; set; }
+        public int? IdOperacion { get; set; }
 
         // Propiedades de navegación
         public virtual Producto? Producto { get; set; }
         public virtual Sede? Sede { get; set; }
         public virtual Usuario? Usuario { get; set; }
+        public virtual OperacionStock? OperacionStock { get; set; }
     }
 }

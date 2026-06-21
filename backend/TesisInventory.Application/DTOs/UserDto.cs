@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace TesisInventory.Application.DTOs
 {
@@ -13,5 +14,8 @@ namespace TesisInventory.Application.DTOs
         public string NombreRol { get; set; } = string.Empty;
         public int IdSede { get; set; }
         public string NombreSede { get; set; } = string.Empty;
+        public bool TodasLasSedes { get; set; }
+        public bool LimitarOperacionSedePrimaria { get; set; }
+        public List<int> SedesPermitidas { get; set; } = new List<int>();
     }
 }

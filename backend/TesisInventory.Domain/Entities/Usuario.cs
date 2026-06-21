@@ -14,10 +14,16 @@ namespace TesisInventory.Domain.Entities
         public int IdRol { get; set; }
         public int IdSede { get; set; }
 
+        // Configuración de acceso multi-sede (a nivel usuario)
+        public bool TodasLasSedes { get; set; } = false;
+        public bool LimitarOperacionSedePrimaria { get; set; } = false;
+
         public virtual Rol? Rol { get; set; }
         public virtual Sede? Sede { get; set; }
+        public virtual ICollection<UsuarioSede> UsuariosSedes { get; set; } = new List<UsuarioSede>();
         public virtual ICollection<Movimiento> Movimientos { get; set; } = new List<Movimiento>();
         public virtual ICollection<Transferencia> TransferenciasSolicitadas { get; set; } = new List<Transferencia>();
         public virtual ICollection<HistorialTransferencia> HistorialTransferencias { get; set; } = new List<HistorialTransferencia>();
+        public virtual ICollection<OperacionStock> OperacionesStock { get; set; } = new List<OperacionStock>();
     }
 }

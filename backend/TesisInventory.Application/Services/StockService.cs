@@ -17,19 +17,28 @@ namespace TesisInventory.Application.Services
         private readonly ITransferenciaRepository _transferenciaRepository;
         private readonly IProductoRepository _productoRepository;
         private readonly ISedeRepository _sedeRepository;
+        private readonly IOperacionStockRepository _operacionStockRepository;
+        private readonly ISolicitudCompraRepository _solicitudCompraRepository;
+        private readonly IAlertaStockService _alertaStockService;
 
         public StockService(
             IStockRepository stockRepository,
             IMovimientoRepository movimientoRepository,
             ITransferenciaRepository transferenciaRepository,
             IProductoRepository productoRepository,
-            ISedeRepository sedeRepository)
+            ISedeRepository sedeRepository,
+            IOperacionStockRepository operacionStockRepository,
+            ISolicitudCompraRepository solicitudCompraRepository,
+            IAlertaStockService alertaStockService)
         {
             _stockRepository = stockRepository;
             _movimientoRepository = movimientoRepository;
             _transferenciaRepository = transferenciaRepository;
             _productoRepository = productoRepository;
             _sedeRepository = sedeRepository;
+            _operacionStockRepository = operacionStockRepository;
+            _solicitudCompraRepository = solicitudCompraRepository;
+            _alertaStockService = alertaStockService;
         }
 
         public async Task<(IEnumerable<StockDto> Items, int TotalCount)> GetStockAsync(
@@ -58,7 +67,19 @@ namespace TesisInventory.Application.Services
                 IdSede = s.IdSede,
                 CantidadActual = s.CantidadActual,
                 PuntoReposicion = s.PuntoReposicion,
-                FechaActualizacion = s.FechaActualizacion
+                FechaActualizacion = s.FechaActualizacion,
+                Atributos = s.Producto.ProductoAtributoValores.Select(av => new TesisInventory.Application.DTOs.Productos.ProductoAtributoValorDto
+                {
+                    IdAtributo = av.IdAtributo,
+                    CodigoAtributo = av.Atributo?.CodigoAtributo ?? "",
+                    NombreAtributo = av.Atributo?.Nombre ?? "",
+                    TipoDatoAtributo = av.Atributo?.TipoDato ?? "",
+                    ValorTexto = av.ValorTexto,
+                    ValorNumero = av.ValorNumero,
+                    ValorDecimal = av.ValorDecimal,
+                    ValorBool = av.ValorBool,
+                    ValorLista = av.ValorLista
+                }).ToList()
             });
 
             return (items, totalCount);
@@ -101,6 +122,10 @@ namespace TesisInventory.Application.Services
 
             await _movimientoRepository.AddMovimientoAsync(movimiento);
 
+            // Verificar si el ingreso resuelve una alerta activa
+            await _alertaStockService.VerificarYRegistrarAlertaAsync(
+                dto.IdProducto, idSede, stock.CantidadActual, stock.PuntoReposicion);
+
             return new StockDto
             {
                 IdStock = stock.IdStock,
@@ -141,6 +166,10 @@ namespace TesisInventory.Application.Services
 
             await _movimientoRepository.AddMovimientoAsync(movimiento);
 
+            // Verificar si el egreso genera o actualiza una alerta de bajo stock
+            await _alertaStockService.VerificarYRegistrarAlertaAsync(
+                dto.IdProducto, idSede, stock.CantidadActual, stock.PuntoReposicion);
+
             return new StockDto
             {
                 IdStock = stock.IdStock,
@@ -159,24 +188,36 @@ namespace TesisInventory.Application.Services
                 throw new InvalidOperationException("La sede destino no puede ser la misma que la sede origen.");
             }
             
-            var stockOrigen = await _stockRepository.GetStockAsync(dto.IdProducto, idSedeOrigen);
-            
-            if (stockOrigen == null || stockOrigen.CantidadActual < dto.Cantidad)
+            foreach (var detalle in dto.Detalles)
             {
-                throw new InvalidOperationException("No hay stock suficiente para realizar la transferencia.");
+               var stockOrigenObj = await _stockRepository.GetStockAsync(detalle.IdProducto, idSedeOrigen);
+               if (stockOrigenObj == null || stockOrigenObj.CantidadActual < detalle.Cantidad)
+               {
+                   throw new InvalidOperationException($"No hay stock suficiente para realizar la transferencia del producto {detalle.IdProducto}.");
+               }
             }
 
             var transferencia = new Transferencia
             {
-                IdProducto = dto.IdProducto,
                 IdSedeOrigen = idSedeOrigen,
                 IdSedeDestino = dto.IdSedeDestino,
-                Cantidad = dto.Cantidad,
                 FechaSolicitud = DateTime.UtcNow,
                 Estado = EstadoTransferencia.Solicitada,
                 IdUsuarioSolicita = idUsuario,
-                Observaciones = dto.Observaciones
+                Observaciones = dto.Observaciones,
+                Detalles = new List<TransferenciaDetalle>()
             };
+
+            foreach (var dt in dto.Detalles)
+            {
+                var stock = await _stockRepository.GetStockAsync(dt.IdProducto, idSedeOrigen);
+                transferencia.Detalles.Add(new TransferenciaDetalle
+                {
+                    IdProducto = dt.IdProducto,
+                    Cantidad = dt.Cantidad,
+                    StockOrigenSnapshot = stock!.CantidadActual
+                });
+            }
 
             transferencia = await _transferenciaRepository.AddTransferenciaAsync(transferencia);
 
@@ -195,12 +236,10 @@ namespace TesisInventory.Application.Services
             return new TransferenciaDto
             {
                 IdTransferencia = transferencia.IdTransferencia,
-                IdProducto = transferencia.IdProducto,
                 IdSedeOrigen = transferencia.IdSedeOrigen,
                 IdSedeDestino = transferencia.IdSedeDestino,
-                Cantidad = transferencia.Cantidad,
-                Estado = transferencia.Estado,
                 FechaSolicitud = transferencia.FechaSolicitud,
+                Estado = transferencia.Estado,
                 IdUsuarioSolicita = transferencia.IdUsuarioSolicita,
                 Observaciones = transferencia.Observaciones
             };
@@ -261,6 +300,154 @@ namespace TesisInventory.Application.Services
         public Task<IEnumerable<TransferenciaDto>> GetTransferenciasSedeAsync(int idSede)
         {
             throw new NotImplementedException();
+        }
+
+        public async Task<OperacionStockMultipleDto> ProcesarOperacionMultipleAsync(int idSede, int idUsuario, OperacionStockMultipleDto dto)
+        {
+            if (dto.Detalles == null || !dto.Detalles.Any())
+                throw new InvalidOperationException("La operación debe contener al menos un producto.");
+
+            SolicitudCompra? solicitud = null;
+            if (dto.IdSolicitudCompraAsociada.HasValue)
+            {
+                solicitud = await _solicitudCompraRepository.GetByIdAsync(dto.IdSolicitudCompraAsociada.Value);
+                if (solicitud == null)
+                    throw new InvalidOperationException("La Solicitud de Compra asociada no existe.");
+                
+                if (solicitud.Estado != EstadoSolicitudCompra.Aprobada)
+                    throw new InvalidOperationException("La Solicitud de Compra debe estar Aprobada para impactar stock.");
+                if (solicitud.Etiqueta == EtiquetaSolicitudCompra.IngresadaAlStock || solicitud.Etiqueta == EtiquetaSolicitudCompra.NoConcretada)
+                    throw new InvalidOperationException("La Solicitud de Compra ya fue completada o marcada como no concretada.");
+            }
+
+            var operacion = new OperacionStock
+            {
+                IdSede = idSede,
+                IdUsuario = idUsuario,
+                TipoOperacion = dto.TipoOperacion,
+                Motivo = dto.Motivo,
+                Fecha = DateTime.UtcNow,
+                OrdenTrabajo = dto.OrdenTrabajo,
+                OrdenCompra = dto.OrdenCompra,
+                TicketSolicitud = dto.TicketSolicitud,
+                Observaciones = dto.Observaciones,
+                Movimientos = new List<Movimiento>()
+            };
+
+            foreach (var detalle in dto.Detalles)
+            {
+                if (solicitud != null)
+                {
+                    var solDetalle = solicitud.Detalles.FirstOrDefault(d => d.IdProducto == detalle.IdProducto);
+                    if (solDetalle == null)
+                        throw new InvalidOperationException($"El producto {detalle.IdProducto} no pertenece a la Solicitud de Compra.");
+                    
+                    if (detalle.Cantidad + solDetalle.CantidadRecibida > solDetalle.Cantidad)
+                        throw new InvalidOperationException($"La cantidad ingresada para el producto {detalle.IdProducto} supera el remanente de la Solicitud de Compra.");
+                    
+                    solDetalle.CantidadRecibida += detalle.Cantidad;
+                }
+
+                var stock = await _stockRepository.GetStockAsync(detalle.IdProducto, idSede);
+
+                if (dto.TipoOperacion == TipoMovimiento.Ingreso)
+                {
+                    if (stock == null)
+                    {
+                        stock = new Stock
+                        {
+                            IdProducto = detalle.IdProducto,
+                            IdSede = idSede,
+                            CantidadActual = 0,
+                            PuntoReposicion = 10,
+                            FechaActualizacion = DateTime.UtcNow
+                        };
+                        await _stockRepository.AddStockAsync(stock);
+                    }
+
+                    stock.CantidadActual += detalle.Cantidad;
+                    stock.FechaActualizacion = DateTime.UtcNow;
+                    await _stockRepository.UpdateStockAsync(stock);
+
+                    // Ingreso: puede resolver una alerta activa
+                    await _alertaStockService.VerificarYRegistrarAlertaAsync(
+                        detalle.IdProducto, idSede, stock.CantidadActual, stock.PuntoReposicion);
+                }
+                else if (dto.TipoOperacion == TipoMovimiento.Egreso)
+                {
+                    if (stock == null || stock.CantidadActual < detalle.Cantidad)
+                    {
+                        throw new InvalidOperationException($"No hay stock suficiente para realizar este consumo del producto {detalle.IdProducto}.");
+                    }
+
+                    stock.CantidadActual -= detalle.Cantidad;
+                    stock.FechaActualizacion = DateTime.UtcNow;
+                    await _stockRepository.UpdateStockAsync(stock);
+
+                    // Egreso: puede generar o actualizar una alerta de bajo stock
+                    await _alertaStockService.VerificarYRegistrarAlertaAsync(
+                        detalle.IdProducto, idSede, stock.CantidadActual, stock.PuntoReposicion);
+                }
+
+                var movimiento = new Movimiento
+                {
+                    IdProducto = detalle.IdProducto,
+                    IdSede = idSede,
+                    TipoMovimiento = dto.TipoOperacion,
+                    Cantidad = detalle.Cantidad,
+                    CantidadRestante = stock.CantidadActual,
+                    Motivo = dto.Motivo,
+                    IdUsuario = idUsuario,
+                    Observaciones = dto.Observaciones,
+                    Fecha = DateTime.UtcNow
+                };
+
+                operacion.Movimientos.Add(movimiento);
+            }
+
+            await _operacionStockRepository.AddOperacionStockAsync(operacion);
+
+            if (solicitud != null)
+            {
+                bool isCompletada = solicitud.Detalles.All(d => d.CantidadRecibida == d.Cantidad);
+                solicitud.Etiqueta = isCompletada ? EtiquetaSolicitudCompra.IngresadaAlStock : EtiquetaSolicitudCompra.ParcialmenteIngresada;
+                await _solicitudCompraRepository.UpdateAsync(solicitud);
+            }
+
+            return dto;
+        }
+
+        public async Task<(IEnumerable<OperacionStockResponseDto> Items, int TotalCount)> GetOperacionesAsync(int idSede, string? search, string? tipoOperacion, int? idUsuario, string? fechaDesde, string? fechaHasta, int skip, int take)
+        {
+            var (operaciones, totalCount) = await _operacionStockRepository.GetOperacionesPaginadasAsync(
+                idSede, search, tipoOperacion, idUsuario, fechaDesde, fechaHasta, skip, take);
+
+            var items = operaciones.Select(o => new OperacionStockResponseDto
+            {
+                IdOperacion = o.IdOperacion,
+                IdSede = o.IdSede,
+                IdUsuario = o.IdUsuario,
+                NombreUsuario = o.Usuario?.NombreUsuario ?? "Usuario Desconocido",
+                TipoOperacion = o.TipoOperacion,
+                Fecha = o.Fecha,
+                Motivo = o.Motivo,
+                OrdenTrabajo = o.OrdenTrabajo,
+                OrdenCompra = o.OrdenCompra,
+                TicketSolicitud = o.TicketSolicitud,
+                Observaciones = o.Observaciones,
+                Detalles = o.Movimientos.Select(m => new MovimientoDto
+                {
+                    IdMovimiento = m.IdMovimiento,
+                    IdProducto = m.IdProducto,
+                    Sku = m.Producto?.Sku ?? string.Empty,
+                    NombreProducto = m.Producto?.Nombre ?? string.Empty,
+                    UnidadMedida = m.Producto?.UnidadMedida ?? string.Empty,
+                    Cantidad = m.Cantidad,
+                    CantidadRestante = m.CantidadRestante
+                }).ToList()
+            });
+
+            return (items, totalCount);
         }
     }
 }

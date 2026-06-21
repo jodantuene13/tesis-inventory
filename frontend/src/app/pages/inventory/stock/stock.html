@@ -1,4 +1,4 @@
-<div class="animate-fade-in">
+<div class="animate-fade-in flex flex-col h-full">
 
     <!-- Page Header -->
     <div class="page-header">
@@ -13,6 +13,12 @@
                 </svg>
                 Historial
             </a>
+            <button *ngIf="canOperarStock" (click)="openMultipleModal()" class="btn btn-primary" style="display:flex;align-items:center;gap:0.5rem">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                </svg>
+                Operaciones Múltiples
+            </button>
         </div>
     </div>
 
@@ -105,9 +111,10 @@
     </div>
 
     <!-- Table -->
-    <div class="ds-table-wrapper">
-        <table class="ds-table">
-            <thead>
+    <div class="ds-table-wrapper flex-1 flex flex-col min-h-0 relative">
+        <div class="ds-table-body">
+            <table class="ds-table relative">
+                <thead class="sticky top-0 z-10 bg-gray-50 shadow-sm">
                 <tr>
                     <th>SKU / Producto</th>
                     <th>Clasificación</th>
@@ -140,12 +147,12 @@
                     </td>
                     <td class="cell-actions">
                         <div class="flex items-center justify-end gap-1">
-                            <button class="btn btn--sm btn--icon btn-ghost" (click)="openConsumoModal(s)" title="Registrar Consumo">
+                            <button class="btn btn--sm btn--icon btn-ghost" (click)="openMultipleModal(1, s)" title="Registrar Consumo">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" />
                                 </svg>
                             </button>
-                            <button class="btn btn--sm btn--icon btn-ghost" (click)="openIncrementoModal(s)" title="Incrementar Stock">
+                            <button class="btn btn--sm btn--icon btn-ghost" (click)="openMultipleModal(0, s)" title="Incrementar Stock">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                                 </svg>
@@ -160,16 +167,12 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0zM2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                                 </svg>
                             </button>
-                            <button class="btn btn--sm btn--icon btn-danger" (click)="deleteStock(s.idStock, $event)" [disabled]="!s.estadoProducto" title="Dar de baja">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
-                                </svg>
-                            </button>
                         </div>
                     </td>
                 </tr>
             </tbody>
         </table>
+        </div>
 
         <div *ngIf="stocks.length === 0" class="ds-table-empty">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -178,94 +181,18 @@
             <p>No hay productos que coincidan con los filtros aplicados.</p>
         </div>
 
-        <div class="ds-table-footer">
-            <span>Página {{ page }} de {{ totalPages }} · {{ totalCount }} resultados</span>
-            <div class="flex gap-2">
-                <button class="btn btn--sm btn-secondary" (click)="prevPage()" [disabled]="page === 1">Anterior</button>
-                <button class="btn btn--sm btn-secondary" (click)="nextPage()" [disabled]="page === totalPages">Siguiente</button>
-            </div>
-        </div>
+        <app-pagination
+            [page]="page" [pageSize]="pageSize"
+            [totalPages]="totalPages" [totalCount]="totalCount"
+            (pageChange)="onPageChange($event)"
+            (pageSizeChange)="onPageSizeChange($event)">
+        </app-pagination>
     </div>
-</div>
 
 <!-- Modals -->
 <div *ngIf="activeModal !== null" class="modal-backdrop" (click)="closeModal()">
 
-    <!-- Consumo Modal -->
-    <div *ngIf="activeModal === 'consumo'" class="modal-box" (click)="$event.stopPropagation()">
-        <div class="modal-header">
-            <h2 class="modal-title">Registrar Consumo / Egreso</h2>
-            <button class="modal-close" (click)="closeModal()">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
-            </button>
-        </div>
-        <div class="modal-body">
-            <p style="font-size:0.875rem;color:var(--color-gray-600);margin-bottom:1.25rem;">
-                <strong style="color:var(--color-gray-900)">{{ selectedStock?.nombreProducto }}</strong> · Stock actual: <strong>{{ selectedStock?.cantidadActual }}</strong> {{ selectedStock?.unidadMedida }}
-            </p>
-            <div *ngIf="!consumoConfirm">
-                <div class="form-row">
-                    <div class="form-field">
-                        <label>Cantidad a descontar</label>
-                        <input type="number" class="ds-input" [(ngModel)]="consumoCantidad" min="1" [max]="selectedStock ? selectedStock.cantidadActual : null">
-                    </div>
-                    <div class="form-field">
-                        <label>Motivo</label>
-                        <select class="ds-input" [(ngModel)]="consumoMotivo">
-                            <option [ngValue]="0">Consumo Interno</option>
-                            <option [ngValue]="1">Egreso por vencimiento</option>
-                            <option [ngValue]="2">Egreso por daño</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-            <div *ngIf="consumoConfirm" class="badge badge-warning" style="padding:0.75rem;border-radius:8px;width:100%;display:block;font-size:0.875rem;font-weight:500">
-                ¿Confirmar egreso de <strong>{{ consumoCantidad }}</strong> unidades de <strong>{{ selectedStock?.nombreProducto }}</strong>?
-            </div>
-        </div>
-        <div class="modal-footer">
-            <button class="btn btn-secondary" (click)="consumoConfirm ? consumoConfirm = false : closeModal()">{{ consumoConfirm ? 'Volver' : 'Cancelar' }}</button>
-            <button class="btn btn-primary" (click)="confirmConsumo()" [disabled]="consumoCantidad < 1 || consumoCantidad > (selectedStock?.cantidadActual || 0)">
-                {{ consumoConfirm ? 'Confirmar Egreso' : 'Continuar' }}
-            </button>
-        </div>
-    </div>
 
-    <!-- Incremento Modal -->
-    <div *ngIf="activeModal === 'incremento'" class="modal-box" (click)="$event.stopPropagation()">
-        <div class="modal-header">
-            <h2 class="modal-title">Registrar Ingreso</h2>
-            <button class="modal-close" (click)="closeModal()">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
-            </button>
-        </div>
-        <div class="modal-body">
-            <p style="font-size:0.875rem;color:var(--color-gray-600);margin-bottom:1.25rem;">
-                <strong style="color:var(--color-gray-900)">{{ selectedStock?.nombreProducto }}</strong>
-            </p>
-            <div class="form-row">
-                <div class="form-field">
-                    <label>Cantidad a ingresar</label>
-                    <input type="number" class="ds-input" [(ngModel)]="incrementoCantidad" min="1">
-                </div>
-                <div class="form-field">
-                    <label>Motivo</label>
-                    <select class="ds-input" [(ngModel)]="incrementoMotivo">
-                        <option [ngValue]="3">Por Compra</option>
-                        <option [ngValue]="4">Ajustes varios</option>
-                    </select>
-                </div>
-            </div>
-            <div class="form-field">
-                <label>Observaciones</label>
-                <input type="text" class="ds-input" [(ngModel)]="incrementoObs" placeholder="Opcional...">
-            </div>
-        </div>
-        <div class="modal-footer">
-            <button class="btn btn-secondary" (click)="closeModal()">Cancelar</button>
-            <button class="btn btn-success" (click)="saveIncremento()" [disabled]="incrementoCantidad < 1">Registrar Ingreso</button>
-        </div>
-    </div>
 
     <!-- Historial Modal -->
     <div *ngIf="activeModal === 'historial'" class="modal-box modal-box--wide" (click)="$event.stopPropagation()" style="max-height:85vh;">
@@ -308,28 +235,20 @@
         </div>
     </div>
 
-    <!-- Ficha Detalle Modal -->
-    <div *ngIf="activeModal === 'detalle'" class="modal-box" (click)="$event.stopPropagation()">
-        <div class="modal-header">
-            <h2 class="modal-title">Ficha de Producto</h2>
-            <button class="modal-close" (click)="closeModal()">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
-            </button>
-        </div>
-        <div class="modal-body">
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;">
-                <div><div class="section-title">SKU</div><div style="font-weight:700;font-family:monospace;color:var(--color-primary-600)">{{ selectedStock?.sku }}</div></div>
-                <div><div class="section-title">Estado</div><span class="badge" [ngClass]="selectedStock?.estadoProducto ? 'badge-success' : 'badge-neutral'">{{ selectedStock?.estadoProducto ? 'Activo' : 'Inactivo' }}</span></div>
-                <div style="grid-column:1/-1"><div class="section-title">Nombre del Producto</div><div style="font-weight:600;color:var(--color-gray-900)">{{ selectedStock?.nombreProducto }}</div></div>
-                <div><div class="section-title">Rubro</div><div>{{ selectedStock?.rubroProducto }}</div></div>
-                <div><div class="section-title">Familia</div><div>{{ selectedStock?.familiaProducto }}</div></div>
-                <div><div class="section-title">Unidad de Medida</div><div>{{ selectedStock?.unidadMedida }}</div></div>
-                <div><div class="section-title">Stock Actual</div><div style="font-size:1.5rem;font-weight:800;color:var(--color-gray-900)">{{ selectedStock?.cantidadActual }}</div></div>
-                <div><div class="section-title">Punto de Reposición</div><div style="font-size:1.5rem;font-weight:800;color:var(--color-warning-600)">{{ selectedStock?.puntoReposicion }}</div></div>
-            </div>
-        </div>
-        <div class="modal-footer">
-            <button class="btn btn-secondary" (click)="closeModal()">Cerrar</button>
-        </div>
+
     </div>
-</div>
+
+    <!-- Multiple Operations Modal (Extracted to Shared Component) -->
+    <app-operaciones-multiples-modal
+        *ngIf="activeModal === 'multiple'"
+        [config]="multipleModalConfig"
+        (close)="closeModal()"
+        (onComplete)="onMultipleModalComplete()">
+    </app-operaciones-multiples-modal>
+
+    <!-- Detalle Ficha Modal (Extracted to Shared Component) -->
+    <app-ficha-producto-modal 
+        *ngIf="activeModal === 'detalle'" 
+        [stock]="selectedStock" 
+        (close)="closeModal()">
+    </app-ficha-producto-modal>

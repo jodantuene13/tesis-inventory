@@ -22,48 +22,56 @@ namespace TesisInventory.Application.Services
             _auditService = auditService;
         }
 
-        public async Task<UserDto> CreateUserAsync(CreateUserDto createUserDto)
+        public async Task<UserDto> CreateUserAsync(CreateUserDto dto)
         {
-            if (await _userRepository.ExistsByEmailAsync(createUserDto.Email))
-            {
+            if (await _userRepository.ExistsByEmailAsync(dto.Email))
                 throw new Exception("El correo electrónico ya está registrado.");
-            }
 
             var usuario = new Usuario
             {
-                NombreUsuario = createUserDto.NombreUsuario,
-                Email = createUserDto.Email,
-                Password = createUserDto.Password,
-                IdRol = createUserDto.IdRol,
-                IdSede = createUserDto.IdSede,
+                NombreUsuario = dto.NombreUsuario,
+                Email = dto.Email,
+                Password = dto.Password,
+                IdRol = dto.IdRol,
+                IdSede = dto.IdSede,
+                TodasLasSedes = dto.TodasLasSedes,
+                LimitarOperacionSedePrimaria = dto.LimitarOperacionSedePrimaria,
                 Estado = true,
-                FechaRegistro = DateTime.Now
+                FechaRegistro = DateTime.Now,
+                UsuariosSedes = dto.SedesIds
+                    .Select(idSede => new UsuarioSede { IdSede = idSede })
+                    .ToList()
             };
 
             await _userRepository.AddAsync(usuario);
             var newUserSnapshot = await GetSnapshotAsync(usuario.IdUsuario);
             await _auditService.LogActionAsync(usuario.IdUsuario, "CREATE", $"Usuario creado: {usuario.NombreUsuario}", null, newUserSnapshot);
-            
-            var createdUser = await _userRepository.GetByIdAsync(usuario.IdUsuario);
-            if (createdUser == null) throw new Exception("Error al crear usuario.");
-            return MapToDto(createdUser);
+
+            var created = await _userRepository.GetByIdAsync(usuario.IdUsuario);
+            if (created == null) throw new Exception("Error al crear usuario.");
+            return MapToDto(created);
         }
 
-        public async Task<UserDto> UpdateUserAsync(int id, UpdateUserDto updateUserDto)
+        public async Task<UserDto> UpdateUserAsync(int id, UpdateUserDto dto)
         {
             var usuario = await _userRepository.GetByIdAsync(id);
             if (usuario == null) throw new Exception("Usuario no encontrado.");
-            
+
             var oldSnapshot = await GetSnapshotAsync(id);
 
-            usuario.NombreUsuario = updateUserDto.NombreUsuario;
-            usuario.IdRol = updateUserDto.IdRol;
-            usuario.IdSede = updateUserDto.IdSede;
-            usuario.Estado = updateUserDto.Estado;
+            usuario.NombreUsuario = dto.NombreUsuario;
+            usuario.IdRol = dto.IdRol;
+            usuario.IdSede = dto.IdSede;
+            usuario.Estado = dto.Estado;
+            usuario.TodasLasSedes = dto.TodasLasSedes;
+            usuario.LimitarOperacionSedePrimaria = dto.LimitarOperacionSedePrimaria;
+
+            usuario.UsuariosSedes.Clear();
+            foreach (var idSede in dto.SedesIds)
+                usuario.UsuariosSedes.Add(new UsuarioSede { IdUsuario = id, IdSede = idSede });
 
             await _userRepository.UpdateAsync(usuario);
             var newSnapshot = await GetSnapshotAsync(id);
-            
             await _auditService.LogActionAsync(usuario.IdUsuario, "UPDATE", $"Usuario actualizado: {usuario.NombreUsuario}", oldSnapshot, newSnapshot);
             return MapToDto(usuario);
         }
@@ -82,8 +90,7 @@ namespace TesisInventory.Application.Services
         public async Task<UserDto?> GetUserByIdAsync(int id)
         {
             var usuario = await _userRepository.GetByIdAsync(id);
-            if (usuario == null) return null;
-            return MapToDto(usuario);
+            return usuario == null ? null : MapToDto(usuario);
         }
 
         public async Task<IEnumerable<UserDto>> GetAllUsersAsync()
@@ -96,13 +103,11 @@ namespace TesisInventory.Application.Services
         {
             var usuario = await _userRepository.GetByIdAsync(id);
             if (usuario == null) throw new Exception("Usuario no encontrado.");
-            
-            var oldSnapshot = await GetSnapshotAsync(id);
 
+            var oldSnapshot = await GetSnapshotAsync(id);
             usuario.Estado = nuevoEstado;
             await _userRepository.UpdateAsync(usuario);
             var newSnapshot = await GetSnapshotAsync(id);
-            
             await _auditService.LogActionAsync(id, "CHANGE_STATUS", $"Estado cambiado a: {(nuevoEstado ? "Activo" : "Inactivo")}", oldSnapshot, newSnapshot);
             return MapToDto(usuario);
         }
@@ -112,16 +117,8 @@ namespace TesisInventory.Application.Services
             var usuario = await _userRepository.GetByIdAsync(id);
             if (usuario == null) return false;
 
-            // Password change doesn't usually show snapshot details for security, but we can enable it if requested. 
-            // For now, adhering to standard practice of not logging password contents.
-            await _userRepository.UpdateAsync(usuario); // Just usage placeholder
-            
-             // Re-fetch logic or direct update... currently manual update.
-             // Since repository.UpdateAsync expects entity, let's just do it
-             
-             usuario.Password = newPassword;
-             await _userRepository.UpdateAsync(usuario);
-
+            usuario.Password = newPassword;
+            await _userRepository.UpdateAsync(usuario);
             await _auditService.LogActionAsync(id, "CHANGE_PASSWORD", "Contraseña actualizada");
             return true;
         }
@@ -144,28 +141,28 @@ namespace TesisInventory.Application.Services
             return users.Select(MapToDto);
         }
 
-        private UserDto MapToDto(Usuario u)
+        private static UserDto MapToDto(Usuario u) => new UserDto
         {
-            return new UserDto
-            {
-                IdUsuario = u.IdUsuario,
-                NombreUsuario = u.NombreUsuario,
-                Email = u.Email,
-                Estado = u.Estado,
-                FechaRegistro = u.FechaRegistro,
-                IdRol = u.IdRol,
-                IdSede = u.IdSede,
-                NombreRol = u.Rol?.NombreRol ?? "Sin Rol",
-                NombreSede = u.Sede?.NombreSede ?? "Sin Sede"
-            };
-        }
-        
+            IdUsuario = u.IdUsuario,
+            NombreUsuario = u.NombreUsuario,
+            Email = u.Email,
+            Estado = u.Estado,
+            FechaRegistro = u.FechaRegistro,
+            IdRol = u.IdRol,
+            IdSede = u.IdSede,
+            NombreRol = u.Rol?.NombreRol ?? "Sin Rol",
+            NombreSede = u.Sede?.NombreSede ?? "Sin Sede",
+            TodasLasSedes = u.TodasLasSedes,
+            LimitarOperacionSedePrimaria = u.LimitarOperacionSedePrimaria,
+            SedesPermitidas = u.UsuariosSedes.Select(us => us.IdSede).ToList()
+        };
+
         private async Task<object?> GetSnapshotAsync(int userId)
         {
             var user = await _userRepository.GetByIdAsync(userId);
             if (user == null) return null;
-            
-            return new 
+
+            return new
             {
                 Nombre = user.NombreUsuario,
                 Email = user.Email,

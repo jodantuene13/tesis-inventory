@@ -28,6 +28,7 @@ export const routes: Routes = [
                     { path: 'atributos', loadComponent: () => import('./pages/inventory/atributos/atributos.component').then(m => m.AtributosComponent) },
                     { path: 'productos', loadComponent: () => import('./pages/inventory/productos/productos.component').then(m => m.ProductosComponent) },
                     { path: 'stock', loadComponent: () => import('./pages/inventory/stock/stock').then(m => m.StockComponent) },
+                    { path: 'remitos', loadComponent: () => import('./pages/inventory/remitos/remitos.component').then(m => m.RemitosComponent) },
                     { path: 'historial-movimientos', loadComponent: () => import('./pages/inventory/historial-movimientos/historial-movimientos.component').then(m => m.HistorialMovimientosComponent) },
                     { path: '', redirectTo: 'productos', pathMatch: 'full' }
                 ]
@@ -40,7 +41,34 @@ export const routes: Routes = [
             // Transferencias Module
             {
                 path: 'transferencias',
-                loadComponent: () => import('./pages/transferencias/transferencias-list/transferencias-list.component').then(m => m.TransferenciasListComponent)
+                children: [
+                    { path: 'gestionar', loadComponent: () => import('./pages/transferencias/transferencias-list/transferencias-list.component').then(m => m.TransferenciasListComponent) },
+                    { path: 'historico', loadComponent: () => import('./pages/transferencias/historico-transferencias/historico-transferencias.component').then(m => m.HistoricoTransferenciasComponent) },
+                    { path: '', redirectTo: 'gestionar', pathMatch: 'full' }
+                ]
+            },
+            // Informes Module
+            {
+                path: 'informes',
+                children: [
+                    { 
+                        path: 'alertas-stock', 
+                        loadComponent: () => import('./pages/informes/alertas-stock/alertas-stock.component').then(m => m.AlertasStockComponent)
+                    },
+                    {
+                        path: 'rotacion-productos',
+                        loadComponent: () => import('./pages/informes/rotacion-productos/rotacion-productos.component').then(m => m.RotacionProductosComponent)
+                    },
+                    {
+                        path: 'transferencias',
+                        loadComponent: () => import('./pages/informes/transferencias/transferencias.component').then(m => m.TransferenciasComponent)
+                    },
+                    {
+                        path: 'solicitudes-compra',
+                        loadComponent: () => import('./pages/informes/solicitudes-compra/solicitudes-compra.component').then(m => m.SolicitudesCompraInformeComponent)
+                    },
+                    { path: '', redirectTo: 'alertas-stock', pathMatch: 'full' }
+                ]
             },
             // Configuration Module
             {

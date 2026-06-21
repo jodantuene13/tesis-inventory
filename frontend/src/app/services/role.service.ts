@@ -1,13 +1,14 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
+import { API_BASE_URL } from '../tokens/api-url.token';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Role } from '../models/role.model';
+import { Role, Permiso } from '../models/role.model';
 
 @Injectable({
     providedIn: 'root'
 })
 export class RoleService {
-    private apiUrl = 'http://localhost:5139/api/roles';
+    private readonly apiUrl = `${inject(API_BASE_URL)}/api/roles`;
 
     constructor(private http: HttpClient) { }
 
@@ -29,5 +30,9 @@ export class RoleService {
 
     delete(id: number): Observable<void> {
         return this.http.delete<void>(`${this.apiUrl}/${id}`);
+    }
+
+    getPermisos(): Observable<Permiso[]> {
+        return this.http.get<Permiso[]>(`${this.apiUrl}/permisos`);
     }
 }

@@ -8,6 +8,7 @@ namespace TesisInventory.Application.Interfaces
     {
         Task<SolicitudCompraDto> CreateSolicitudAsync(int idSede, int idUsuario, CreateSolicitudCompraDto dto);
         Task<SolicitudCompraDto> UpdateEstadoAsync(int idSolicitud, int idUsuarioAprobador, UpdateSolicitudCompraEstadoDto dto);
+        Task<SolicitudCompraDto> MarcarComoNoConcretadaAsync(int idSolicitud);
         Task<(IEnumerable<SolicitudCompraDto> Items, int TotalCount)> GetPagedSolicitudesAsync(
             int? idSede, string? search, int? estado, int page, int pageSize);
         Task<SolicitudCompraDto?> GetByIdAsync(int id);

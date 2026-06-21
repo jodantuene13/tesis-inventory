@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 using TesisInventory.Application.DTOs;
 using TesisInventory.Application.Interfaces;
+using TesisInventory.API.Filters;
 
 namespace TesisInventory.API.Controllers
 {
@@ -41,6 +42,7 @@ namespace TesisInventory.API.Controllers
         }
 
         [HttpPost]
+        [RequirePermiso("ConfiguracionAdmin_Ver")]
         public async Task<IActionResult> Create([FromBody] CreateUserDto createUserDto)
         {
             try
@@ -55,6 +57,7 @@ namespace TesisInventory.API.Controllers
         }
 
         [HttpPut("{id}")]
+        [RequirePermiso("ConfiguracionAdmin_Ver")]
         public async Task<IActionResult> Update(int id, [FromBody] UpdateUserDto updateUserDto)
         {
             try
@@ -69,6 +72,7 @@ namespace TesisInventory.API.Controllers
         }
 
         [HttpDelete("{id}")]
+        [RequirePermiso("ConfiguracionAdmin_Ver")]
         public async Task<IActionResult> Delete(int id)
         {
             var result = await _usersService.DeleteUserAsync(id);

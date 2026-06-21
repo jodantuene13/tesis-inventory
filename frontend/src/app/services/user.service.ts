@@ -1,4 +1,5 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
+import { API_BASE_URL } from '../tokens/api-url.token';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { User, CreateUserDto, UpdateUserDto } from '../models/user.model';
@@ -7,7 +8,7 @@ import { User, CreateUserDto, UpdateUserDto } from '../models/user.model';
     providedIn: 'root'
 })
 export class UserService {
-    private apiUrl = 'http://localhost:5139/api/users'; // Adjust port if needed
+    private readonly apiUrl = `${inject(API_BASE_URL)}/api/users`;
 
     constructor(private http: HttpClient) { }
 

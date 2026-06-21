@@ -1,10 +1,49 @@
-<div class="login-container">
-    <div class="login-card">
-        <h2>Tesis Inventory</h2>
-        <p>Inicia sesión con tu cuenta institucional</p>
+<div class="login-wrapper">
+    <div class="background-elements">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+    </div>
+    
+    <div class="login-container">
+        <div class="login-card glass-effect">
+            <div class="logo-area" style="margin-bottom: 1.5rem; display: flex; flex-direction: column; align-items: center;">
+                <h1 class="brand-title">
+                    <span class="brand-tesis">Tesis</span>
+                    <span class="brand-inventory"> Inventory</span>
+                </h1>
+            </div>
 
-        <div id="google-btn" class="google-btn-wrapper"></div>
 
-        <p class="footer-text">Solo acceso @ucc.edu.ar</p>
+            
+            <p class="subtitle">Bienvenido al sistema de inventario</p>
+            
+            <div class="main-auth-section">
+                <p class="section-label">Acceso Institucional</p>
+                <div id="google-btn" class="google-btn-wrapper"></div>
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="test-login-section">
+                <div class="input-group">
+                    <label for="test-email">Correo Electrónico</label>
+                    <input type="email" id="test-email" [(ngModel)]="testEmail" class="modern-input" placeholder="admin@ucc.edu.ar" />
+                </div>
+                
+                <button (click)="onTestLogin()" class="modern-btn primary-btn">
+                    <span>Entrar con Email</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                </button>
+                
+                <p *ngIf="loginError" class="error-message">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                    {{ loginError }}
+                </p>
+            </div>
+
+            <div class="footer-info">
+                <p>Uso exclusivo @ucc.edu.ar</p>
+            </div>
+        </div>
     </div>
 </div>

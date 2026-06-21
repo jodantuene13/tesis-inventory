@@ -2,7 +2,7 @@
     <h1 class="text-3xl font-bold mb-6 text-gray-800">Historial de Modificaciones</h1>
 
     <!-- Filters -->
-    <div class="bg-white p-4 rounded-lg shadow mb-6 flex flex-wrap gap-4 items-end">
+    <div class="filter-bar">
         <div>
             <label class="block text-sm font-medium text-gray-700">Desde</label>
             <input type="date" [(ngModel)]="fromDate" (change)="search()"
@@ -40,55 +40,40 @@
     </div>
 
     <!-- Table -->
-    <div class="bg-white rounded-lg shadow overflow-hidden">
-        <table class="min-w-full leading-normal">
+    <div class="ds-table-wrapper">
+        <table class="ds-table">
             <thead>
                 <tr>
-                    <th
-                        class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                        Fecha/Hora</th>
-                    <th
-                        class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                        Acción</th>
-                    <th
-                        class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                        Ejecutor</th>
-                    <th
-                        class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                        Detalles</th>
-                    <th
-                        class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                        Descripción</th>
-                    <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100"></th>
+                    <th>Fecha/Hora</th>
+                    <th>Acción</th>
+                    <th>Ejecutor</th>
+                    <th>Detalles</th>
+                    <th>Descripción</th>
+                    <th></th>
                 </tr>
             </thead>
             <tbody>
-                <tr *ngFor="let log of logs" class="hover:bg-gray-50">
-                    <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">
-                        {{ log.timestamp | date }}
-                    </td>
-                    <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">
+                <tr *ngFor="let log of logs">
+                    <td>{{ log.timestamp | date }}</td>
+                    <td>
                         <span
                             [class]="'px-2 inline-flex text-xs leading-5 font-semibold rounded-full ' + getActionClass(log.action)">
                             {{ log.action }}
                         </span>
                     </td>
-                    <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">
+                    <td>
                         <div class="font-bold">{{ log.executorName }}</div>
-                        <div class="text-xs text-gray-500">{{ log.executorEmail }}</div>
+                        <div class="cell-muted">{{ log.executorEmail }}</div>
                     </td>
-                    <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">
+                    <td>
                         <div class="text-xs">Rol: {{ log.executorRole }}</div>
                         <div class="text-xs">Sede: {{ log.executorSede }}</div>
                     </td>
-                    <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">
-                        {{ log.details }}
-                    </td>
-                    <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm text-right">
+                    <td>{{ log.details }}</td>
+                    <td class="text-right">
                         <button *ngIf="log.targetUserSnapshot" (click)="openDiff(log)"
                             class="text-blue-500 hover:text-blue-700 bg-blue-100 hover:bg-blue-200 p-2 rounded-full transition"
                             title="Ver detalles del cambio">
-                            <!-- Magnifying Glass Icon -->
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
                                 stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -99,8 +84,7 @@
                     </td>
                 </tr>
                 <tr *ngIf="logs.length === 0">
-                    <td colspan="6"
-                        class="px-5 py-5 border-b border-gray-200 bg-white text-sm text-center text-gray-500">
+                    <td colspan="6" class="text-center text-gray-500">
                         No se encontraron registros.
                     </td>
                 </tr>

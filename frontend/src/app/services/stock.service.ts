@@ -1,5 +1,6 @@
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
+import { API_BASE_URL } from '../tokens/api-url.token';
 import { Observable } from 'rxjs';
 import { IncrementarStockDto, Movimiento, RegistrarConsumoDto, RegistrarTransferenciaDto, Stock } from '../models/stock.model';
 
@@ -7,7 +8,7 @@ import { IncrementarStockDto, Movimiento, RegistrarConsumoDto, RegistrarTransfer
     providedIn: 'root'
 })
 export class StockService {
-    private apiUrl = 'http://localhost:5139/api/Stock';
+    private readonly apiUrl = `${inject(API_BASE_URL)}/api/Stock`;
 
     constructor(private http: HttpClient) { }
 
@@ -39,6 +40,10 @@ export class StockService {
         return this.http.post<any>(`${this.apiUrl}/transferencia`, dto);
     }
 
+    procesarOperacionMultiple(dto: any): Observable<any> {
+        return this.http.post<any>(`${this.apiUrl}/operacion-multiple`, dto);
+    }
+
     getMovimientos(idProducto: number, tipoMovimiento?: string, fechaDesde?: string, fechaHasta?: string): Observable<Movimiento[]> {
         let params = new HttpParams();
         if (tipoMovimiento) params = params.set('tipoMovimiento', tipoMovimiento);
@@ -46,6 +51,28 @@ export class StockService {
         if (fechaHasta) params = params.set('fechaHasta', fechaHasta);
 
         return this.http.get<Movimiento[]>(`${this.apiUrl}/${idProducto}/movimientos`, { params });
+    }
+
+    getOperaciones(
+        search?: string,
+        tipoOperacion?: string,
+        idUsuario?: number,
+        fechaDesde?: string,
+        fechaHasta?: string,
+        skip: number = 0,
+        take: number = 50
+    ): Observable<{ data: any[], totalCount: number }> {
+        let params = new HttpParams()
+            .set('skip', skip.toString())
+            .set('take', take.toString());
+
+        if (search) params = params.set('search', search);
+        if (tipoOperacion) params = params.set('tipoOperacion', tipoOperacion);
+        if (idUsuario) params = params.set('idUsuario', idUsuario.toString());
+        if (fechaDesde) params = params.set('fechaDesde', fechaDesde);
+        if (fechaHasta) params = params.set('fechaHasta', fechaHasta);
+
+        return this.http.get<{ data: any[], totalCount: number }>(`${this.apiUrl}/operaciones-multiples`, { params });
     }
 
     getHistorialGlobal(search?: string, idRubro?: number, idFamilia?: number, tipoMovimiento?: string, idUsuario?: number, fechaDesde?: string, fechaHasta?: string, page: number = 1, pageSize: number = 50): Observable<any> {

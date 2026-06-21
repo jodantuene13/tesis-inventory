@@ -13,22 +13,22 @@
         <span class="block sm:inline">{{ errorMessage }}</span>
     </div>
 
-    <div class="overflow-x-auto">
-        <table class="min-w-full bg-white border border-gray-300">
+    <div class="ds-table-wrapper">
+        <table class="ds-table">
             <thead>
-                <tr class="bg-gray-100 text-gray-600 uppercase text-sm leading-normal">
-                    <th class="py-3 px-6 text-left">ID</th>
-                    <th class="py-3 px-6 text-left">Nombre</th>
-                    <th class="py-3 px-6 text-left">Descripción</th>
-                    <th class="py-3 px-6 text-center">Acciones</th>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Descripción</th>
+                    <th class="text-center">Acciones</th>
                 </tr>
             </thead>
-            <tbody class="text-gray-600 text-sm font-light">
-                <tr *ngFor="let role of roles" class="border-b border-gray-200 hover:bg-gray-100">
-                    <td class="py-3 px-6 text-left whitespace-nowrap font-medium">{{ role.idRol }}</td>
-                    <td class="py-3 px-6 text-left">{{ role.nombreRol }}</td>
-                    <td class="py-3 px-6 text-left">{{ role.descripcion }}</td>
-                    <td class="py-3 px-6 text-center">
+            <tbody>
+                <tr *ngFor="let role of roles">
+                    <td class="cell-primary whitespace-nowrap">{{ role.idRol }}</td>
+                    <td>{{ role.nombreRol }}</td>
+                    <td>{{ role.descripcion }}</td>
+                    <td class="text-center">
                         <div class="flex item-center justify-center space-x-4">
                             <!-- Edit Button -->
                             <a [routerLink]="['/configuration/roles/edit', role.idRol]"

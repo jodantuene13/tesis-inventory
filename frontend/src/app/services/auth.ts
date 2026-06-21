@@ -1,4 +1,5 @@
-import { Injectable, NgZone } from '@angular/core';
+import { Injectable, NgZone, inject } from '@angular/core';
+import { API_BASE_URL } from '../tokens/api-url.token';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { BehaviorSubject, Observable } from 'rxjs';
@@ -11,7 +12,7 @@ declare const google: any;
   providedIn: 'root'
 })
 export class AuthService {
-  private apiUrl = 'http://localhost:5139/api/auth'; // Adjust port if needed
+  private readonly apiUrl = `${inject(API_BASE_URL)}/api/auth`;
   private tokenKey = 'inventory_token';
   private userKey = 'inventory_user';
 
@@ -69,6 +70,16 @@ export class AuthService {
     );
   }
 
+  loginWithEmail(email: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/test-login`, { email }).pipe(
+      tap((res: any) => {
+        localStorage.setItem(this.tokenKey, res.token);
+        localStorage.setItem(this.userKey, JSON.stringify(res.user));
+        this.userSubject.next(res.user);
+      })
+    );
+  }
+
   logout() {
     localStorage.removeItem(this.tokenKey);
     localStorage.removeItem(this.userKey);
@@ -78,6 +89,10 @@ export class AuthService {
 
   isAuthenticated(): boolean {
     return !!localStorage.getItem(this.tokenKey);
+  }
+
+  hasPermiso(permiso: string): boolean {
+    return this.userSubject.getValue()?.permisos?.includes(permiso) ?? false;
   }
 
   private getUserFromStorage(): User | null {

@@ -1,0 +1,360 @@
+<div class="report-page">
+
+  <!-- ══ SIDEBAR DE FILTROS ════════════════════════════════════════════════ -->
+  <aside class="report-sidebar">
+
+    <div class="sidebar-header">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="16" height="16">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z" />
+      </svg>
+      <span>Filtros</span>
+    </div>
+
+    <!-- Período -->
+    <div class="filter-section">
+      <label class="filter-section-label">Período</label>
+      <div class="period-chips">
+        <button class="chip" [class.active]="periodoPreset==='30'" (click)="setPeriodo('30')">Últ. 30 días</button>
+        <button class="chip" [class.active]="periodoPreset==='90'" (click)="setPeriodo('90')">Últ. 90 días</button>
+        <button class="chip" [class.active]="periodoPreset==='custom'" (click)="periodoPreset='custom'">Personalizado</button>
+      </div>
+      <div class="custom-range" *ngIf="periodoPreset==='custom'">
+        <label class="range-label">Desde</label>
+        <input type="date" class="f-input f-input--sm" [(ngModel)]="fechaDesde" />
+        <label class="range-label">Hasta</label>
+        <input type="date" class="f-input f-input--sm" [(ngModel)]="fechaHasta" />
+      </div>
+    </div>
+
+    <!-- Sede -->
+    <div class="filter-section">
+      <label class="filter-section-label">Sede</label>
+      <select class="f-select" [(ngModel)]="sedeId">
+        <option [ngValue]="null">Todas las sedes</option>
+        <option *ngFor="let s of sedes" [ngValue]="s.idSede">{{ s.nombreSede }}</option>
+      </select>
+    </div>
+
+    <!-- Acciones -->
+    <div class="filter-actions">
+      <button class="btn-aplicar btn--full" (click)="aplicarFiltros()">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="14" height="14">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z" />
+        </svg>
+        Aplicar filtros
+      </button>
+      <button class="btn-exportar btn--full" (click)="exportarCSV()" [disabled]="!informe">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="14" height="14">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+        </svg>
+        Exportar CSV
+      </button>
+    </div>
+
+    <!-- Resumen filtros -->
+    <div class="filter-summary" *ngIf="informe">
+      <span class="dot dot-blue"></span>
+      <span>{{ fechaDesde | date:'dd/MM/yy' }} → {{ fechaHasta | date:'dd/MM/yy' }}</span>
+    </div>
+
+    <div class="sidebar-footer-note">
+      Los datos de pendientes se muestran al día de hoy, independiente del período.
+    </div>
+
+  </aside>
+
+  <!-- ══ ÁREA PRINCIPAL ════════════════════════════════════════════════════ -->
+  <main class="report-main">
+
+    <!-- Breadcrumb -->
+    <nav class="breadcrumb">
+      <span class="bc-item">Informes</span>
+      <span class="bc-sep">›</span>
+      <span class="bc-item bc-active">Solicitudes de Compra</span>
+    </nav>
+
+    <!-- Título -->
+    <div class="report-header">
+      <div>
+        <h1 class="report-title">Solicitudes de Compra</h1>
+        <p class="report-desc">Análisis de solicitudes, cumplimiento, tiempos de circuito y productos más solicitados.</p>
+      </div>
+    </div>
+
+    <!-- Estado: cargando -->
+    <div class="loading-state" *ngIf="loading">
+      <div class="spinner"></div>
+      <span>Cargando informe…</span>
+    </div>
+
+    <!-- Estado: error -->
+    <div class="error-state" *ngIf="error && !loading">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="20" height="20">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+      </svg>
+      {{ error }}
+    </div>
+
+    <!-- Contenido -->
+    <ng-container *ngIf="informe && !loading">
+
+      <!-- ── KPIs globales ─────────────────────────────────────────────────── -->
+      <div class="kpi-row">
+        <div class="kpi-card">
+          <span class="kpi-label">Total solicitudes</span>
+          <span class="kpi-value">{{ informe.totalSolicitudes }}</span>
+        </div>
+        <div class="kpi-card kpi-card--green">
+          <span class="kpi-label">Aprobadas</span>
+          <span class="kpi-value">{{ informe.totalAprobadas }}</span>
+          <span class="kpi-sub" *ngIf="informe.totalSolicitudes > 0">
+            {{ (informe.totalAprobadas / informe.totalSolicitudes * 100) | number:'1.0-0' }}%
+          </span>
+        </div>
+        <div class="kpi-card kpi-card--red">
+          <span class="kpi-label">Rechazadas</span>
+          <span class="kpi-value">{{ informe.totalRechazadas }}</span>
+          <span class="kpi-sub" *ngIf="informe.totalSolicitudes > 0">
+            {{ (informe.totalRechazadas / informe.totalSolicitudes * 100) | number:'1.0-0' }}%
+          </span>
+        </div>
+        <div class="kpi-card kpi-card--amber">
+          <span class="kpi-label">Pendientes</span>
+          <span class="kpi-value">{{ informe.pendientes.length }}</span>
+          <span class="kpi-sub">al día de hoy</span>
+        </div>
+        <div class="kpi-card kpi-card--indigo">
+          <span class="kpi-label">T. prom. decisión</span>
+          <span class="kpi-value">{{ informe.tiempoPromedioDecisionDias | number:'1.0-1' }} d</span>
+          <span class="kpi-sub">FechaSolicitud → Decisión</span>
+        </div>
+        <div class="kpi-card kpi-card--teal">
+          <span class="kpi-label">Cumpl. total</span>
+          <span class="kpi-value">{{ informe.porcentajeCumplimientoTotal | number:'1.0-1' }}%</span>
+          <span class="kpi-sub">ingresadas al stock</span>
+        </div>
+      </div>
+
+      <!-- ── Tabs ─────────────────────────────────────────────────────────── -->
+      <div class="tabs-bar">
+        <button class="tab-btn" [class.active]="activeTab==='breakdown'" (click)="setTab('breakdown')">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="15" height="15">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+          Por usuario / sede
+        </button>
+        <button class="tab-btn" [class.active]="activeTab==='pendientes'" (click)="setTab('pendientes')">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="15" height="15">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          Pendientes
+          <span class="tab-badge" *ngIf="informe.pendientes.length > 0">{{ informe.pendientes.length }}</span>
+        </button>
+        <button class="tab-btn" [class.active]="activeTab==='productos'" (click)="setTab('productos')">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="15" height="15">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+          </svg>
+          Productos solicitados
+        </button>
+      </div>
+
+      <!-- ══════════════════════════════════════════════════════════════════ -->
+      <!-- TAB 1: Por usuario / sede                                         -->
+      <!-- ══════════════════════════════════════════════════════════════════ -->
+      <div *ngIf="activeTab==='breakdown'">
+
+        <!-- Toggle usuario/sede -->
+        <div class="agrupacion-toggle-wrapper">
+          <div class="agrupacion-toggle" [class.disabled]="toggleDisabled" [title]="toggleDisabled ? 'Con sede específica se muestra la vista por usuario' : ''">
+            <button class="toggle-opt" [class.active]="vistaAgrupacion==='usuario' || toggleDisabled"
+              (click)="setAgrupacion('usuario')">
+              Por usuario
+            </button>
+            <button class="toggle-opt" [class.active]="vistaAgrupacion==='sede' && !toggleDisabled"
+              (click)="setAgrupacion('sede')" [disabled]="toggleDisabled">
+              Por sede
+            </button>
+          </div>
+          <span class="toggle-hint" *ngIf="toggleDisabled">
+            Seleccioná "Todas las sedes" para activar la vista por sede
+          </span>
+        </div>
+
+        <!-- Gráfico grouped bar -->
+        <div class="chart-wrap" *ngIf="datosBreakdown.length > 0">
+          <canvas id="chart-breakdown" height="260"></canvas>
+        </div>
+
+        <!-- Tabla -->
+        <div class="table-card" *ngIf="datosBreakdown.length > 0">
+          <table class="r-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>{{ (vistaAgrupacion==='usuario' || toggleDisabled) ? 'Usuario' : 'Sede' }}</th>
+                <th class="text-center">Total</th>
+                <th class="text-center">Aprobadas</th>
+                <th class="text-center">Rechazadas</th>
+                <th class="text-center">Pendientes</th>
+                <th class="text-center">Cumpl. Total</th>
+                <th class="text-center">Cumpl. Parcial</th>
+                <th class="text-center">No concretadas</th>
+                <th class="text-center">T. decisión</th>
+                <th class="text-center">T. hasta stock</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let d of datosBreakdown; let i = index">
+                <td class="row-num">{{ i + 1 }}</td>
+                <td class="nombre-col">{{ d.nombre }}</td>
+                <td class="text-center"><strong>{{ d.total }}</strong></td>
+                <td class="text-center"><span class="badge badge-green">{{ d.aprobadas }}</span></td>
+                <td class="text-center"><span class="badge badge-red">{{ d.rechazadas }}</span></td>
+                <td class="text-center"><span class="badge badge-amber">{{ d.pendientes }}</span></td>
+                <td class="text-center"><span class="badge badge-teal">{{ d.cumplimientoTotal }}</span></td>
+                <td class="text-center"><span class="badge badge-indigo">{{ d.cumplimientoParcial }}</span></td>
+                <td class="text-center"><span class="badge badge-gray">{{ d.noConcretadas }}</span></td>
+                <td class="text-center text-num">
+                  {{ d.tiempoPromedioDecisionDias | number:'1.0-1' }} d
+                </td>
+                <td class="text-center text-num">
+                  {{ d.tiempoPromedioStockDias | number:'1.0-1' }} d
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="empty-state" *ngIf="datosBreakdown.length === 0">
+          No hay solicitudes para el período seleccionado.
+        </div>
+
+      </div><!-- /tab breakdown -->
+
+      <!-- ══════════════════════════════════════════════════════════════════ -->
+      <!-- TAB 2: Pendientes                                                  -->
+      <!-- ══════════════════════════════════════════════════════════════════ -->
+      <div *ngIf="activeTab==='pendientes'">
+
+        <!-- KPI chips de antigüedad -->
+        <div class="pend-kpis">
+          <div class="pend-kpi pend-kpi--ok" [class.selected]="filtroPendientes==='5'"
+            (click)="filtroPendientes = filtroPendientes==='5' ? 'todos' : '5'">
+            <span class="pend-kpi-val">{{ informe.pendientesHasta5Dias }}</span>
+            <span class="pend-kpi-label">≤ 5 días</span>
+          </div>
+          <div class="pend-kpi pend-kpi--warning" [class.selected]="filtroPendientes==='10'"
+            (click)="filtroPendientes = filtroPendientes==='10' ? 'todos' : '10'">
+            <span class="pend-kpi-val">{{ informe.pendientesHasta10Dias }}</span>
+            <span class="pend-kpi-label">≤ 10 días</span>
+          </div>
+          <div class="pend-kpi pend-kpi--danger" [class.selected]="filtroPendientes==='30'"
+            (click)="filtroPendientes = filtroPendientes==='30' ? 'todos' : '30'">
+            <span class="pend-kpi-val">{{ informe.pendientesHasta30Dias }}</span>
+            <span class="pend-kpi-label">≤ 30 días</span>
+          </div>
+          <div class="pend-kpi pend-kpi--total" [class.selected]="filtroPendientes==='todos'"
+            (click)="filtroPendientes='todos'">
+            <span class="pend-kpi-val">{{ informe.pendientes.length }}</span>
+            <span class="pend-kpi-label">Total pendientes</span>
+          </div>
+        </div>
+
+        <p class="pend-note" *ngIf="filtroPendientes !== 'todos'">
+          Mostrando solicitudes con hasta {{ filtroPendientes }} días de espera (acumulado)
+          <button class="link-btn" (click)="filtroPendientes='todos'">Ver todas</button>
+        </p>
+
+        <!-- Tabla de pendientes -->
+        <div class="table-card" *ngIf="pendientesFiltradas.length > 0">
+          <table class="r-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>ID</th>
+                <th>Usuario</th>
+                <th>Sede</th>
+                <th>Fecha solicitud</th>
+                <th class="text-center">Días esperando</th>
+                <th>Productos</th>
+                <th>Motivo</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let p of pendientesFiltradas; let i = index">
+                <td class="row-num">{{ i + 1 }}</td>
+                <td class="text-mono">#{{ p.idSolicitudCompra }}</td>
+                <td>{{ p.usuario }}</td>
+                <td>{{ p.sede }}</td>
+                <td>{{ formatFecha(p.fechaSolicitud) }}</td>
+                <td class="text-center">
+                  <span class="badge" [ngClass]="diasBadgeClass(p.diasEsperando)">
+                    {{ p.diasEsperando }} d
+                  </span>
+                </td>
+                <td class="productos-col">{{ p.productos }}</td>
+                <td class="motivo-col">{{ p.motivoSolicitud || '—' }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="empty-state" *ngIf="pendientesFiltradas.length === 0">
+          No hay solicitudes pendientes{{ filtroPendientes !== 'todos' ? ' en ese rango' : '' }}.
+        </div>
+
+      </div><!-- /tab pendientes -->
+
+      <!-- ══════════════════════════════════════════════════════════════════ -->
+      <!-- TAB 3: Productos más solicitados                                   -->
+      <!-- ══════════════════════════════════════════════════════════════════ -->
+      <div *ngIf="activeTab==='productos'">
+
+        <div class="chart-wrap" *ngIf="informe.productosMasSolicitados.length > 0">
+          <canvas id="chart-productos" height="240"></canvas>
+        </div>
+
+        <div class="table-card" *ngIf="informe.productosMasSolicitados.length > 0">
+          <table class="r-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Producto</th>
+                <th>SKU</th>
+                <th>Familia</th>
+                <th class="text-center">Total unidades</th>
+                <th class="text-center">Veces solicitado</th>
+                <th class="text-center">En aprobadas</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let p of informe.productosMasSolicitados; let i = index">
+                <td class="row-num">{{ i + 1 }}</td>
+                <td class="nombre-col">{{ p.producto }}</td>
+                <td class="text-mono">{{ p.sku }}</td>
+                <td>{{ p.familia || '—' }}</td>
+                <td class="text-center"><strong>{{ p.totalUnidades }}</strong></td>
+                <td class="text-center">{{ p.vecesSolicitado }}</td>
+                <td class="text-center"><span class="badge badge-green">{{ p.vecesEnAprobadas }}</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="empty-state" *ngIf="informe.productosMasSolicitados.length === 0">
+          No hay productos solicitados en el período.
+        </div>
+
+      </div><!-- /tab productos -->
+
+    </ng-container><!-- /ng-container informe -->
+
+  </main>
+</div>

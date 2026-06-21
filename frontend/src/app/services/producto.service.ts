@@ -1,4 +1,5 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
+import { API_BASE_URL } from '../tokens/api-url.token';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Producto, CreateProducto, UpdateProducto } from '../models/producto.model';
@@ -7,7 +8,7 @@ import { Producto, CreateProducto, UpdateProducto } from '../models/producto.mod
     providedIn: 'root'
 })
 export class ProductoService {
-    private apiUrl = 'http://localhost:5139/api/Productos';
+    private readonly apiUrl = `${inject(API_BASE_URL)}/api/Productos`;
 
     constructor(private http: HttpClient) { }
 

@@ -8,6 +8,13 @@ using TesisInventory.Infrastructure.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Railway inyecta PORT; en desarrollo local launchSettings.json mantiene el control
+var railwayPort = Environment.GetEnvironmentVariable("PORT");
+if (railwayPort != null)
+{
+    builder.WebHost.UseUrls($"http://+:{railwayPort}");
+}
+
 // Add services to the container.
 
 builder.Services.AddControllers();
@@ -31,9 +38,11 @@ builder.Services.AddScoped<IFamiliaRepository, FamiliaRepository>();
 builder.Services.AddScoped<IAtributoRepository, AtributoRepository>();
 builder.Services.AddScoped<IProductoRepository, ProductoRepository>();
 builder.Services.AddScoped<IStockRepository, StockRepository>();
+builder.Services.AddScoped<IOperacionStockRepository, OperacionStockRepository>();
 builder.Services.AddScoped<IMovimientoRepository, MovimientoRepository>();
 builder.Services.AddScoped<ITransferenciaRepository, TransferenciaRepository>();
 builder.Services.AddScoped<ISolicitudCompraRepository, SolicitudCompraRepository>();
+builder.Services.AddScoped<IAlertaStockRepository, AlertaStockRepository>();
 
 // Services
 builder.Services.AddScoped<IAuthService, AuthService>();
@@ -50,6 +59,8 @@ builder.Services.AddScoped<IProductosService, ProductosService>();
 builder.Services.AddScoped<IStockService, StockService>();
 builder.Services.AddScoped<ITransferenciaService, TransferenciaService>();
 builder.Services.AddScoped<ISolicitudCompraService, SolicitudCompraService>();
+builder.Services.AddScoped<IAlertaStockService, AlertaStockService>();
+builder.Services.AddScoped<IInformesService, InformesService>();
 
 builder.Services.AddHttpContextAccessor();
 
@@ -73,11 +84,15 @@ builder.Services.AddAuthentication(x =>
     };
 });
 
-// CORS Config (for Angular)
+// CORS: en producción se lee de CORS_ORIGINS (ej: "https://frontend.up.railway.app")
+var corsOrigins = (builder.Configuration["Cors:AllowedOrigins"]
+    ?? "http://localhost:4200,http://127.0.0.1:4200")
+    .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAngular",
-        policy => policy.WithOrigins("http://localhost:4200", "http://127.0.0.1:4200")
+        policy => policy.WithOrigins(corsOrigins)
                         .AllowAnyHeader()
                         .AllowAnyMethod());
 });
@@ -110,7 +125,14 @@ if (app.Environment.IsDevelopment())
 
 app.UseMiddleware<TesisInventory.API.Middlewares.ErrorHandlingMiddleware>();
 
-app.UseHttpsRedirection();
+// Railway maneja SSL en el proxy; solo redirigir HTTPS en desarrollo local
+if (app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
+
+app.UseDefaultFiles();
+app.UseStaticFiles();
 
 app.UseCors("AllowAngular");
 
@@ -118,5 +140,8 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapGet("/api/health", () => Results.Ok(new { status = "healthy" }));
+
+app.MapFallbackToFile("index.html");
 
 app.Run();

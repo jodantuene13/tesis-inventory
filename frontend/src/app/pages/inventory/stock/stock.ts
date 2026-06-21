@@ -8,16 +8,20 @@ import { FamiliaService } from '../../../services/familia.service';
 import { ProductoService } from '../../../services/producto.service';
 import { SedeService } from '../../../services/sede.service';
 import { SedeContextService } from '../../../services/sede-context.service';
+import { AuthService } from '../../../services/auth';
 import { Subscription } from 'rxjs';
-import { IncrementarStockDto, RegistrarConsumoDto, RegistrarTransferenciaDto, Stock } from '../../../models/stock.model';
+import { IncrementarStockDto, RegistrarConsumoDto, RegistrarTransferenciaDto, Stock, OperacionStockMultipleDto, DetalleOperacionStockDto, Movimiento } from '../../../models/stock.model';
 import { Rubro } from '../../../models/rubro.model';
 import { Familia } from '../../../models/familia.model';
 import Swal from 'sweetalert2';
+import { FichaProductoModalComponent } from '../../../shared/components/ficha-producto-modal/ficha-producto-modal.component';
+import { OperacionesMultiplesModalComponent } from '../../../shared/components/operaciones-multiples-modal/operaciones-multiples-modal.component';
+import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
 
 @Component({
   selector: 'app-stock',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [CommonModule, FormsModule, RouterModule, FichaProductoModalComponent, OperacionesMultiplesModalComponent, PaginationComponent],
   templateUrl: './stock.html',
   styleUrls: ['./stock.css']
 })
@@ -25,13 +29,15 @@ export class StockComponent implements OnInit {
   stocks: Stock[] = [];
   rubros: Rubro[] = [];
   familias: Familia[] = [];
+
+  canOperarStock = false;
   
   private contextSub!: Subscription;
 
   // Paginación
   totalCount: number = 0;
   page: number = 1;
-  pageSize: number = 50;
+  pageSize: number = 10;
   totalPages: number = 1;
 
   // Filtros
@@ -46,35 +52,49 @@ export class StockComponent implements OnInit {
   indicatorTotal: number = 0;
   indicatorBajoStock: number = 0;
 
-  // Modals state
-  activeModal: 'consumo' | 'incremento' | 'historial' | 'detalle' | null = null;
+  // Modal State
+  activeModal: 'detalle' | 'historial' | 'multiple' | null = null;
   selectedStock: Stock | null = null;
-
-  // Consumo state
-  consumoCantidad: number = 1;
-  consumoMotivo: number = 0; // 0=Consumo, 1=Vencimiento, 2=Daño
-  consumoConfirm: boolean = false;
-
-  // Incremento state
-  incrementoCantidad: number = 1;
-  incrementoMotivo: number = 3; // 3=Compra, 4=Ajustes
-  incrementoObs: string = '';
-
-  // Historial state
-  historial: any[] = [];
+  historial: Movimiento[] = [];
   histFiltroTipo: string = '';
   histFiltroDesde: string = '';
   histFiltroHasta: string = '';
+
+  // Multiple Operations Modal Shared Config
+  multipleModalConfig = {
+    isOpen: false,
+    isLocked: false,
+    requiereOC: false,
+    initialRequest: {
+      tipoOperacion: 0 as number,
+      motivo: 3 as number,
+      ordenTrabajo: '',
+      ordenCompra: '',
+      ticketSolicitud: '',
+      observaciones: '',
+      detalles: [] as DetalleOperacionStockDto[]
+    }
+  };
+
+  isProductModalOpen: boolean = false;
+  searchProduct: string = '';
+  filteredStock: any[] = [];
+  stockList: any[] = [];
+  
+  // UI State for Operations
+  requiereOC: boolean = false;
 
   constructor(
     private stockService: StockService,
     private rubroService: RubroService,
     private familiaService: FamiliaService,
     private productoService: ProductoService,
-    private sedeContextService: SedeContextService
+    private sedeContextService: SedeContextService,
+    private authService: AuthService
   ) { }
 
   ngOnInit(): void {
+    this.canOperarStock = this.authService.hasPermiso('Inventario_StockLocal_OpMultiples_VerCrear');
     this.loadRubros();
     // Suscribirse a cambios de sede para recargar
     this.contextSub = this.sedeContextService.sedeEnContexto$.subscribe(() => {
@@ -162,85 +182,22 @@ export class StockComponent implements OnInit {
     this.clearFilters();
   }
 
-  nextPage(): void {
-    if (this.page < this.totalPages) {
-      this.page++;
-      this.loadStocks();
-    }
+  onPageChange(p: number): void {
+    this.page = p;
+    this.loadStocks();
   }
 
-  prevPage(): void {
-    if (this.page > 1) {
-      this.page--;
-      this.loadStocks();
-    }
+  onPageSizeChange(size: number): void {
+    this.pageSize = size;
+    this.page = 1;
+    this.loadStocks();
   }
 
   // Modals hooks
   closeModal(): void {
     this.activeModal = null;
     this.selectedStock = null;
-    this.consumoConfirm = false;
-  }
-
-  openConsumoModal(stock: Stock): void {
-    this.selectedStock = stock;
-    this.consumoCantidad = 1;
-    this.consumoMotivo = 0;
-    this.consumoConfirm = false;
-    this.activeModal = 'consumo';
-  }
-
-  confirmConsumo(): void {
-    if (!this.selectedStock) return;
-
-    if (!this.consumoConfirm) {
-      this.consumoConfirm = true;
-      return;
-    }
-
-    const dto: RegistrarConsumoDto = {
-      idProducto: this.selectedStock.idProducto,
-      cantidad: this.consumoCantidad,
-      motivo: this.consumoMotivo
-    };
-
-    this.stockService.registrarConsumo(dto).subscribe({
-      next: () => {
-        this.closeModal();
-        this.loadStocks();
-        this.loadIndicators();
-      },
-      error: (err) => alert(err.error?.message || 'Error al registrar consumo')
-    });
-  }
-
-  openIncrementoModal(stock: Stock): void {
-    this.selectedStock = stock;
-    this.incrementoCantidad = 1;
-    this.incrementoMotivo = 3;
-    this.incrementoObs = '';
-    this.activeModal = 'incremento';
-  }
-
-  saveIncremento(): void {
-    if (!this.selectedStock) return;
-
-    const dto: IncrementarStockDto = {
-      idProducto: this.selectedStock.idProducto,
-      cantidad: this.incrementoCantidad,
-      motivo: this.incrementoMotivo,
-      observaciones: this.incrementoObs
-    };
-
-    this.stockService.incrementarStock(dto).subscribe({
-      next: () => {
-        this.closeModal();
-        this.loadStocks();
-        this.loadIndicators();
-      },
-      error: (err) => alert(err.error?.message || 'Error al incrementar stock')
-    });
+    this.isProductModalOpen = false;
   }
 
   openHistorialModal(stock: Stock): void {
@@ -264,7 +221,6 @@ export class StockComponent implements OnInit {
   openDetalleModal(stock: Stock): void {
     this.selectedStock = stock;
     this.activeModal = 'detalle';
-    // Lógica de atributos puede ir aquí
   }
 
   deleteStock(idStock: number, event: Event): void {
@@ -299,5 +255,39 @@ export class StockComponent implements OnInit {
         });
       }
     });
+  }
+
+  // --- Multi-operation modal logic ---
+  openMultipleModal(tipoOperacion: number = 1, selectedStockItem?: Stock): void {
+    const config = {
+      isOpen: true,
+      isLocked: false,
+      requiereOC: false,
+      initialRequest: {
+        tipoOperacion: tipoOperacion,
+        motivo: tipoOperacion === 0 ? 3 : 0,
+        ordenTrabajo: '',
+        ordenCompra: '',
+        ticketSolicitud: '',
+        observaciones: '',
+        detalles: [] as DetalleOperacionStockDto[]
+      }
+    };
+
+    if (selectedStockItem) {
+      config.initialRequest.detalles.push({
+        idProducto: selectedStockItem.idProducto,
+        cantidad: 1,
+        productoInfo: selectedStockItem
+      });
+    }
+
+    this.multipleModalConfig = config;
+    this.activeModal = 'multiple';
+  }
+
+  onMultipleModalComplete(): void {
+    this.loadStocks();
+    this.loadIndicators();
   }
 }

@@ -1,6 +1,10 @@
 <div class="admin-wrapper">
+
+    <!-- Overlay para cerrar sidebar en mobile -->
+    <div class="sidebar-overlay" [class.visible]="isSidebarOpen" (click)="closeSidebar()"></div>
+
     <!-- Sidebar -->
-    <aside class="sidebar">
+    <aside class="sidebar" [class.open]="isSidebarOpen">
         <div class="logo-area">
             <div class="logo-icon">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -8,12 +12,18 @@
                 </svg>
             </div>
             <h2>StockControl</h2>
+            <!-- Botón cerrar dentro del sidebar (mobile) -->
+            <button class="sidebar-close-btn" (click)="closeSidebar()" aria-label="Cerrar menú">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="20" height="20">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
         </div>
 
         <nav class="sidebar-nav">
             <ul>
                 <li>
-                    <a routerLink="/home" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
+                    <a routerLink="/home" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" (click)="closeSidebar()">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                         </svg>
@@ -22,76 +32,146 @@
                 </li>
 
                 <!-- Inventory Module -->
-                <li class="nav-section-label" style="list-style:none">Inventario</li>
+                <ng-container *ngIf="hasPermiso('Inventario_Ver')">
+                    <li class="nav-section-label" style="list-style:none">Inventario</li>
+                    <li class="nav-item-group">
+                        <button (click)="toggleInventoryMenu()" [class.active]="isInventoryMenuOpen" class="nav-group-toggle">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                            </svg>
+                            Inventario
+                            <span class="arrow" [class.rotated]="isInventoryMenuOpen">▾</span>
+                        </button>
+                        <ul class="submenu" [class.open]="isInventoryMenuOpen">
+                            <li>
+                                <a routerLink="/inventory/stock" routerLinkActive="active" (click)="closeSidebar()">Stock Local</a>
+                            </li>
+                            <li>
+                                <a routerLink="/inventory/remitos" routerLinkActive="active" (click)="closeSidebar()">
+                                    Remitos / Op. Múltiples
+                                </a>
+                            </li>
+                            <li>
+                                <a routerLink="/inventory/historial-movimientos" routerLinkActive="active" (click)="closeSidebar()">
+                                    Historial de Movimientos
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                </ng-container>
+
+                <!-- Informes Module -->
+                <li class="nav-section-label" style="list-style:none">Informes</li>
                 <li class="nav-item-group">
-                    <button (click)="toggleInventoryMenu()" [class.active]="isInventoryMenuOpen" class="nav-group-toggle">
+                    <button (click)="toggleInformesMenu()" [class.active]="isInformesMenuOpen" class="nav-group-toggle">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                         </svg>
-                        Inventario
-                        <span class="arrow" [class.rotated]="isInventoryMenuOpen">▾</span>
+                        Informes
+                        <span class="arrow" [class.rotated]="isInformesMenuOpen">▾</span>
                     </button>
-                    <ul class="submenu" [class.open]="isInventoryMenuOpen">
+                    <ul class="submenu" [class.open]="isInformesMenuOpen">
                         <li>
-                            <a routerLink="/inventory/rubros-familias" routerLinkActive="active">Rubros y Familias</a>
+                            <a routerLink="/informes/alertas-stock" routerLinkActive="active" (click)="closeSidebar()">
+                                Stock bajo y alertas
+                            </a>
                         </li>
                         <li>
-                            <a routerLink="/inventory/atributos" routerLinkActive="active">Atributos</a>
+                            <a routerLink="/informes/rotacion-productos" routerLinkActive="active" (click)="closeSidebar()">
+                                Rotación de productos
+                            </a>
                         </li>
                         <li>
-                            <a routerLink="/inventory/productos" routerLinkActive="active">Productos</a>
+                            <a routerLink="/informes/transferencias" routerLinkActive="active" (click)="closeSidebar()">
+                                Transferencias y préstamos
+                            </a>
                         </li>
                         <li>
-                            <a routerLink="/inventory/stock" routerLinkActive="active">Stock Local</a>
-                        </li>
-                        <li>
-                            <a routerLink="/inventory/historial-movimientos" routerLinkActive="active">Historial Movimientos</a>
+                            <a routerLink="/informes/solicitudes-compra" routerLinkActive="active" (click)="closeSidebar()">
+                                Solicitudes de compra
+                            </a>
                         </li>
                     </ul>
                 </li>
 
                 <!-- Top-level modules -->
-                <li class="nav-section-label" style="list-style:none">Operaciones</li>
-                <li>
-                    <a routerLink="/solicitudes-compra" routerLinkActive="active" [routerLinkActiveOptions]="{exact: false}">
+                <li class="nav-section-label" style="list-style:none" *ngIf="hasPermiso('Solicitudes_VerBuscarImprimir') || hasPermiso('Transferencias_Ver')">Operaciones</li>
+                <li *ngIf="hasPermiso('Solicitudes_VerBuscarImprimir')">
+                    <a routerLink="/solicitudes-compra" routerLinkActive="active" [routerLinkActiveOptions]="{exact: false}" (click)="closeSidebar()">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
                         </svg>
                         Solicitudes Compra
                     </a>
                 </li>
-                <li>
-                    <a routerLink="/transferencias" routerLinkActive="active" [routerLinkActiveOptions]="{exact: false}">
+                <!-- Transferencias Module -->
+                <li class="nav-item-group" *ngIf="hasPermiso('Transferencias_Ver')">
+                    <button (click)="toggleTransferenciasMenu()" [class.active]="isTransferenciasMenuOpen" class="nav-group-toggle">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
                         </svg>
                         Transferencias
-                    </a>
+                        <span class="arrow" [class.rotated]="isTransferenciasMenuOpen">▾</span>
+                    </button>
+                    <ul class="submenu" [class.open]="isTransferenciasMenuOpen">
+                        <li>
+                            <a routerLink="/transferencias/gestionar" routerLinkActive="active" (click)="closeSidebar()">
+                                Gestionar
+                            </a>
+                        </li>
+                        <li>
+                            <a routerLink="/transferencias/historico" routerLinkActive="active" (click)="closeSidebar()">
+                                Histórico
+                            </a>
+                        </li>
+                    </ul>
                 </li>
 
                 <!-- Configuration Module -->
-                <li class="nav-section-label" style="list-style:none">Configuración</li>
-                <li class="nav-item-group">
+                <li class="nav-section-label" style="list-style:none" *ngIf="hasPermiso('Parametricas_Ver') || hasPermiso('ConfiguracionAdmin_Ver')">Administración</li>
+
+                <!-- Parametricas Module -->
+                <li class="nav-item-group" *ngIf="hasPermiso('Parametricas_Ver')">
+                    <button (click)="toggleParametricasMenu()" [class.active]="isParametricasMenuOpen" class="nav-group-toggle">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+                        </svg>
+                        Paramétricas del Gestor
+                        <span class="arrow" [class.rotated]="isParametricasMenuOpen">▾</span>
+                    </button>
+                    <ul class="submenu" [class.open]="isParametricasMenuOpen">
+                        <li>
+                            <a routerLink="/inventory/rubros-familias" routerLinkActive="active" (click)="closeSidebar()">Rubros y Familias</a>
+                        </li>
+                        <li>
+                            <a routerLink="/inventory/atributos" routerLinkActive="active" (click)="closeSidebar()">Atributos</a>
+                        </li>
+                        <li>
+                            <a routerLink="/inventory/productos" routerLinkActive="active" (click)="closeSidebar()">Productos</a>
+                        </li>
+                    </ul>
+                </li>
+                <li class="nav-item-group" *ngIf="hasPermiso('ConfiguracionAdmin_Ver')">
                     <button (click)="toggleConfigMenu()" [class.active]="isConfigMenuOpen" class="nav-group-toggle">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                         </svg>
-                        Configuración
+                        Configuración Admin
                         <span class="arrow" [class.rotated]="isConfigMenuOpen">▾</span>
                     </button>
                     <ul class="submenu" [class.open]="isConfigMenuOpen">
                         <li>
-                            <a routerLink="/configuration/users" routerLinkActive="active">Usuarios</a>
+                            <a routerLink="/configuration/users" routerLinkActive="active" (click)="closeSidebar()">Usuarios</a>
                         </li>
                         <li>
-                            <a routerLink="/configuration/roles" routerLinkActive="active">Roles</a>
+                            <a routerLink="/configuration/roles" routerLinkActive="active" (click)="closeSidebar()">Roles</a>
                         </li>
                         <li>
-                            <a routerLink="/configuration/sedes" routerLinkActive="active">Sedes</a>
+                            <a routerLink="/configuration/sedes" routerLinkActive="active" (click)="closeSidebar()">Sedes</a>
                         </li>
                         <li>
-                            <a routerLink="/configuration/audit-log" routerLinkActive="active">Auditoría</a>
+                            <a routerLink="/configuration/audit-log" routerLinkActive="active" (click)="closeSidebar()">Auditoría</a>
                         </li>
                     </ul>
                 </li>
@@ -99,6 +179,16 @@
         </nav>
 
         <div class="sidebar-footer">
+            <button (click)="toggleDarkMode()" class="theme-btn" [title]="isDarkMode ? 'Modo claro' : 'Modo nocturno'">
+                <!-- Moon icon — shown in light mode to switch to dark -->
+                <svg *ngIf="!isDarkMode" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                </svg>
+                <!-- Sun icon — shown in dark mode to switch to light -->
+                <svg *ngIf="isDarkMode" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                </svg>
+            </button>
             <button (click)="logout()" class="logout-btn">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
@@ -112,15 +202,34 @@
     <main class="main-content">
         <header class="top-bar">
             <div class="top-bar-left">
-                <div *ngIf="isAdmin" class="sede-context-selector">
+                <!-- Botón hamburguesa (solo visible en mobile) -->
+                <button class="hamburger-btn" (click)="toggleSidebar()" aria-label="Abrir menú" id="hamburger-toggle">
+                    <span class="hamburger-line" [class.open]="isSidebarOpen"></span>
+                    <span class="hamburger-line" [class.open]="isSidebarOpen"></span>
+                    <span class="hamburger-line" [class.open]="isSidebarOpen"></span>
+                </button>
+
+                <div *ngIf="isAdmin" class="sede-context-selector" (click)="toggleSedeDropdown($event)">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-gray-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                     </svg>
-                    <label for="sedeContextSelect">Sede:</label>
-                    <select id="sedeContextSelect" [ngModel]="selectedSedeId" (change)="onSedeChange($event)">
-                        <option *ngFor="let sede of sedes" [value]="sede.idSede">{{ sede.nombreSede }}</option>
-                    </select>
+                    <label>SEDE:</label>
+                    <div class="sede-dropdown-text">
+                        {{ selectedSedeName }}
+                    </div>
+
+                    <!-- Dropdown flotante -->
+                    <div class="custom-sede-dropdown" *ngIf="isSedeDropdownOpen" (click)="$event.stopPropagation()">
+                        <div class="sede-list">
+                            <div class="sede-item" 
+                                 *ngFor="let sede of sedes" 
+                                 [class.selected]="sede.idSede === selectedSedeId"
+                                 (click)="selectSede(sede.idSede)">
+                                {{ sede.nombreSede }}
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </header>

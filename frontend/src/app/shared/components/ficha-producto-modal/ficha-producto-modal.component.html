@@ -1,0 +1,60 @@
+<div class="fixed inset-0 bg-black bg-opacity-50 z-[100] flex justify-center items-center" (click)="closeModal()">
+  <div class="modal-box" style="z-index: 101;" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2 class="modal-title">Ficha de Producto</h2>
+      <button class="modal-close" (click)="closeModal()">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+          </svg>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;">
+          <div><div class="section-title">SKU</div><div style="font-weight:700;font-family:monospace;color:var(--color-primary-600)">{{ stock?.sku || 'N/A' }}</div></div>
+          <div><div class="section-title">Estado</div><span class="badge" [ngClass]="stock?.estadoProducto ? 'badge-success' : 'badge-neutral'">{{ stock?.estadoProducto ? 'Activo' : 'Inactivo' }}</span></div>
+          <div style="grid-column:1/-1"><div class="section-title">Nombre del Producto</div><div style="font-weight:600;color:var(--color-gray-900)">{{ stock?.nombreProducto || 'N/A' }}</div></div>
+          <div><div class="section-title">Rubro</div><div>{{ stock?.rubroProducto || 'N/A' }}</div></div>
+          <div><div class="section-title">Familia</div><div>{{ stock?.familiaProducto || 'N/A' }}</div></div>
+          <div><div class="section-title">Unidad de Medida</div><div>{{ stock?.unidadMedida || 'N/A' }}</div></div>
+          <div><div class="section-title">Stock Actual (Local)</div><div style="font-size:1.5rem;font-weight:800;color:var(--color-gray-900)">{{ stock?.cantidadActual || 0 }}</div></div>
+          <div><div class="section-title">Punto de Reposición</div><div style="font-size:1.5rem;font-weight:800;color:var(--color-warning-600)">{{ stock?.puntoReposicion || 0 }}</div></div>
+      </div>
+
+      <div class="mt-6 border-t pt-4">
+        <h4 class="font-bold mb-3 text-indigo-700"><i class="fa-solid fa-list text-xs mr-2"></i>Atributos del Producto</h4>
+        
+        <ng-container *ngIf="isLoadingAtributos; else atributosReady">
+          <div class="flex items-center text-sm text-gray-500 italic py-2">
+              <i class="fa-solid fa-circle-notch fa-spin mr-2"></i> Consultando atributos actualizados...
+          </div>
+        </ng-container>
+
+        <ng-template #atributosReady>
+            <div *ngIf="stock?.atributos?.length; else noAtributos" class="grid grid-cols-2 gap-4 bg-gray-50 p-4 rounded border border-gray-100">
+              <div *ngFor="let attr of stock.atributos" class="text-sm">
+                <span class="font-bold text-gray-600 block">{{ attr.nombreAtributo }}</span>
+                <span class="text-gray-800">
+                   <ng-container [ngSwitch]="attr.tipoDatoAtributo">
+                      <span *ngSwitchCase="'Texto'">{{ attr.valorTexto || '-' }}</span>
+                      <span *ngSwitchCase="'Numero'">{{ attr.valorNumero != null ? attr.valorNumero : '-' }}</span>
+                      <span *ngSwitchCase="'Decimal'">{{ attr.valorDecimal != null ? attr.valorDecimal : '-' }}</span>
+                      <span *ngSwitchCase="'Booleano'">{{ attr.valorBool ? 'Sí' : 'No' }}</span>
+                      <span *ngSwitchCase="'Lista'">{{ attr.valorLista || '-' }}</span>
+                      <span *ngSwitchDefault>-</span >
+                   </ng-container>
+                </span>
+              </div>
+            </div>
+            <ng-template #noAtributos>
+              <p class="text-sm text-gray-400 italic">No hay atributos adicionales registrados para este producto.</p>
+            </ng-template>
+        </ng-template>
+      </div>
+    </div>
+    
+    <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="closeModal()">Cerrar</button>
+    </div>
+  </div>
+</div>

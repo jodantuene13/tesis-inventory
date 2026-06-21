@@ -16,15 +16,26 @@ export class SedesComponent implements OnInit {
     sedes: Sede[] = [];
     isModalOpen = false;
     isEditing = false;
+    searchTerm = '';
 
     currentSede: Sede = {
         idSede: 0,
         nombreSede: '',
         direccion: ''
     };
-    
-    // Indicators
-    indicatorTotal: number = 0;
+
+    indicatorTotal = 0;
+    indicatorConDireccion = 0;
+    indicatorSinDireccion = 0;
+
+    get filteredSedes(): Sede[] {
+        if (!this.searchTerm.trim()) return this.sedes;
+        const q = this.searchTerm.toLowerCase();
+        return this.sedes.filter(s =>
+            s.nombreSede.toLowerCase().includes(q) ||
+            (s.direccion || '').toLowerCase().includes(q)
+        );
+    }
 
     constructor(private sedeService: SedeService) { }
 
@@ -36,7 +47,9 @@ export class SedesComponent implements OnInit {
         this.sedeService.getAll().subscribe({
             next: (data) => {
                 this.sedes = data;
-                this.indicatorTotal = this.sedes.length;
+                this.indicatorTotal = data.length;
+                this.indicatorConDireccion = data.filter(s => s.direccion?.trim()).length;
+                this.indicatorSinDireccion = data.filter(s => !s.direccion?.trim()).length;
             },
             error: (err) => console.error('Error loading sedes', err)
         });

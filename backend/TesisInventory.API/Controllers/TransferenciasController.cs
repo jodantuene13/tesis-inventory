@@ -4,6 +4,7 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using TesisInventory.Application.DTOs.Transferencias;
 using TesisInventory.Application.Interfaces;
+using TesisInventory.API.Filters;
 
 namespace TesisInventory.API.Controllers
 {
@@ -27,24 +28,11 @@ namespace TesisInventory.API.Controllers
 
         private int GetCurrentUserSedeId()
         {
-            int sedeClaimId = 0;
-            var sedeIdStr = User.FindFirstValue("sede_id");
-            if (int.TryParse(sedeIdStr, out var id))
-            {
-                sedeClaimId = id;
-            }
-
-            var roleClaim = User.FindFirstValue(ClaimTypes.Role) ?? User.FindFirstValue("role") ?? User.FindFirstValue("nombreRol");
-            bool isAdmin = (roleClaim == "Admin" || roleClaim == "Administrador");
-
-            // Priorizar el Sede-Contexto que envía el front (Interceptor)
             if (Request.Headers.TryGetValue("Sede-Contexto", out var sedeContexto) && int.TryParse(sedeContexto, out int headerSedeId))
-            {
-                if (isAdmin) return headerSedeId;
-                if (headerSedeId == sedeClaimId) return headerSedeId;
-            }
-            
-            if (sedeClaimId > 0) return sedeClaimId;
+                return headerSedeId;
+
+            var sedeIdClaim = User.FindFirstValue("sede_id");
+            if (int.TryParse(sedeIdClaim, out int sId)) return sId;
 
             return 0;
         }
@@ -69,7 +57,15 @@ namespace TesisInventory.API.Controllers
             return Ok(result);
         }
 
+        [HttpGet("all")]
+        public async Task<IActionResult> GetAll()
+        {
+            var result = await _transferenciaService.GetAllAsync();
+            return Ok(result);
+        }
+
         [HttpPost]
+        [RequirePermiso("Transferencias_Crear")]
         public async Task<IActionResult> Create([FromBody] CreateTransferenciaDto dto)
         {
             if (!ModelState.IsValid)
@@ -97,6 +93,7 @@ namespace TesisInventory.API.Controllers
         }
 
         [HttpPut("{id}/aceptar")]
+        [RequirePermiso("Transferencias_Crear")]
         public async Task<IActionResult> Aceptar(int id, [FromBody] ResolverTransferenciaDto dto)
         {
             var userId = GetCurrentUserId();
@@ -105,6 +102,7 @@ namespace TesisInventory.API.Controllers
         }
 
         [HttpPut("{id}/rechazar")]
+        [RequirePermiso("Transferencias_Crear")]
         public async Task<IActionResult> Rechazar(int id, [FromBody] ResolverTransferenciaDto dto)
         {
             var userId = GetCurrentUserId();

@@ -33,6 +33,27 @@ namespace TesisInventory.Infrastructure.Repositories
             return await _context.Rol.ToListAsync();
         }
 
+        public async Task<Rol?> GetByIdWithPermissionsAndSedesAsync(int id)
+        {
+            return await _context.Rol
+                .Include(r => r.RolesPermisos)
+                .Include(r => r.RolesSedes)
+                .FirstOrDefaultAsync(r => r.IdRol == id);
+        }
+
+        public async Task<IEnumerable<Rol>> GetAllWithPermissionsAndSedesAsync()
+        {
+            return await _context.Rol
+                .Include(r => r.RolesPermisos)
+                .Include(r => r.RolesSedes)
+                .ToListAsync();
+        }
+
+        public async Task<IEnumerable<Permiso>> GetAllPermisosAsync()
+        {
+            return await _context.Permiso.ToListAsync();
+        }
+
         public async Task<Rol> AddAsync(Rol rol)
         {
             _context.Rol.Add(rol);

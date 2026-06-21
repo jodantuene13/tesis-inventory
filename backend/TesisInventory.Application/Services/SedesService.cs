@@ -13,11 +13,19 @@ namespace TesisInventory.Application.Services
     {
         private readonly ISedeRepository _sedeRepository;
         private readonly IUserRepository _userRepository;
+        private readonly IProductoRepository _productoRepository;
+        private readonly IStockRepository _stockRepository;
 
-        public SedesService(ISedeRepository sedeRepository, IUserRepository userRepository)
+        public SedesService(
+            ISedeRepository sedeRepository, 
+            IUserRepository userRepository,
+            IProductoRepository productoRepository,
+            IStockRepository stockRepository)
         {
             _sedeRepository = sedeRepository;
             _userRepository = userRepository;
+            _productoRepository = productoRepository;
+            _stockRepository = stockRepository;
         }
 
         public async Task<IEnumerable<SedeDto>> GetAllSedesAsync()
@@ -53,6 +61,21 @@ namespace TesisInventory.Application.Services
             };
 
             var createdSede = await _sedeRepository.AddAsync(sede);
+
+            // Inicializar Stock en 0 para todos los productos existentes en esta nueva Sede
+            var productosExistentes = await _productoRepository.GetAllProductosAsync(true);
+            foreach (var producto in productosExistentes)
+            {
+                var stockInicial = new Stock
+                {
+                    IdProducto = producto.IdProducto,
+                    IdSede = createdSede.IdSede,
+                    CantidadActual = 0,
+                    PuntoReposicion = 10, // Valor por defecto o configurable
+                    FechaActualizacion = DateTime.UtcNow
+                };
+                await _stockRepository.AddStockAsync(stockInicial);
+            }
 
             return new SedeDto
             {

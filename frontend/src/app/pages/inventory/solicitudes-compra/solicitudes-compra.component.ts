@@ -1,20 +1,26 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { SolicitudCompraService } from '../../../services/solicitud-compra.service';
 import { StockService } from '../../../services/stock.service';
-import { SolicitudCompra, EstadoSolicitudCompra, CreateSolicitudCompra } from '../../../models/solicitud-compra.model';
+import { SedeContextService } from '../../../services/sede-context.service';
+import { AuthService } from '../../../services/auth';
+import { SolicitudCompra, EstadoSolicitudCompra, EtiquetaSolicitudCompra, CreateSolicitudCompra } from '../../../models/solicitud-compra.model';
 import { Stock } from '../../../models/stock.model';
 import Swal from 'sweetalert2';
+import { OperacionesMultiplesModalComponent } from '../../../shared/components/operaciones-multiples-modal/operaciones-multiples-modal.component';
+import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
+import { DetalleOperacionStockDto } from '../../../models/stock.model';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-solicitudes-compra',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, OperacionesMultiplesModalComponent, PaginationComponent],
   templateUrl: './solicitudes-compra.component.html',
   styleUrls: ['./solicitudes-compra.component.css']
 })
-export class SolicitudesCompraComponent implements OnInit {
+export class SolicitudesCompraComponent implements OnInit, OnDestroy {
   solicitudes: SolicitudCompra[] = [];
   loading = false;
   
@@ -37,27 +43,68 @@ export class SolicitudesCompraComponent implements OnInit {
   showDetailModal = false;
   showPrintModal = false;
   selectedSolicitud: SolicitudCompra | null = null;
-  solicitudForm: FormGroup;
-  productos: Stock[] = []; // Usamos stock para elegir productos de la sede
+
+  // Formulario complejo (Carrito y Datos Cabecera)
+  solicitudRequest: CreateSolicitudCompra = {
+    motivoSolicitud: 'Reposición/incremento',
+    ordenTrabajo: '',
+    ticketSolicitud: '',
+    tareaARealizar: '',
+    observaciones: '',
+    detalles: []
+  };
+
+  // Modal Búsqueda Productos
+  isProductModalOpen = false;
+  searchProduct = '';
+  stockList: Stock[] = [];
+  filteredStock: Stock[] = [];
+
+  // Multiple Operations Modal Shared Config
+  multipleModalConfig = {
+    isOpen: false,
+    isLocked: true,
+    requiereOC: true,
+    initialRequest: {
+      tipoOperacion: 0 as number,
+      motivo: 3 as number,
+      ordenTrabajo: '',
+      ordenCompra: '',
+      ticketSolicitud: '',
+      observaciones: '',
+      idSolicitudCompraAsociada: undefined as number | undefined,
+      detalles: [] as DetalleOperacionStockDto[]
+    }
+  };
 
   // Enum for template
   EstadoEnum = EstadoSolicitudCompra;
+  EtiquetaEnum = EtiquetaSolicitudCompra;
+
+  canCrearSolicitud = false;
+
+  private contextSub!: Subscription;
 
   constructor(
     private solicitudService: SolicitudCompraService,
     private stockService: StockService,
-    private fb: FormBuilder
+    private sedeContextService: SedeContextService,
+    private authService: AuthService
   ) {
-    this.solicitudForm = this.fb.group({
-      idProducto: ['', Validators.required],
-      cantidad: [1, [Validators.required, Validators.min(1)]],
-      observaciones: ['']
-    });
   }
 
   ngOnInit(): void {
-    this.loadSolicitudes();
-    this.loadProductos();
+    this.canCrearSolicitud = this.authService.hasPermiso('Solicitudes_Crear');
+    this.contextSub = this.sedeContextService.sedeEnContexto$.subscribe(() => {
+      this.loadSolicitudes();
+      this.loadProductos();
+    });
+  }
+
+  ngOnDestroy(): void {
+    if (this.contextSub) {
+      this.contextSub.unsubscribe();
+    }
   }
 
   loadSolicitudes(): void {
@@ -79,8 +126,9 @@ export class SolicitudesCompraComponent implements OnInit {
 
   loadProductos(): void {
     // Cargamos productos activos de la sede para el selector
-    this.stockService.getStockSede(undefined, undefined, undefined, true, undefined, 1, 100).subscribe(res => {
-      this.productos = res.data;
+    this.stockService.getStockSede('', undefined, undefined, true, undefined, 1, 1000).subscribe(res => {
+      this.stockList = res.data;
+      this.filteredStock = [...this.stockList];
     });
   }
 
@@ -107,12 +155,61 @@ export class SolicitudesCompraComponent implements OnInit {
   }
 
   openCreateModal(): void {
-    this.solicitudForm.reset({ cantidad: 1 });
+    this.resetForm();
     this.showCreateModal = true;
   }
 
   closeCreateModal(): void {
     this.showCreateModal = false;
+  }
+
+  resetForm(): void {
+    this.solicitudRequest = {
+      motivoSolicitud: 'Reposición/incremento',
+      ordenTrabajo: '',
+      ticketSolicitud: '',
+      tareaARealizar: '',
+      observaciones: '',
+      detalles: []
+    };
+    this.searchProduct = '';
+  }
+
+  openProductModal(): void {
+    this.isProductModalOpen = true;
+    this.searchProduct = '';
+    this.filteredStock = [...this.stockList];
+  }
+
+  closeProductModal(): void {
+    this.isProductModalOpen = false;
+  }
+
+  onSearchProduct(): void {
+    const term = this.searchProduct.toLowerCase();
+    this.filteredStock = this.stockList.filter(s => 
+      s.nombreProducto?.toLowerCase().includes(term) || 
+      s.sku?.toLowerCase().includes(term)
+    );
+  }
+
+  selectProduct(stockItem: Stock): void {
+    const alreadyExists = this.solicitudRequest.detalles.find(d => d.idProducto === stockItem.idProducto);
+    if (alreadyExists) {
+      alreadyExists.cantidad += 1;
+    } else {
+      this.solicitudRequest.detalles.push({
+        ...stockItem, // Anexamos la info visual temporalmente
+        cantidad: 1
+      } as any);
+    }
+    
+    this.searchProduct = '';
+    this.isProductModalOpen = false;
+  }
+
+  removeDetalle(index: number): void {
+    this.solicitudRequest.detalles.splice(index, 1);
   }
 
   openDetailModal(s: SolicitudCompra): void {
@@ -139,12 +236,31 @@ export class SolicitudesCompraComponent implements OnInit {
   }
 
   saveSolicitud(): void {
-    if (this.solicitudForm.invalid) return;
+    if (this.solicitudRequest.detalles.length === 0) {
+      Swal.fire('Atención', 'Debe agregar al menos un producto a la solicitud.', 'warning');
+      return;
+    }
 
-    const dto: CreateSolicitudCompra = this.solicitudForm.value;
-    this.solicitudService.create(dto).subscribe({
+    if (this.solicitudRequest.motivoSolicitud === 'Requerimiento por trabajo' && !this.solicitudRequest.ordenTrabajo) {
+      Swal.fire('Atención', 'Debe especificar la Orden de Trabajo para el Requerimiento.', 'warning');
+      return;
+    }
+
+    const payload: CreateSolicitudCompra = {
+      motivoSolicitud: this.solicitudRequest.motivoSolicitud,
+      ordenTrabajo: this.solicitudRequest.motivoSolicitud === 'Requerimiento por trabajo' ? this.solicitudRequest.ordenTrabajo : null,
+      tareaARealizar: this.solicitudRequest.motivoSolicitud === 'Requerimiento por trabajo' ? this.solicitudRequest.tareaARealizar : null,
+      ticketSolicitud: this.solicitudRequest.ticketSolicitud,
+      observaciones: this.solicitudRequest.observaciones,
+      detalles: this.solicitudRequest.detalles.map(d => ({
+        idProducto: d.idProducto,
+        cantidad: d.cantidad
+      }))
+    } as any;
+
+    this.solicitudService.create(payload).subscribe({
       next: () => {
-        Swal.fire('Éxito', 'Solicitud enviada correctamente', 'success');
+        Swal.fire('Éxito', 'Solicitud creada correctamente', 'success');
         this.closeCreateModal();
         this.loadSolicitudes();
       },
@@ -178,7 +294,7 @@ export class SolicitudesCompraComponent implements OnInit {
     } else {
       Swal.fire({
         title: '¿Confirmar aprobación?',
-        text: `Se aprobará la solicitud de ${s.cantidad} unidades de ${s.nombreProducto}`,
+        text: `Se aprobará la solicitud de ${s.detalles?.length || 0} producto(s) (${s.detalles?.[0]?.nombreProducto || ''}${s.detalles?.length > 1 ? ' y otros' : ''})`,
         icon: 'question',
         showCancelButton: true,
         confirmButtonText: 'Sí, aprobar',
@@ -201,17 +317,81 @@ export class SolicitudesCompraComponent implements OnInit {
     });
   }
 
-  nextPage(): void {
-    if (this.page < this.totalPages) {
-      this.page++;
-      this.loadSolicitudes();
-    }
+  marcarNoConcretada(s: SolicitudCompra): void {
+    Swal.fire({
+      title: '¿Marcar como No Concretada?',
+      text: 'Esta acción indica que la solicitud no se va a recibir en stock.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Sí, marcar',
+      cancelButtonText: 'Cancelar'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.solicitudService.marcarNoConcretada(s.idSolicitudCompra).subscribe({
+          next: () => {
+            Swal.fire('Éxito', 'La solicitud ha sido marcada como no concretada.', 'success');
+            this.loadSolicitudes();
+          },
+          error: (err) => Swal.fire('Error', err.error?.message || 'Error al procesar solicitud', 'error')
+        });
+      }
+    });
   }
 
-  prevPage(): void {
-    if (this.page > 1) {
-      this.page--;
-      this.loadSolicitudes();
+  onPageChange(p: number): void {
+    this.page = p;
+    this.loadSolicitudes();
+  }
+
+  onPageSizeChange(size: number): void {
+    this.pageSize = size;
+    this.page = 1;
+    this.loadSolicitudes();
+  }
+
+  // --- Multi-operation modal logic ---
+  openImpactarStockModal(s: SolicitudCompra): void {
+    const config = {
+      isOpen: true,
+      isLocked: true,
+      requiereOC: true,
+      initialRequest: {
+        tipoOperacion: 0, // Ingreso
+        motivo: 3, // Por Compra
+        ordenTrabajo: '',
+        ordenCompra: `SC-${s.idSolicitudCompra}`,
+        ticketSolicitud: s.ticketSolicitud || '',
+        observaciones: `Impacto automático desde Solicitud de Compra #${s.idSolicitudCompra}`,
+        idSolicitudCompraAsociada: s.idSolicitudCompra,
+        detalles: s.detalles
+            .filter((d: any) => d.cantidad - (d.cantidadRecibida || 0) > 0)
+            .map((d: any) => ({
+                idProducto: d.idProducto,
+                cantidad: d.cantidad - (d.cantidadRecibida || 0),
+                maxCantidad: d.cantidad - (d.cantidadRecibida || 0),
+                productoInfo: {
+                    idProducto: d.idProducto,
+                    nombreProducto: d.nombreProducto,
+                    sku: d.skuProducto
+                }
+            })) as DetalleOperacionStockDto[]
+      }
+    };
+
+    if (config.initialRequest.detalles.length === 0) {
+      Swal.fire('Atención', 'No hay productos pendientes para impactar en esta solicitud.', 'info');
+      return;
     }
+
+    this.multipleModalConfig = config;
+  }
+
+  onMultipleModalComplete(): void {
+    this.loadSolicitudes();
+  }
+
+  getTotalCantidad(s: SolicitudCompra): number {
+    if (!s || !s.detalles) return 0;
+    return s.detalles.reduce((acc, det) => acc + det.cantidad, 0);
   }
 }

@@ -361,7 +361,9 @@ namespace TesisInventory.Application.Services
             {
                 IdProducto = p.IdProducto,
                 IdFamilia = p.IdFamilia,
+                IdRubro = p.Familia?.IdRubro ?? 0,
                 NombreFamilia = p.Familia?.Nombre ?? "",
+                NombreRubro = p.Familia?.Rubro?.Nombre ?? "",
                 Sku = p.Sku,
                 Nombre = p.Nombre,
                 UnidadMedida = p.UnidadMedida,

@@ -25,24 +25,39 @@ namespace TesisInventory.Application.Services
 
         public async Task<SolicitudCompraDto> CreateSolicitudAsync(int idSede, int idUsuario, CreateSolicitudCompraDto dto)
         {
-            var producto = await _productoRepository.GetProductoByIdAsync(dto.IdProducto);
-            if (producto == null)
-                throw new KeyNotFoundException("El producto especificado no existe.");
+            if (dto.Detalles == null || !dto.Detalles.Any())
+                throw new ArgumentException("La solicitud debe contener al menos un producto.");
 
             var nuevaSolicitud = new SolicitudCompra
             {
-                IdProducto = dto.IdProducto,
                 IdSede = idSede,
                 IdUsuarioSolicitante = idUsuario,
-                Cantidad = dto.Cantidad,
                 Estado = EstadoSolicitudCompra.Pendiente,
                 FechaSolicitud = DateTime.UtcNow,
+                MotivoSolicitud = dto.MotivoSolicitud,
+                OrdenTrabajo = dto.OrdenTrabajo,
+                TicketSolicitud = dto.TicketSolicitud,
+                TareaARealizar = dto.TareaARealizar,
                 Observaciones = dto.Observaciones
             };
 
+            foreach (var det in dto.Detalles)
+            {
+                var producto = await _productoRepository.GetProductoByIdAsync(det.IdProducto);
+                if (producto == null)
+                    throw new KeyNotFoundException($"El producto especificado (ID: {det.IdProducto}) no existe.");
+
+                nuevaSolicitud.Detalles.Add(new SolicitudCompraDetalle
+                {
+                    IdProducto = det.IdProducto,
+                    Cantidad = det.Cantidad
+                });
+            }
+
             await _solicitudRepository.AddAsync(nuevaSolicitud);
 
-            return MapToDto(nuevaSolicitud);
+            var created = await _solicitudRepository.GetByIdAsync(nuevaSolicitud.IdSolicitudCompra);
+            return MapToDto(created!);
         }
 
         public async Task<SolicitudCompraDto> UpdateEstadoAsync(int idSolicitud, int idUsuarioAprobador, UpdateSolicitudCompraEstadoDto dto)
@@ -66,6 +81,24 @@ namespace TesisInventory.Application.Services
             return MapToDto(updated!);
         }
 
+        public async Task<SolicitudCompraDto> MarcarComoNoConcretadaAsync(int idSolicitud)
+        {
+            var solicitud = await _solicitudRepository.GetByIdAsync(idSolicitud);
+            if (solicitud == null)
+                throw new KeyNotFoundException("La solicitud no existe.");
+
+            if (solicitud.Estado != EstadoSolicitudCompra.Aprobada)
+                throw new InvalidOperationException("Solo se pueden marcar como No Concretadas las solicitudes Aprobadas.");
+
+            if (solicitud.Etiqueta == EtiquetaSolicitudCompra.IngresadaAlStock)
+                throw new InvalidOperationException("La solicitud ya fue completamente ingresada al stock.");
+
+            solicitud.Etiqueta = EtiquetaSolicitudCompra.NoConcretada;
+            await _solicitudRepository.UpdateAsync(solicitud);
+
+            return MapToDto(solicitud);
+        }
+
         public async Task<(IEnumerable<SolicitudCompraDto> Items, int TotalCount)> GetPagedSolicitudesAsync(
             int? idSede, string? search, int? estado, int page, int pageSize)
         {
@@ -86,21 +119,33 @@ namespace TesisInventory.Application.Services
             return new SolicitudCompraDto
             {
                 IdSolicitudCompra = s.IdSolicitudCompra,
-                IdProducto = s.IdProducto,
-                NombreProducto = s.Producto?.Nombre ?? "N/A",
-                SkuProducto = s.Producto?.Sku ?? "N/A",
                 IdSede = s.IdSede,
                 NombreSede = s.Sede?.NombreSede ?? "N/A",
                 IdUsuarioSolicitante = s.IdUsuarioSolicitante,
                 NombreSolicitante = s.UsuarioSolicitante?.NombreUsuario ?? "N/A",
                 IdUsuarioAprobador = s.IdUsuarioAprobador,
                 NombreAprobador = s.UsuarioAprobador?.NombreUsuario,
-                Cantidad = s.Cantidad,
+                
+                MotivoSolicitud = s.MotivoSolicitud,
+                OrdenTrabajo = s.OrdenTrabajo,
+                TicketSolicitud = s.TicketSolicitud,
+                TareaARealizar = s.TareaARealizar,
+
                 Estado = s.Estado,
+                Etiqueta = s.Etiqueta,
                 FechaSolicitud = s.FechaSolicitud,
                 FechaDecision = s.FechaDecision,
                 Observaciones = s.Observaciones,
-                MotivoRechazo = s.MotivoRechazo
+                MotivoRechazo = s.MotivoRechazo,
+                
+                Detalles = s.Detalles.Select(d => new SolicitudCompraDetalleDto
+                {
+                    IdProducto = d.IdProducto,
+                    NombreProducto = d.Producto?.Nombre ?? "N/A",
+                    SkuProducto = d.Producto?.Sku ?? "N/A",
+                    Cantidad = d.Cantidad,
+                    CantidadRecibida = d.CantidadRecibida
+                }).ToList()
             };
         }
     }

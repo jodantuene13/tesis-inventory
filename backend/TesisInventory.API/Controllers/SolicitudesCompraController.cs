@@ -4,6 +4,7 @@ using System.Security.Claims;
 using TesisInventory.Application.DTOs.SolicitudesCompra;
 using TesisInventory.Application.Interfaces;
 using TesisInventory.Domain.Enums;
+using TesisInventory.API.Filters;
 
 namespace TesisInventory.API.Controllers
 {
@@ -67,6 +68,7 @@ namespace TesisInventory.API.Controllers
         }
 
         [HttpPost]
+        [RequirePermiso("Solicitudes_Crear")]
         public async Task<IActionResult> Create([FromBody] CreateSolicitudCompraDto dto)
         {
             try
@@ -99,6 +101,20 @@ namespace TesisInventory.API.Controllers
             {
                 int idUsuarioAprobador = GetCurrentUserId();
                 var result = await _solicitudService.UpdateEstadoAsync(id, idUsuarioAprobador, dto);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { Message = ex.Message });
+            }
+        }
+
+        [HttpPut("{id}/no-concretada")]
+        public async Task<IActionResult> MarcarNoConcretada(int id)
+        {
+            try
+            {
+                var result = await _solicitudService.MarcarComoNoConcretadaAsync(id);
                 return Ok(result);
             }
             catch (Exception ex)

@@ -43,3 +43,18 @@ Se realizaron las siguientes adaptaciones al modelo de clases original para su i
 
 ### 4. Convención de Nombres (Refactor)
 - **Tablas en Singular**: Se adoptó la convención de nombres en singular para todas las tablas (`Usuario`, `Rol`, `Sede`, `Movimiento`, etc.) para adherirse a las mejores prácticas de diseño y consistencia con los nombres de las clases del dominio.
+
+### [2026-05-09]
+- **Descripción del cambio:** Recreación de Base de Datos, Semilla Inicial y Seed Completo. Se aplicaron todas las migraciones de EF Core, se recreó el esquema y se inyectaron datos base (Roles, Sede, Usuario). Posteriormente, se creó y ejecutó un archivo `seed_full_entities.sql` con datos de prueba (mock) para TODAS las entidades del sistema (Rubros, Familias, Atributos, Productos, Stock, Transferencias, Solicitudes de Compra, etc.) respetando la integridad referencial.
+- **Motivo técnico:** Reconstrucción del entorno local debido a la pérdida de la base de datos y necesidad de contar con datos de prueba realistas para agilizar el desarrollo y testing del frontend.
+- **Impacto funcional:** Se restableció el esquema de base de datos, el acceso al sistema, y se dispone de un entorno de inventario funcionalmente completo (con stock y operaciones).
+
+### [2026-05-19]
+- **Descripción del cambio:** Se deshabilitó temporalmente el seeder (`DbInitializer.Initialize(context)`) en `Program.cs` y se recreó la base de datos aplicando las migraciones.
+- **Motivo técnico:** Solicitud del usuario debido a rotura de base de datos. El seeder se modificará antes de ejecutarlo.
+- **Impacto funcional:** Ninguno sobre la aplicación final. La base de datos queda vacía y estructurada con las tablas, lista para el nuevo seeder.
+
+### [2026-05-19] (Continuación)
+- **Descripción del cambio:** Se expandió `DbInitializer.cs` para incluir 15 registros por cada entidad principal (Roles, Sedes, Usuarios, Rubros, Familias, Productos, Stock). Se descomentó la ejecución del seeder en `Program.cs`.
+- **Motivo técnico:** Solicitud del usuario para poder autocompletar la base de datos con suficientes datos de ejemplo cada vez que se inicie o recree en entornos de desarrollo.
+- **Impacto funcional:** Al ejecutar el backend, el sistema generará automáticamente un catálogo de 15 productos con su respectivo stock, familias, rubros y usuarios en caso de estar la base vacía.

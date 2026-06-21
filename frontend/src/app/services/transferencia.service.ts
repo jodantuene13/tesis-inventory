@@ -1,4 +1,5 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
+import { API_BASE_URL } from '../tokens/api-url.token';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Transferencia, CreateTransferenciaDto, ResolverTransferenciaDto } from '../models/transferencia.model';
@@ -7,7 +8,7 @@ import { Transferencia, CreateTransferenciaDto, ResolverTransferenciaDto } from 
   providedIn: 'root'
 })
 export class TransferenciaService {
-  private apiUrl = 'http://localhost:5139/api/transferencias'; // Verify port from environments
+  private readonly apiUrl = `${inject(API_BASE_URL)}/api/transferencias`;
 
   constructor(private http: HttpClient) { }
 
@@ -17,6 +18,10 @@ export class TransferenciaService {
 
   getSalientes(): Observable<Transferencia[]> {
     return this.http.get<Transferencia[]>(`${this.apiUrl}/salientes`);
+  }
+
+  getAll(): Observable<Transferencia[]> {
+    return this.http.get<Transferencia[]>(`${this.apiUrl}/all`);
   }
 
   create(dto: CreateTransferenciaDto): Observable<Transferencia> {

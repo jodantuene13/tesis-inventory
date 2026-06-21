@@ -1,0 +1,493 @@
+<div class="report-page">
+
+  <!-- ══ SIDEBAR DE FILTROS ════════════════════════════════════════════════ -->
+  <aside class="report-sidebar">
+
+    <div class="sidebar-header">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="16" height="16">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z" />
+      </svg>
+      <span>Filtros</span>
+    </div>
+
+    <!-- Período -->
+    <div class="filter-section">
+      <label class="filter-section-label">Período</label>
+      <div class="period-chips">
+        <button class="chip" [class.active]="periodoPreset==='30'" (click)="setPeriodo('30')">Últ. 30 días</button>
+        <button class="chip" [class.active]="periodoPreset==='90'" (click)="setPeriodo('90')">Últ. 90 días</button>
+        <button class="chip" [class.active]="periodoPreset==='custom'" (click)="periodoPreset='custom'">Personalizado</button>
+      </div>
+      <div class="custom-range" *ngIf="periodoPreset==='custom'">
+        <label class="range-label">Desde</label>
+        <input type="date" class="f-input f-input--sm" [(ngModel)]="fechaDesde" />
+        <label class="range-label">Hasta</label>
+        <input type="date" class="f-input f-input--sm" [(ngModel)]="fechaHasta" />
+      </div>
+    </div>
+
+    <!-- Sede origen -->
+    <div class="filter-section">
+      <label class="filter-section-label">Sede origen</label>
+      <select class="f-select" [(ngModel)]="sedeOrigenId">
+        <option [ngValue]="null">Todas</option>
+        <option *ngFor="let s of sedes" [ngValue]="s.idSede">{{ s.nombreSede }}</option>
+      </select>
+    </div>
+
+    <!-- Sede destino -->
+    <div class="filter-section">
+      <label class="filter-section-label">Sede destino</label>
+      <select class="f-select" [(ngModel)]="sedeDestinoId">
+        <option [ngValue]="null">Todas</option>
+        <option *ngFor="let s of sedes" [ngValue]="s.idSede">{{ s.nombreSede }}</option>
+      </select>
+    </div>
+
+    <!-- Familia -->
+    <div class="filter-section">
+      <label class="filter-section-label">Familia de producto</label>
+      <select class="f-select" [(ngModel)]="familiaId">
+        <option [ngValue]="null">Todas las familias</option>
+        <option *ngFor="let f of familias" [ngValue]="f.idFamilia">{{ f.nombre }}</option>
+      </select>
+    </div>
+
+    <!-- Tipo de movimiento -->
+    <div class="filter-section">
+      <label class="filter-section-label">Tipo de movimiento</label>
+      <select class="f-select" [(ngModel)]="motivoSeleccionado">
+        <option *ngFor="let m of motivos" [ngValue]="m.value">{{ m.label }}</option>
+      </select>
+    </div>
+
+    <!-- Estado -->
+    <div class="filter-section">
+      <label class="filter-section-label">Estado</label>
+      <select class="f-select" [(ngModel)]="estadoSeleccionado">
+        <option *ngFor="let e of estados" [ngValue]="e.value">{{ e.label }}</option>
+      </select>
+    </div>
+
+    <!-- Acciones -->
+    <div class="filter-actions">
+      <button class="btn-aplicar btn--full" id="btn-aplicar" (click)="aplicarFiltros()">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="14" height="14">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z" />
+        </svg>
+        Aplicar filtros
+      </button>
+      <button class="btn-exportar btn--full" id="btn-exportar" (click)="exportarCSV()" [disabled]="!informe">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="14" height="14">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+        </svg>
+        Exportar CSV
+      </button>
+    </div>
+
+    <!-- Resumen filtros activos -->
+    <div class="filter-summary">
+      <div class="filter-summary-item">
+        <span class="dot dot--blue"></span> Desde: <strong>{{ fechaDesde }}</strong>
+      </div>
+      <div class="filter-summary-item">
+        <span class="dot dot--purple"></span> Hasta: <strong>{{ fechaHasta }}</strong>
+      </div>
+      <div class="filter-summary-item" *ngIf="motivoSeleccionado !== null">
+        <span class="dot dot--gray"></span> Tipo: <strong>{{ motivos[motivoSeleccionado + 1]?.label }}</strong>
+      </div>
+    </div>
+
+    <div class="sidebar-footer-note">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="12" height="12">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+      Datos calculados en tiempo real desde los movimientos registrados entre sedes.
+    </div>
+
+  </aside>
+
+  <!-- ══ ÁREA PRINCIPAL ════════════════════════════════════════════════════ -->
+  <div class="report-main">
+
+    <!-- Encabezado -->
+    <div class="report-header">
+      <div class="report-header-breadcrumb">
+        <span class="breadcrumb-module">Módulo de Informes</span>
+        <span class="breadcrumb-sep">›</span>
+        <span class="breadcrumb-current">Transferencias y préstamos</span>
+      </div>
+      <h1 class="report-title">Transferencias y préstamos entre sedes</h1>
+      <p class="report-desc">
+        Consolida y analiza los movimientos entre sedes y los préstamos de productos para una mejor toma de decisiones.
+      </p>
+    </div>
+
+    <!-- Estados -->
+    <div *ngIf="loading" class="inf-loading">
+      <div class="inf-spinner"></div>
+      <span>Generando informe...</span>
+    </div>
+
+    <div *ngIf="error && !loading" class="inf-error">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2">
+        <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+      </svg>
+      <p>{{ error }}</p>
+      <button class="btn-aplicar" (click)="aplicarFiltros()">Reintentar</button>
+    </div>
+
+    <!-- Contenido -->
+    <ng-container *ngIf="!loading && !error && informe">
+
+      <!-- KPI Cards -->
+      <div class="kpi-row">
+
+        <div class="kpi-card">
+          <div class="kpi-icon kpi-icon--blue">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 014-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 01-4 4H3"/>
+            </svg>
+          </div>
+          <div class="kpi-body">
+            <span class="kpi-label">Total de transferencias</span>
+            <span class="kpi-value kpi-value--blue">{{ informe.kpis.totalTransferencias | number }}</span>
+            <span class="kpi-sub">Movimientos</span>
+          </div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-icon kpi-icon--green">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="2" y="7" width="20" height="15" rx="2"/><path d="M16 7V5a2 2 0 00-4 0v2"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/>
+            </svg>
+          </div>
+          <div class="kpi-body">
+            <span class="kpi-label">Total de préstamos</span>
+            <span class="kpi-value kpi-value--green">{{ informe.kpis.totalPrestamos | number }}</span>
+            <span class="kpi-sub">Movimientos</span>
+          </div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-icon kpi-icon--purple">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/>
+            </svg>
+          </div>
+          <div class="kpi-body">
+            <span class="kpi-label">% préstamos sobre mov.</span>
+            <span class="kpi-value kpi-value--purple">{{ informe.kpis.porcentajePrestamos }}%</span>
+            <span class="kpi-sub">Del total de movimientos</span>
+          </div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-icon kpi-icon--orange">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            </svg>
+          </div>
+          <div class="kpi-body">
+            <span class="kpi-label">Tasa de rechazo</span>
+            <span class="kpi-value kpi-value--orange">{{ informe.kpis.tasaRechazo }}%</span>
+            <span class="kpi-sub">Sobre transferencias</span>
+          </div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-icon kpi-icon--sky">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+            </svg>
+          </div>
+          <div class="kpi-body">
+            <span class="kpi-label">Tiempo promedio de préstamo</span>
+            <span class="kpi-value kpi-value--sky">{{ informe.kpis.tiempoPromedioPrestamoDias }} días</span>
+            <span class="kpi-sub">Promedio general</span>
+          </div>
+        </div>
+
+        <div class="kpi-card kpi-card--dark">
+          <div class="kpi-icon kpi-icon--dark">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
+            </svg>
+          </div>
+          <div class="kpi-body">
+            <span class="kpi-label">Sede con más transferencias</span>
+            <span class="kpi-value kpi-value--dark kpi-value--lg">{{ informe.kpis.sedeMasActiva }}</span>
+            <span class="kpi-sub">{{ informe.kpis.sedeMasActivaCantidad }} transferencias</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Tabs -->
+      <div class="tabs-bar">
+        <button class="tabbtn" [class.active]="activeTab===0" (click)="setTab(0)">Vista Global</button>
+        <button class="tabbtn" [class.active]="activeTab===1" (click)="setTab(1)">Habituales</button>
+        <button class="tabbtn" [class.active]="activeTab===2" (click)="setTab(2)">Préstamos por tiempo</button>
+        <button class="tabbtn" [class.active]="activeTab===3" (click)="setTab(3)">Índice de rechazo</button>
+      </div>
+
+      <!-- ══ TAB 0: VISTA GLOBAL ══════════════════════════════════════════ -->
+      <div *ngIf="activeTab===0" class="tab-content animate-in">
+
+        <div class="charts-grid-3">
+
+          <div class="chart-card">
+            <div class="chart-card-head">
+              <span class="chart-card-title">Transferencias habituales por sede</span>
+            </div>
+            <div class="chart-wrap" style="height:220px">
+              <canvas id="g-sedes-global"></canvas>
+            </div>
+            <p *ngIf="informe.habitualesPorSede.length === 0" class="chart-empty">Sin datos para el período</p>
+          </div>
+
+          <div class="chart-card">
+            <div class="chart-card-head">
+              <span class="chart-card-title">Transferencias habituales por producto</span>
+            </div>
+            <div class="chart-wrap" style="height:220px">
+              <canvas id="g-prods-global"></canvas>
+            </div>
+            <p *ngIf="informe.habitualesPorProducto.length === 0" class="chart-empty">Sin datos para el período</p>
+          </div>
+
+          <div class="chart-card">
+            <div class="chart-card-head">
+              <span class="chart-card-title">Tipo de movimiento</span>
+            </div>
+            <div class="chart-wrap" style="height:180px">
+              <canvas id="g-tipo-global"></canvas>
+            </div>
+            <div class="donut-legend">
+              <div class="donut-legend-item">
+                <span class="donut-dot" style="background:#2563eb"></span>
+                <span>Transferencia {{ informe.kpis.totalTransferencias | number }} ({{ 100 - informe.kpis.porcentajePrestamos }}%)</span>
+              </div>
+              <div class="donut-legend-item">
+                <span class="donut-dot" style="background:#10b981"></span>
+                <span>Préstamo {{ informe.kpis.totalPrestamos | number }} ({{ informe.kpis.porcentajePrestamos }}%)</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="charts-grid-2">
+
+          <div class="chart-card">
+            <div class="chart-card-head">
+              <span class="chart-card-title">Préstamo de productos por tiempo</span>
+            </div>
+            <div class="chart-wrap" style="height:200px">
+              <canvas id="g-prestamos-global"></canvas>
+            </div>
+            <p *ngIf="!informe.prestamosPorDia || informe.prestamosPorDia.length === 0" class="chart-empty">Sin préstamos activos en el período</p>
+          </div>
+
+          <div class="chart-card">
+            <div class="chart-card-head">
+              <span class="chart-card-title">Producto con mayor índice de rechazo en transferencias</span>
+            </div>
+            <div class="rechazo-table-wrap">
+              <table class="rechazo-table">
+                <thead>
+                  <tr>
+                    <th>#</th><th>Producto</th><th>Rechazadas</th><th>Total</th><th>Índice %</th><th>Motivo principal</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let r of informe.rechazosPorProducto; let i = index">
+                    <td class="td-num">{{ i + 1 }}</td>
+                    <td class="td-name">{{ r.producto }}</td>
+                    <td class="td-center">{{ r.rechazadas }}</td>
+                    <td class="td-center">{{ r.total }}</td>
+                    <td class="td-center"><span class="badge-rechazo">{{ r.indice }}%</span></td>
+                    <td class="td-motivo">{{ r.motivoPrincipal || '—' }}</td>
+                  </tr>
+                  <tr *ngIf="informe.rechazosPorProducto.length === 0">
+                    <td colspan="6" class="td-empty">Sin rechazos en el período</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Detalle de movimientos -->
+        <div class="chart-card">
+          <div class="chart-card-head">
+            <span class="chart-card-title">Detalle de movimientos</span>
+            <span class="chart-card-sub">Mostrando {{ paginatedDetalles.length }} de {{ informe.detalleMovimientos.length }} registros</span>
+          </div>
+          <div class="detalle-table-wrap">
+            <table class="detalle-table">
+              <thead>
+                <tr>
+                  <th>Fecha</th><th>Tipo</th><th>Producto(s)</th><th>Sede origen</th><th>Sede destino</th><th>Cantidad</th><th>Estado</th><th>Usuario</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let d of paginatedDetalles">
+                  <td class="td-fecha">{{ d.fechaSolicitud | date:'dd/MM/yyyy HH:mm' }}</td>
+                  <td><span class="badge-tipo" [class.badge-tipo--prestamo]="d.tipo === 'Préstamo'">{{ d.tipo }}</span></td>
+                  <td class="td-producto" [title]="d.productos">{{ d.productos }}</td>
+                  <td>{{ d.sedeOrigen }}</td>
+                  <td>{{ d.sedeDestino }}</td>
+                  <td class="td-center">{{ d.cantidadTotal }}</td>
+                  <td><span class="badge-estado" [ngClass]="getEstadoClass(d.estado)">{{ d.estado }}</span></td>
+                  <td>{{ d.usuario }}</td>
+                </tr>
+                <tr *ngIf="informe.detalleMovimientos.length === 0">
+                  <td colspan="8" class="td-empty">No hay movimientos para los filtros seleccionados</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <app-pagination
+            *ngIf="informe.detalleMovimientos.length > 0"
+            [page]="page"
+            [pageSize]="pageSize"
+            [totalPages]="totalPages"
+            [totalCount]="totalCount"
+            (pageChange)="onPageChange($event)"
+            (pageSizeChange)="onPageSizeChange($event)">
+          </app-pagination>
+        </div>
+
+      </div>
+
+      <!-- ══ TAB 1: HABITUALES ════════════════════════════════════════════ -->
+      <div *ngIf="activeTab===1" class="tab-content animate-in">
+        <div class="charts-grid-2">
+          <div class="chart-card">
+            <div class="chart-card-head">
+              <span class="chart-card-title">Transferencias habituales por sede origen</span>
+              <span class="chart-card-sub">Top por cantidad de operaciones</span>
+            </div>
+            <div class="chart-wrap" style="height:280px">
+              <canvas id="g-sedes-tab"></canvas>
+            </div>
+            <p *ngIf="informe.habitualesPorSede.length === 0" class="chart-empty">Sin datos</p>
+          </div>
+          <div class="chart-card">
+            <div class="chart-card-head">
+              <span class="chart-card-title">Transferencias habituales por producto</span>
+              <span class="chart-card-sub">Top por cantidad de operaciones</span>
+            </div>
+            <div class="chart-wrap" style="height:280px">
+              <canvas id="g-prods-tab"></canvas>
+            </div>
+            <p *ngIf="informe.habitualesPorProducto.length === 0" class="chart-empty">Sin datos</p>
+          </div>
+        </div>
+        <div class="chart-card" *ngIf="informe.habitualesPorProducto.length > 0">
+          <div class="chart-card-head"><span class="chart-card-title">Top productos transferidos</span></div>
+          <div class="detalle-table-wrap">
+            <table class="detalle-table">
+              <thead><tr><th>#</th><th>Producto</th><th>SKU</th><th>Familia</th><th>Operaciones</th><th>Participación %</th></tr></thead>
+              <tbody>
+                <tr *ngFor="let p of informe.habitualesPorProducto; let i = index">
+                  <td class="td-num">{{ i+1 }}</td>
+                  <td>{{ p.nombre }}</td>
+                  <td class="td-sku">{{ p.sku }}</td>
+                  <td>{{ p.familia }}</td>
+                  <td class="td-center">{{ p.cantidad }}</td>
+                  <td>
+                    <div class="bar-progress">
+                      <div class="bar-fill" [style.width.%]="p.porcentaje"></div>
+                      <span>{{ p.porcentaje }}%</span>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ TAB 2: PRÉSTAMOS ═════════════════════════════════════════════ -->
+      <div *ngIf="activeTab===2" class="tab-content animate-in">
+        <div class="chart-card">
+          <div class="chart-card-head">
+            <span class="chart-card-title">Préstamos activos simultáneamente por día</span>
+            <span class="chart-card-sub">Calculado en base a FechaDevolucionReal y FechaSolicitud</span>
+          </div>
+          <div class="chart-wrap" style="height:280px">
+            <canvas id="g-prestamos-tab"></canvas>
+          </div>
+          <p *ngIf="!informe.prestamosPorDia || informe.prestamosPorDia.length === 0" class="chart-empty">Sin préstamos en el período</p>
+        </div>
+        <div class="chart-card" *ngIf="informe.prestamosActivos && informe.prestamosActivos.length > 0">
+          <div class="chart-card-head"><span class="chart-card-title">Préstamos activos</span></div>
+          <div class="detalle-table-wrap">
+            <table class="detalle-table">
+              <thead><tr><th>#</th><th>Fecha solicitud</th><th>Producto(s)</th><th>Origen</th><th>Destino</th><th>Días transcurridos</th><th>Estado</th></tr></thead>
+              <tbody>
+                <tr *ngFor="let p of informe.prestamosActivos; let i = index">
+                  <td class="td-num">#{{ p.idTransferencia }}</td>
+                  <td>{{ p.fechaSolicitud | date:'dd/MM/yyyy' }}</td>
+                  <td>{{ p.productos }}</td>
+                  <td>{{ p.sedeOrigen }}</td>
+                  <td>{{ p.sedeDestino }}</td>
+                  <td class="td-center" [class.td-alert]="p.diasTranscurridos > 30">{{ p.diasTranscurridos }}d</td>
+                  <td><span class="badge-estado" [ngClass]="getEstadoClass(p.estado)">{{ p.estado }}</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ TAB 3: RECHAZOS ══════════════════════════════════════════════ -->
+      <div *ngIf="activeTab===3" class="tab-content animate-in">
+        <div class="charts-grid-2">
+          <div class="chart-card">
+            <div class="chart-card-head">
+              <span class="chart-card-title">Índice de rechazo por producto</span>
+              <span class="chart-card-sub">% = Rechazadas / Total</span>
+            </div>
+            <div class="chart-wrap" style="height:280px">
+              <canvas id="g-rechazos-tab"></canvas>
+            </div>
+            <p *ngIf="informe.rechazosPorProducto.length === 0" class="chart-empty">Sin rechazos en el período</p>
+          </div>
+          <div class="chart-card">
+            <div class="chart-card-head"><span class="chart-card-title">Detalle de rechazos por producto</span></div>
+            <div class="rechazo-table-wrap">
+              <table class="rechazo-table">
+                <thead><tr><th>#</th><th>Producto</th><th>Familia</th><th>Rechazadas</th><th>Total</th><th>Índice %</th><th>Motivo principal</th></tr></thead>
+                <tbody>
+                  <tr *ngFor="let r of informe.rechazosPorProducto; let i = index">
+                    <td class="td-num">{{ i+1 }}</td>
+                    <td>{{ r.producto }}<br><small class="td-sku">{{ r.sku }}</small></td>
+                    <td>{{ r.familia }}</td>
+                    <td class="td-center danger-text">{{ r.rechazadas }}</td>
+                    <td class="td-center">{{ r.total }}</td>
+                    <td class="td-center"><span class="badge-rechazo">{{ r.indice }}%</span></td>
+                    <td>{{ r.motivoPrincipal || '—' }}</td>
+                  </tr>
+                  <tr *ngIf="informe.rechazosPorProducto.length === 0">
+                    <td colspan="7" class="td-empty">Sin rechazos registrados</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </ng-container>
+
+  </div><!-- /report-main -->
+
+</div><!-- /report-page -->

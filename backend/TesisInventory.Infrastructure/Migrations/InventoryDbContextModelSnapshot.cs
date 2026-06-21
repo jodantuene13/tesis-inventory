@@ -22,6 +22,52 @@ namespace TesisInventory.Infrastructure.Migrations
 
             MySqlModelBuilderExtensions.AutoIncrementColumns(modelBuilder);
 
+            modelBuilder.Entity("TesisInventory.Domain.Entities.AlertaStock", b =>
+                {
+                    b.Property<int>("IdAlertaStock")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("idAlertaStock");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("IdAlertaStock"));
+
+                    b.Property<int>("Estado")
+                        .HasColumnType("int")
+                        .HasColumnName("estado");
+
+                    b.Property<DateTime>("FechaCreacion")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnName("fechaCreacion");
+
+                    b.Property<DateTime>("FechaUltimaAlerta")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnName("fechaUltimaAlerta");
+
+                    b.Property<int>("IdProducto")
+                        .HasColumnType("int")
+                        .HasColumnName("idProducto");
+
+                    b.Property<int>("IdSede")
+                        .HasColumnType("int")
+                        .HasColumnName("idSede");
+
+                    b.Property<int>("PuntoReposicion")
+                        .HasColumnType("int")
+                        .HasColumnName("puntoReposicion");
+
+                    b.Property<int>("StockAlMomento")
+                        .HasColumnType("int")
+                        .HasColumnName("stockAlMomento");
+
+                    b.HasKey("IdAlertaStock");
+
+                    b.HasIndex("IdProducto");
+
+                    b.HasIndex("IdSede");
+
+                    b.ToTable("AlertaStock", (string)null);
+                });
+
             modelBuilder.Entity("TesisInventory.Domain.Entities.Atributo", b =>
                 {
                     b.Property<int>("IdAtributo")
@@ -279,6 +325,9 @@ namespace TesisInventory.Infrastructure.Migrations
                     b.Property<DateTime>("Fecha")
                         .HasColumnType("datetime(6)");
 
+                    b.Property<int?>("IdOperacion")
+                        .HasColumnType("int");
+
                     b.Property<int>("IdProducto")
                         .HasColumnType("int");
 
@@ -299,6 +348,8 @@ namespace TesisInventory.Infrastructure.Migrations
 
                     b.HasKey("IdMovimiento");
 
+                    b.HasIndex("IdOperacion");
+
                     b.HasIndex("IdProducto");
 
                     b.HasIndex("IdSede");
@@ -306,6 +357,85 @@ namespace TesisInventory.Infrastructure.Migrations
                     b.HasIndex("IdUsuario");
 
                     b.ToTable("Movimiento", (string)null);
+                });
+
+            modelBuilder.Entity("TesisInventory.Domain.Entities.OperacionStock", b =>
+                {
+                    b.Property<int>("IdOperacion")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("idOperacion");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("IdOperacion"));
+
+                    b.Property<DateTime>("Fecha")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnName("fecha");
+
+                    b.Property<int>("IdSede")
+                        .HasColumnType("int")
+                        .HasColumnName("idSede");
+
+                    b.Property<int>("IdUsuario")
+                        .HasColumnType("int")
+                        .HasColumnName("idUsuario");
+
+                    b.Property<int>("Motivo")
+                        .HasColumnType("int")
+                        .HasColumnName("motivo");
+
+                    b.Property<string>("Observaciones")
+                        .HasColumnType("longtext")
+                        .HasColumnName("observaciones");
+
+                    b.Property<string>("OrdenCompra")
+                        .HasColumnType("longtext")
+                        .HasColumnName("ordenCompra");
+
+                    b.Property<string>("OrdenTrabajo")
+                        .HasColumnType("longtext")
+                        .HasColumnName("ordenTrabajo");
+
+                    b.Property<string>("TicketSolicitud")
+                        .HasColumnType("longtext")
+                        .HasColumnName("ticketSolicitud");
+
+                    b.Property<int>("TipoOperacion")
+                        .HasColumnType("int")
+                        .HasColumnName("tipoOperacion");
+
+                    b.HasKey("IdOperacion");
+
+                    b.HasIndex("IdSede");
+
+                    b.HasIndex("IdUsuario");
+
+                    b.ToTable("OperacionStock", (string)null);
+                });
+
+            modelBuilder.Entity("TesisInventory.Domain.Entities.Permiso", b =>
+                {
+                    b.Property<int>("IdPermiso")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("IdPermiso"));
+
+                    b.Property<string>("Descripcion")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Modulo")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.HasKey("IdPermiso");
+
+                    b.ToTable("Permiso", (string)null);
                 });
 
             modelBuilder.Entity("TesisInventory.Domain.Entities.Producto", b =>
@@ -406,14 +536,50 @@ namespace TesisInventory.Infrastructure.Migrations
                         .HasColumnType("longtext")
                         .HasColumnName("descripcion");
 
+                    b.Property<bool>("LimitarOperacionSedePrimaria")
+                        .HasColumnType("tinyint(1)");
+
                     b.Property<string>("NombreRol")
                         .IsRequired()
                         .HasColumnType("longtext")
                         .HasColumnName("nombreRol");
 
+                    b.Property<bool>("TodasLasSedes")
+                        .HasColumnType("tinyint(1)");
+
                     b.HasKey("IdRol");
 
                     b.ToTable("Rol", (string)null);
+                });
+
+            modelBuilder.Entity("TesisInventory.Domain.Entities.RolPermiso", b =>
+                {
+                    b.Property<int>("IdRol")
+                        .HasColumnType("int");
+
+                    b.Property<int>("IdPermiso")
+                        .HasColumnType("int");
+
+                    b.HasKey("IdRol", "IdPermiso");
+
+                    b.HasIndex("IdPermiso");
+
+                    b.ToTable("RolPermiso", (string)null);
+                });
+
+            modelBuilder.Entity("TesisInventory.Domain.Entities.RolSede", b =>
+                {
+                    b.Property<int>("IdRol")
+                        .HasColumnType("int");
+
+                    b.Property<int>("IdSede")
+                        .HasColumnType("int");
+
+                    b.HasKey("IdRol", "IdSede");
+
+                    b.HasIndex("IdSede");
+
+                    b.ToTable("RolSede", (string)null);
                 });
 
             modelBuilder.Entity("TesisInventory.Domain.Entities.Rubro", b =>
@@ -487,10 +653,10 @@ namespace TesisInventory.Infrastructure.Migrations
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("IdSolicitudCompra"));
 
-                    b.Property<int>("Cantidad")
+                    b.Property<int>("Estado")
                         .HasColumnType("int");
 
-                    b.Property<int>("Estado")
+                    b.Property<int>("Etiqueta")
                         .HasColumnType("int");
 
                     b.Property<DateTime?>("FechaDecision")
@@ -498,9 +664,6 @@ namespace TesisInventory.Infrastructure.Migrations
 
                     b.Property<DateTime>("FechaSolicitud")
                         .HasColumnType("datetime(6)");
-
-                    b.Property<int>("IdProducto")
-                        .HasColumnType("int");
 
                     b.Property<int>("IdSede")
                         .HasColumnType("int");
@@ -514,12 +677,22 @@ namespace TesisInventory.Infrastructure.Migrations
                     b.Property<string>("MotivoRechazo")
                         .HasColumnType("longtext");
 
+                    b.Property<string>("MotivoSolicitud")
+                        .HasColumnType("longtext");
+
                     b.Property<string>("Observaciones")
                         .HasColumnType("longtext");
 
-                    b.HasKey("IdSolicitudCompra");
+                    b.Property<string>("OrdenTrabajo")
+                        .HasColumnType("longtext");
 
-                    b.HasIndex("IdProducto");
+                    b.Property<string>("TareaARealizar")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("TicketSolicitud")
+                        .HasColumnType("longtext");
+
+                    b.HasKey("IdSolicitudCompra");
 
                     b.HasIndex("IdSede");
 
@@ -528,6 +701,35 @@ namespace TesisInventory.Infrastructure.Migrations
                     b.HasIndex("IdUsuarioSolicitante");
 
                     b.ToTable("SolicitudCompra", (string)null);
+                });
+
+            modelBuilder.Entity("TesisInventory.Domain.Entities.SolicitudCompraDetalle", b =>
+                {
+                    b.Property<int>("IdSolicitudCompraDetalle")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("IdSolicitudCompraDetalle"));
+
+                    b.Property<int>("Cantidad")
+                        .HasColumnType("int");
+
+                    b.Property<int>("CantidadRecibida")
+                        .HasColumnType("int");
+
+                    b.Property<int>("IdProducto")
+                        .HasColumnType("int");
+
+                    b.Property<int>("IdSolicitudCompra")
+                        .HasColumnType("int");
+
+                    b.HasKey("IdSolicitudCompraDetalle");
+
+                    b.HasIndex("IdProducto");
+
+                    b.HasIndex("IdSolicitudCompra");
+
+                    b.ToTable("SolicitudCompraDetalle", (string)null);
                 });
 
             modelBuilder.Entity("TesisInventory.Domain.Entities.Stock", b =>
@@ -572,21 +774,21 @@ namespace TesisInventory.Infrastructure.Migrations
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("IdTransferencia"));
 
-                    b.Property<int>("Cantidad")
-                        .HasColumnType("int")
-                        .HasColumnName("cantidad");
-
                     b.Property<int>("Estado")
                         .HasColumnType("int")
                         .HasColumnName("estado");
 
+                    b.Property<DateTime?>("FechaDevolucionEsperada")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnName("fechaDevolucionEsperada");
+
+                    b.Property<DateTime?>("FechaDevolucionReal")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnName("fechaDevolucionReal");
+
                     b.Property<DateTime>("FechaSolicitud")
                         .HasColumnType("datetime(6)")
                         .HasColumnName("fechaSolicitud");
-
-                    b.Property<int>("IdProducto")
-                        .HasColumnType("int")
-                        .HasColumnName("idProducto");
 
                     b.Property<int>("IdSedeDestino")
                         .HasColumnType("int")
@@ -608,13 +810,7 @@ namespace TesisInventory.Infrastructure.Migrations
                         .HasColumnType("longtext")
                         .HasColumnName("observaciones");
 
-                    b.Property<int?>("StockOrigenSnapshot")
-                        .HasColumnType("int")
-                        .HasColumnName("stockOrigenSnapshot");
-
                     b.HasKey("IdTransferencia");
-
-                    b.HasIndex("IdProducto");
 
                     b.HasIndex("IdSedeDestino");
 
@@ -623,6 +819,40 @@ namespace TesisInventory.Infrastructure.Migrations
                     b.HasIndex("IdUsuarioSolicita");
 
                     b.ToTable("Transferencia", (string)null);
+                });
+
+            modelBuilder.Entity("TesisInventory.Domain.Entities.TransferenciaDetalle", b =>
+                {
+                    b.Property<int>("IdTransferenciaDetalle")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("idTransferenciaDetalle");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("IdTransferenciaDetalle"));
+
+                    b.Property<int>("Cantidad")
+                        .HasColumnType("int")
+                        .HasColumnName("cantidad");
+
+                    b.Property<int>("IdProducto")
+                        .HasColumnType("int")
+                        .HasColumnName("idProducto");
+
+                    b.Property<int>("IdTransferencia")
+                        .HasColumnType("int")
+                        .HasColumnName("idTransferencia");
+
+                    b.Property<int?>("StockOrigenSnapshot")
+                        .HasColumnType("int")
+                        .HasColumnName("stockOrigenSnapshot");
+
+                    b.HasKey("IdTransferenciaDetalle");
+
+                    b.HasIndex("IdProducto");
+
+                    b.HasIndex("IdTransferencia");
+
+                    b.ToTable("TransferenciaDetalle", (string)null);
                 });
 
             modelBuilder.Entity("TesisInventory.Domain.Entities.Usuario", b =>
@@ -659,6 +889,12 @@ namespace TesisInventory.Infrastructure.Migrations
                         .HasColumnType("int")
                         .HasColumnName("idSede");
 
+                    b.Property<bool>("LimitarOperacionSedePrimaria")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("tinyint(1)")
+                        .HasDefaultValue(false)
+                        .HasColumnName("limitarOperacionSedePrimaria");
+
                     b.Property<string>("NombreUsuario")
                         .IsRequired()
                         .HasColumnType("longtext")
@@ -668,6 +904,12 @@ namespace TesisInventory.Infrastructure.Migrations
                         .HasColumnType("longtext")
                         .HasColumnName("password");
 
+                    b.Property<bool>("TodasLasSedes")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("tinyint(1)")
+                        .HasDefaultValue(false)
+                        .HasColumnName("todasLasSedes");
+
                     b.HasKey("IdUsuario");
 
                     b.HasIndex("IdRol");
@@ -675,6 +917,40 @@ namespace TesisInventory.Infrastructure.Migrations
                     b.HasIndex("IdSede");
 
                     b.ToTable("Usuario", (string)null);
+                });
+
+            modelBuilder.Entity("TesisInventory.Domain.Entities.UsuarioSede", b =>
+                {
+                    b.Property<int>("IdUsuario")
+                        .HasColumnType("int");
+
+                    b.Property<int>("IdSede")
+                        .HasColumnType("int");
+
+                    b.HasKey("IdUsuario", "IdSede");
+
+                    b.HasIndex("IdSede");
+
+                    b.ToTable("UsuarioSede", (string)null);
+                });
+
+            modelBuilder.Entity("TesisInventory.Domain.Entities.AlertaStock", b =>
+                {
+                    b.HasOne("TesisInventory.Domain.Entities.Producto", "Producto")
+                        .WithMany()
+                        .HasForeignKey("IdProducto")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("TesisInventory.Domain.Entities.Sede", "Sede")
+                        .WithMany()
+                        .HasForeignKey("IdSede")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Producto");
+
+                    b.Navigation("Sede");
                 });
 
             modelBuilder.Entity("TesisInventory.Domain.Entities.AtributoOpcion", b =>
@@ -739,6 +1015,11 @@ namespace TesisInventory.Infrastructure.Migrations
 
             modelBuilder.Entity("TesisInventory.Domain.Entities.Movimiento", b =>
                 {
+                    b.HasOne("TesisInventory.Domain.Entities.OperacionStock", "OperacionStock")
+                        .WithMany("Movimientos")
+                        .HasForeignKey("IdOperacion")
+                        .OnDelete(DeleteBehavior.Cascade);
+
                     b.HasOne("TesisInventory.Domain.Entities.Producto", "Producto")
                         .WithMany("Movimientos")
                         .HasForeignKey("IdProducto")
@@ -757,7 +1038,28 @@ namespace TesisInventory.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.Navigation("OperacionStock");
+
                     b.Navigation("Producto");
+
+                    b.Navigation("Sede");
+
+                    b.Navigation("Usuario");
+                });
+
+            modelBuilder.Entity("TesisInventory.Domain.Entities.OperacionStock", b =>
+                {
+                    b.HasOne("TesisInventory.Domain.Entities.Sede", "Sede")
+                        .WithMany("OperacionesStock")
+                        .HasForeignKey("IdSede")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("TesisInventory.Domain.Entities.Usuario", "Usuario")
+                        .WithMany("OperacionesStock")
+                        .HasForeignKey("IdUsuario")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.Navigation("Sede");
 
@@ -794,14 +1096,46 @@ namespace TesisInventory.Infrastructure.Migrations
                     b.Navigation("Producto");
                 });
 
-            modelBuilder.Entity("TesisInventory.Domain.Entities.SolicitudCompra", b =>
+            modelBuilder.Entity("TesisInventory.Domain.Entities.RolPermiso", b =>
                 {
-                    b.HasOne("TesisInventory.Domain.Entities.Producto", "Producto")
-                        .WithMany()
-                        .HasForeignKey("IdProducto")
-                        .OnDelete(DeleteBehavior.Restrict)
+                    b.HasOne("TesisInventory.Domain.Entities.Permiso", "Permiso")
+                        .WithMany("RolesPermisos")
+                        .HasForeignKey("IdPermiso")
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("TesisInventory.Domain.Entities.Rol", "Rol")
+                        .WithMany("RolesPermisos")
+                        .HasForeignKey("IdRol")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Permiso");
+
+                    b.Navigation("Rol");
+                });
+
+            modelBuilder.Entity("TesisInventory.Domain.Entities.RolSede", b =>
+                {
+                    b.HasOne("TesisInventory.Domain.Entities.Rol", "Rol")
+                        .WithMany("RolesSedes")
+                        .HasForeignKey("IdRol")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("TesisInventory.Domain.Entities.Sede", "Sede")
+                        .WithMany("RolesSedes")
+                        .HasForeignKey("IdSede")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Rol");
+
+                    b.Navigation("Sede");
+                });
+
+            modelBuilder.Entity("TesisInventory.Domain.Entities.SolicitudCompra", b =>
+                {
                     b.HasOne("TesisInventory.Domain.Entities.Sede", "Sede")
                         .WithMany()
                         .HasForeignKey("IdSede")
@@ -819,13 +1153,30 @@ namespace TesisInventory.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.Navigation("Producto");
-
                     b.Navigation("Sede");
 
                     b.Navigation("UsuarioAprobador");
 
                     b.Navigation("UsuarioSolicitante");
+                });
+
+            modelBuilder.Entity("TesisInventory.Domain.Entities.SolicitudCompraDetalle", b =>
+                {
+                    b.HasOne("TesisInventory.Domain.Entities.Producto", "Producto")
+                        .WithMany()
+                        .HasForeignKey("IdProducto")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("TesisInventory.Domain.Entities.SolicitudCompra", "SolicitudCompra")
+                        .WithMany("Detalles")
+                        .HasForeignKey("IdSolicitudCompra")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Producto");
+
+                    b.Navigation("SolicitudCompra");
                 });
 
             modelBuilder.Entity("TesisInventory.Domain.Entities.Stock", b =>
@@ -849,12 +1200,6 @@ namespace TesisInventory.Infrastructure.Migrations
 
             modelBuilder.Entity("TesisInventory.Domain.Entities.Transferencia", b =>
                 {
-                    b.HasOne("TesisInventory.Domain.Entities.Producto", "Producto")
-                        .WithMany("Transferencias")
-                        .HasForeignKey("IdProducto")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.HasOne("TesisInventory.Domain.Entities.Sede", "SedeDestino")
                         .WithMany("TransferenciasDestino")
                         .HasForeignKey("IdSedeDestino")
@@ -873,13 +1218,30 @@ namespace TesisInventory.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.Navigation("Producto");
-
                     b.Navigation("SedeDestino");
 
                     b.Navigation("SedeOrigen");
 
                     b.Navigation("UsuarioSolicita");
+                });
+
+            modelBuilder.Entity("TesisInventory.Domain.Entities.TransferenciaDetalle", b =>
+                {
+                    b.HasOne("TesisInventory.Domain.Entities.Producto", "Producto")
+                        .WithMany("TransferenciaDetalles")
+                        .HasForeignKey("IdProducto")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("TesisInventory.Domain.Entities.Transferencia", "Transferencia")
+                        .WithMany("Detalles")
+                        .HasForeignKey("IdTransferencia")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Producto");
+
+                    b.Navigation("Transferencia");
                 });
 
             modelBuilder.Entity("TesisInventory.Domain.Entities.Usuario", b =>
@@ -901,6 +1263,25 @@ namespace TesisInventory.Infrastructure.Migrations
                     b.Navigation("Sede");
                 });
 
+            modelBuilder.Entity("TesisInventory.Domain.Entities.UsuarioSede", b =>
+                {
+                    b.HasOne("TesisInventory.Domain.Entities.Sede", "Sede")
+                        .WithMany("UsuariosSedes")
+                        .HasForeignKey("IdSede")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("TesisInventory.Domain.Entities.Usuario", "Usuario")
+                        .WithMany("UsuariosSedes")
+                        .HasForeignKey("IdUsuario")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Sede");
+
+                    b.Navigation("Usuario");
+                });
+
             modelBuilder.Entity("TesisInventory.Domain.Entities.Atributo", b =>
                 {
                     b.Navigation("FamiliaAtributos");
@@ -915,6 +1296,16 @@ namespace TesisInventory.Infrastructure.Migrations
                     b.Navigation("Productos");
                 });
 
+            modelBuilder.Entity("TesisInventory.Domain.Entities.OperacionStock", b =>
+                {
+                    b.Navigation("Movimientos");
+                });
+
+            modelBuilder.Entity("TesisInventory.Domain.Entities.Permiso", b =>
+                {
+                    b.Navigation("RolesPermisos");
+                });
+
             modelBuilder.Entity("TesisInventory.Domain.Entities.Producto", b =>
                 {
                     b.Navigation("Movimientos");
@@ -923,11 +1314,15 @@ namespace TesisInventory.Infrastructure.Migrations
 
                     b.Navigation("Stocks");
 
-                    b.Navigation("Transferencias");
+                    b.Navigation("TransferenciaDetalles");
                 });
 
             modelBuilder.Entity("TesisInventory.Domain.Entities.Rol", b =>
                 {
+                    b.Navigation("RolesPermisos");
+
+                    b.Navigation("RolesSedes");
+
                     b.Navigation("Usuarios");
                 });
 
@@ -940,6 +1335,10 @@ namespace TesisInventory.Infrastructure.Migrations
                 {
                     b.Navigation("Movimientos");
 
+                    b.Navigation("OperacionesStock");
+
+                    b.Navigation("RolesSedes");
+
                     b.Navigation("Stocks");
 
                     b.Navigation("TransferenciasDestino");
@@ -947,10 +1346,19 @@ namespace TesisInventory.Infrastructure.Migrations
                     b.Navigation("TransferenciasOrigen");
 
                     b.Navigation("Usuarios");
+
+                    b.Navigation("UsuariosSedes");
+                });
+
+            modelBuilder.Entity("TesisInventory.Domain.Entities.SolicitudCompra", b =>
+                {
+                    b.Navigation("Detalles");
                 });
 
             modelBuilder.Entity("TesisInventory.Domain.Entities.Transferencia", b =>
                 {
+                    b.Navigation("Detalles");
+
                     b.Navigation("HistorialTransferencias");
                 });
 
@@ -960,7 +1368,11 @@ namespace TesisInventory.Infrastructure.Migrations
 
                     b.Navigation("Movimientos");
 
+                    b.Navigation("OperacionesStock");
+
                     b.Navigation("TransferenciasSolicitadas");
+
+                    b.Navigation("UsuariosSedes");
                 });
 #pragma warning restore 612, 618
         }

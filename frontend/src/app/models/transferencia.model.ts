@@ -14,31 +14,42 @@ export enum MotivoTransferencia {
   Prestamo = 1
 }
 
-export interface Transferencia {
-  idTransferencia: number;
+export interface TransferenciaDetalle {
+  idTransferenciaDetalle: number;
   idProducto: number;
   nombreProducto: string;
+  sku: string;
+  cantidad: number;
+  stockOrigenSnapshot?: number;
+}
+
+export interface Transferencia {
+  idTransferencia: number;
+  codigoTracking: string;
   idSedeOrigen: number;
   nombreSedeOrigen: string;
   idSedeDestino: number;
   nombreSedeDestino: string;
-  cantidad: number;
-  stockOrigenSnapshot?: number;
   fechaSolicitud: string;
   estado: EstadoTransferencia;
   motivo: MotivoTransferencia;
   idUsuarioSolicita: number;
   nombreUsuarioSolicita: string;
   observaciones?: string;
+  detalles: TransferenciaDetalle[];
+}
+
+export interface CreateTransferenciaDetalleDto {
+  idProducto: number;
+  cantidad: number;
 }
 
 export interface CreateTransferenciaDto {
-  idProducto: number;
-  cantidad: number;
   idSedeOrigen: number;
   idSedeDestino: number;
   motivo: MotivoTransferencia;
   observaciones?: string;
+  detalles: CreateTransferenciaDetalleDto[];
 }
 
 export interface ResolverTransferenciaDto {

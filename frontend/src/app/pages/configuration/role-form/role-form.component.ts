@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { RoleService } from '../../../services/role.service';
-import { Role } from '../../../models/role.model';
+import { Role, Permiso } from '../../../models/role.model';
 
 @Component({
     selector: 'app-role-form',
@@ -15,10 +15,15 @@ import { Role } from '../../../models/role.model';
 export class RoleFormComponent implements OnInit {
     isEditMode = false;
     roleId: number | null = null;
-    role: any = {
+    role: Role = {
+        idRol: 0,
         nombreRol: '',
-        descripcion: ''
+        descripcion: '',
+        permisosIds: []
     };
+
+    permisosList: Permiso[] = [];
+    permisosPorModulo: { [modulo: string]: Permiso[] } = {};
 
     constructor(
         private roleService: RoleService,
@@ -27,6 +32,7 @@ export class RoleFormComponent implements OnInit {
     ) { }
 
     ngOnInit(): void {
+        this.loadPermisos();
         const id = this.route.snapshot.paramMap.get('id');
         if (id) {
             this.isEditMode = true;
@@ -35,35 +41,57 @@ export class RoleFormComponent implements OnInit {
         }
     }
 
+    loadPermisos(): void {
+        this.roleService.getPermisos().subscribe(data => {
+            this.permisosList = data;
+            this.agruparPermisos();
+        });
+    }
+
+    agruparPermisos(): void {
+        this.permisosPorModulo = this.permisosList.reduce((acc, curr) => {
+            if (!acc[curr.modulo]) acc[curr.modulo] = [];
+            acc[curr.modulo].push(curr);
+            return acc;
+        }, {} as { [modulo: string]: Permiso[] });
+    }
+
     loadRole(id: number): void {
         this.roleService.getById(id).subscribe(r => {
             this.role = {
                 idRol: r.idRol,
                 nombreRol: r.nombreRol,
-                descripcion: r.descripcion
+                descripcion: r.descripcion,
+                permisosIds: r.permisosIds || []
             };
         });
     }
 
+    hasPermiso(id: number): boolean {
+        return this.role.permisosIds.includes(id);
+    }
+
+    togglePermiso(id: number, event: any): void {
+        if (event.target.checked) {
+            this.role.permisosIds.push(id);
+        } else {
+            this.role.permisosIds = this.role.permisosIds.filter(pid => pid !== id);
+        }
+    }
+
     onSubmit(): void {
         if (this.isEditMode && this.roleId) {
-            const roleToUpdate: Role = {
-                idRol: this.roleId,
-                nombreRol: this.role.nombreRol,
-                descripcion: this.role.descripcion
-            };
-            this.roleService.update(this.roleId, roleToUpdate).subscribe(() => {
+            this.roleService.update(this.roleId, this.role).subscribe(() => {
                 this.router.navigate(['/configuration/roles']);
             });
         } else {
-            const roleToCreate: Role = {
-                idRol: 0, // Ignored by backend
-                nombreRol: this.role.nombreRol,
-                descripcion: this.role.descripcion
-            };
-            this.roleService.create(roleToCreate).subscribe(() => {
+            this.roleService.create(this.role).subscribe(() => {
                 this.router.navigate(['/configuration/roles']);
             });
         }
+    }
+
+    objectKeys(obj: any): string[] {
+        return Object.keys(obj);
     }
 }

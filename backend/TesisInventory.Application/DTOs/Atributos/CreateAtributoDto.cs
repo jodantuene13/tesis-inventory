@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 namespace TesisInventory.Application.DTOs.Atributos
@@ -11,9 +12,9 @@ namespace TesisInventory.Application.DTOs.Atributos
         public string Nombre { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "El tipo de dato es obligatorio.")]
-        public string TipoDato { get; set; } = string.Empty; // TEXT, NUMBER, DECIMAL, BOOL, LIST
-        
-        public string? Unidad { get; set; }
+        public string TipoDato { get; set; } = string.Empty;
+
+        public List<int> IdsUnidadesMedida { get; set; } = new();
         public string? Descripcion { get; set; }
         public bool Activo { get; set; } = true;
     }

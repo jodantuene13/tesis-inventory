@@ -15,10 +15,13 @@ namespace TesisInventory.Domain.Entities
         public bool? ValorBool { get; set; }
         public string? ValorLista { get; set; } // Podría guardar el código de la opción
 
+        public int? IdUnidadMedida { get; set; }
+
         public DateTime FechaActualizacion { get; set; } = DateTime.UtcNow;
 
         // Propiedades de navegación
         public Producto? Producto { get; set; }
         public Atributo? Atributo { get; set; }
+        public UnidadMedida? UnidadMedida { get; set; }
     }
 }

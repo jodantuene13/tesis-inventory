@@ -19,7 +19,10 @@ namespace TesisInventory.Infrastructure.Repositories
 
         public async Task<IEnumerable<Atributo>> GetAllAtributosAsync(bool includeInactive = false)
         {
-            var query = _context.Atributo.Include(a => a.Opciones).AsQueryable();
+            var query = _context.Atributo
+                .Include(a => a.Opciones)
+                .Include(a => a.UnidadesMedida).ThenInclude(au => au.UnidadMedida)
+                .AsQueryable();
             if (!includeInactive)
                 query = query.Where(a => a.Activo);
 
@@ -30,6 +33,7 @@ namespace TesisInventory.Infrastructure.Repositories
         {
             return await _context.Atributo
                 .Include(a => a.Opciones)
+                .Include(a => a.UnidadesMedida).ThenInclude(au => au.UnidadMedida)
                 .FirstOrDefaultAsync(a => a.IdAtributo == id);
         }
 
@@ -108,7 +112,10 @@ namespace TesisInventory.Infrastructure.Repositories
         {
             return await _context.FamiliaAtributo
                 .Include(fa => fa.Atributo)
-                .ThenInclude(a => a.Opciones)
+                    .ThenInclude(a => a!.Opciones)
+                .Include(fa => fa.Atributo)
+                    .ThenInclude(a => a!.UnidadesMedida)
+                    .ThenInclude(au => au.UnidadMedida)
                 .Where(fa => fa.IdFamilia == idFamilia && fa.Activo)
                 .ToListAsync();
         }
@@ -145,6 +152,30 @@ namespace TesisInventory.Infrastructure.Repositories
                 .Where(fa => fa.IdAtributo == idAtributo && fa.Activo)
                 .OrderBy(fa => fa.Familia!.Nombre)
                 .ToListAsync();
+        }
+
+        public async Task SyncUnidadesMedidaAsync(int idAtributo, IEnumerable<int> idsUnidades)
+        {
+            var existentes = await _context.AtributoUnidadMedida
+                .Where(au => au.IdAtributo == idAtributo)
+                .ToListAsync();
+
+            var nuevos = idsUnidades.ToHashSet();
+            var existentesIds = existentes.Select(e => e.IdUnidadMedida).ToHashSet();
+
+            var aEliminar = existentes.Where(e => !nuevos.Contains(e.IdUnidadMedida)).ToList();
+            _context.AtributoUnidadMedida.RemoveRange(aEliminar);
+
+            foreach (var idU in nuevos.Where(id => !existentesIds.Contains(id)))
+            {
+                await _context.AtributoUnidadMedida.AddAsync(new Domain.Entities.AtributoUnidadMedida
+                {
+                    IdAtributo = idAtributo,
+                    IdUnidadMedida = idU
+                });
+            }
+
+            await _context.SaveChangesAsync();
         }
     }
 }

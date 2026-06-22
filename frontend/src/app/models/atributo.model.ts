@@ -1,9 +1,11 @@
+import { UnidadMedida } from './unidad-medida.model';
+
 export interface Atributo {
     idAtributo: number;
     codigoAtributo: string;
     nombre: string;
     tipoDato: string;
-    unidad?: string;
+    unidadesMedida: UnidadMedida[];
     descripcion?: string;
     activo: boolean;
 }
@@ -12,7 +14,7 @@ export interface CreateAtributo {
     codigoAtributo: string;
     nombre: string;
     tipoDato: string;
-    unidad?: string;
+    idsUnidadesMedida: number[];
     descripcion?: string;
     activo: boolean;
 }
@@ -21,7 +23,7 @@ export interface UpdateAtributo {
     codigoAtributo: string;
     nombre: string;
     tipoDato: string;
-    unidad?: string;
+    idsUnidadesMedida: number[];
     descripcion?: string;
     activo: boolean;
 }
@@ -49,6 +51,7 @@ export interface FamiliaAtributo {
     tipoDatoAtributo: string;
     obligatorio: boolean;
     activo: boolean;
+    unidadesMedida: UnidadMedida[];
 }
 
 export interface CreateFamiliaAtributo {

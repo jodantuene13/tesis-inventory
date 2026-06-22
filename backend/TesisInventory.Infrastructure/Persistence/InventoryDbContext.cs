@@ -27,6 +27,11 @@ namespace TesisInventory.Infrastructure.Persistence
         public DbSet<AtributoOpcion> AtributoOpcion { get; set; }
         public DbSet<Producto> Producto { get; set; }
         public DbSet<ProductoAtributoValor> ProductoAtributoValor { get; set; }
+        public DbSet<UnidadMedida> UnidadMedida { get; set; }
+        public DbSet<AtributoUnidadMedida> AtributoUnidadMedida { get; set; }
+        public DbSet<GrupoAtributo> GrupoAtributo { get; set; }
+        public DbSet<GrupoAtributoItem> GrupoAtributoItem { get; set; }
+        public DbSet<FamiliaGrupoAtributo> FamiliaGrupoAtributo { get; set; }
         public DbSet<Stock> Stock { get; set; }
         public DbSet<Movimiento> Movimiento { get; set; }
         public DbSet<OperacionStock> OperacionStock { get; set; }
@@ -190,6 +195,66 @@ namespace TesisInventory.Infrastructure.Persistence
                 .HasOne(pav => pav.Atributo)
                 .WithMany()
                 .HasForeignKey(pav => pav.IdAtributo)
+                .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<ProductoAtributoValor>()
+                .HasOne(pav => pav.UnidadMedida)
+                .WithMany(u => u.ValoresProducto)
+                .HasForeignKey(pav => pav.IdUnidadMedida)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            modelBuilder.Entity<UnidadMedida>().ToTable("UnidadMedida");
+            modelBuilder.Entity<UnidadMedida>().HasKey(u => u.IdUnidadMedida);
+            modelBuilder.Entity<UnidadMedida>().HasIndex(u => u.Simbolo).IsUnique();
+
+            // Muchos-a-muchos: Atributo ↔ UnidadMedida
+            modelBuilder.Entity<AtributoUnidadMedida>().ToTable("AtributoUnidadMedida");
+            modelBuilder.Entity<AtributoUnidadMedida>().HasKey(au => new { au.IdAtributo, au.IdUnidadMedida });
+            modelBuilder.Entity<AtributoUnidadMedida>()
+                .HasOne(au => au.Atributo)
+                .WithMany(a => a.UnidadesMedida)
+                .HasForeignKey(au => au.IdAtributo)
+                .OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<AtributoUnidadMedida>()
+                .HasOne(au => au.UnidadMedida)
+                .WithMany(u => u.AtributoUnidades)
+                .HasForeignKey(au => au.IdUnidadMedida)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<GrupoAtributo>().ToTable("GrupoAtributo");
+            modelBuilder.Entity<GrupoAtributo>().HasKey(g => g.IdGrupoAtributo);
+            modelBuilder.Entity<GrupoAtributo>().HasIndex(g => g.CodigoGrupo).IsUnique();
+
+            modelBuilder.Entity<GrupoAtributoItem>().ToTable("GrupoAtributoItem");
+            modelBuilder.Entity<GrupoAtributoItem>().HasKey(gi => gi.IdGrupoAtributoItem);
+            modelBuilder.Entity<GrupoAtributoItem>().HasIndex(gi => new { gi.IdGrupoAtributo, gi.IdAtributo }).IsUnique();
+            modelBuilder.Entity<GrupoAtributoItem>()
+                .HasOne(gi => gi.GrupoAtributo)
+                .WithMany(g => g.Items)
+                .HasForeignKey(gi => gi.IdGrupoAtributo)
+                .OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<GrupoAtributoItem>()
+                .HasOne(gi => gi.Atributo)
+                .WithMany(a => a.GrupoItems)
+                .HasForeignKey(gi => gi.IdAtributo)
+                .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<GrupoAtributoItem>()
+                .HasOne(gi => gi.UnidadMedida)
+                .WithMany(u => u.GrupoItems)
+                .HasForeignKey(gi => gi.IdUnidadMedida)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            modelBuilder.Entity<FamiliaGrupoAtributo>().ToTable("FamiliaGrupoAtributo");
+            modelBuilder.Entity<FamiliaGrupoAtributo>().HasKey(fg => fg.IdFamiliaGrupoAtributo);
+            modelBuilder.Entity<FamiliaGrupoAtributo>().HasIndex(fg => new { fg.IdFamilia, fg.IdGrupoAtributo }).IsUnique();
+            modelBuilder.Entity<FamiliaGrupoAtributo>()
+                .HasOne(fg => fg.Familia)
+                .WithMany(f => f.FamiliaGrupoAtributos)
+                .HasForeignKey(fg => fg.IdFamilia)
+                .OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<FamiliaGrupoAtributo>()
+                .HasOne(fg => fg.GrupoAtributo)
+                .WithMany(g => g.FamiliaGrupoAtributos)
+                .HasForeignKey(fg => fg.IdGrupoAtributo)
                 .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<Stock>().ToTable("Stock");

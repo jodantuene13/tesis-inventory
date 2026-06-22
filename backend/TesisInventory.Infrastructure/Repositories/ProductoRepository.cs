@@ -35,10 +35,13 @@ namespace TesisInventory.Infrastructure.Repositories
         public async Task<Producto?> GetProductoByIdAsync(int id)
         {
             return await _context.Producto
-                .Include(p => p.Familia)
-                .ThenInclude(f => f.Rubro)
+                .Include(p => p.Familia).ThenInclude(f => f!.Rubro)
                 .Include(p => p.ProductoAtributoValores)
-                .ThenInclude(pav => pav.Atributo)
+                    .ThenInclude(pav => pav.Atributo)
+                    .ThenInclude(a => a!.UnidadesMedida)
+                    .ThenInclude(au => au.UnidadMedida)
+                .Include(p => p.ProductoAtributoValores)
+                    .ThenInclude(pav => pav.UnidadMedida)
                 .FirstOrDefaultAsync(p => p.IdProducto == id);
         }
 

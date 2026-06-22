@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using TesisInventory.Application.DTOs;
 
 namespace TesisInventory.Application.DTOs.Atributos
 {
@@ -8,7 +10,7 @@ namespace TesisInventory.Application.DTOs.Atributos
         public string CodigoAtributo { get; set; } = string.Empty;
         public string Nombre { get; set; } = string.Empty;
         public string TipoDato { get; set; } = string.Empty;
-        public string? Unidad { get; set; }
+        public List<UnidadMedidaDto> UnidadesMedida { get; set; } = new();
         public string? Descripcion { get; set; }
         public bool Activo { get; set; }
         public DateTime FechaCreacion { get; set; }

@@ -193,7 +193,7 @@
             </svg>
           </div>
           <div class="kpi-body">
-            <span class="kpi-label">Tasa de rechazo</span>
+            <span class="kpi-label">Porcentaje de rechazo</span>
             <span class="kpi-value kpi-value--orange">{{ informe.kpis.tasaRechazo }}%</span>
             <span class="kpi-sub">Sobre total de operaciones</span>
           </div>
@@ -232,7 +232,7 @@
         <button class="tabbtn" [class.active]="activeTab===0" (click)="setTab(0)">Vista Global</button>
         <button class="tabbtn" [class.active]="activeTab===1" (click)="setTab(1)">Habituales</button>
         <button class="tabbtn" [class.active]="activeTab===2" (click)="setTab(2)">Préstamos por tiempo</button>
-        <button class="tabbtn" [class.active]="activeTab===3" (click)="setTab(3)">Índice de rechazo</button>
+        <button class="tabbtn" [class.active]="activeTab===3" (click)="setTab(3)">Rechazados</button>
       </div>
 
       <!-- ══ TAB 0: VISTA GLOBAL ══════════════════════════════════════════ -->
@@ -301,7 +301,7 @@
               <table class="rechazo-table">
                 <thead>
                   <tr>
-                    <th>#</th><th>Producto</th><th>Rechazadas</th><th>Total</th><th>Índice %</th><th>Motivo principal</th>
+                    <th>#</th><th>Producto</th><th>Rechazadas</th><th>Total</th><th>Rechazo %</th><th>Motivo principal</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -453,7 +453,7 @@
         <div class="charts-grid-2">
           <div class="chart-card">
             <div class="chart-card-head">
-              <span class="chart-card-title">Índice de rechazo por producto</span>
+              <span class="chart-card-title">Tasa de rechazo por producto</span>
               <span class="chart-card-sub">% = Rechazadas / Total</span>
             </div>
             <div class="chart-wrap" style="height:280px">
@@ -465,7 +465,7 @@
             <div class="chart-card-head"><span class="chart-card-title">Detalle de rechazos por producto</span></div>
             <div class="rechazo-table-wrap">
               <table class="rechazo-table">
-                <thead><tr><th>#</th><th>Producto</th><th>Familia</th><th>Rechazadas</th><th>Total</th><th>Índice %</th><th>Motivo principal</th></tr></thead>
+                <thead><tr><th>#</th><th>Producto</th><th>Familia</th><th>Rechazadas</th><th>Total</th><th>Rechazo %</th><th>Motivo principal</th></tr></thead>
                 <tbody>
                   <tr *ngFor="let r of informe.rechazosPorProducto; let i = index">
                     <td class="td-num">{{ i+1 }}</td>

@@ -36,7 +36,8 @@ namespace TesisInventory.Application.Services
         public async Task<InformeAlertasStockDto> GetAlertasStockAsync(
             int? idSede = null,
             int? idFamilia = null,
-            int semanas = 5)
+            DateTime? fechaDesde = null,
+            DateTime? fechaHasta = null)
         {
             var alertasActivas = await _alertaRepository.GetAlertasActivasAsync(idSede, idFamilia);
 
@@ -56,8 +57,8 @@ namespace TesisInventory.Application.Services
                 Criticidad    = CalcularCriticidad(a.StockAlMomento, a.PuntoReposicion)
             }).ToList();
 
-            var fechaDesde = DateTime.UtcNow.AddDays(-(semanas * 7));
-            var historial  = await _alertaRepository.GetHistorialAlertasAsync(idSede, idFamilia, fechaDesde, null);
+            var desde = fechaDesde ?? DateTime.UtcNow.AddDays(-30);
+            var historial  = await _alertaRepository.GetHistorialAlertasAsync(idSede, idFamilia, desde, fechaHasta);
 
             var recurrencia = historial
                 .GroupBy(a => new { a.IdProducto, a.IdSede })
@@ -89,7 +90,7 @@ namespace TesisInventory.Application.Services
                 .OrderByDescending(r => r.CantidadAlertas)
                 .ToList();
 
-            var evolucionRaw = await _alertaRepository.GetEvolucionSemanalAsync(idSede, semanas);
+            var evolucionRaw = await _alertaRepository.GetEvolucionSemanalAsync(idSede, desde, fechaHasta);
 
             var evolucionSemanal = evolucionRaw.Select(e => new EvolucionSemanalDto
             {

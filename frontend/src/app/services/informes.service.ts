@@ -246,15 +246,19 @@ export class InformesService {
   getAlertasStock(
     idSede?: number,
     idFamilia?: number,
-    semanas: number = 5
+    fechaDesde?: string,
+    fechaHasta?: string
   ): Observable<InformeAlertasStockDto> {
-    let params = new HttpParams().set('semanas', semanas.toString());
+    let params = new HttpParams();
 
     if (idSede !== undefined && idSede !== null)
       params = params.set('idSede', idSede.toString());
 
     if (idFamilia !== undefined && idFamilia !== null)
       params = params.set('idFamilia', idFamilia.toString());
+
+    if (fechaDesde) params = params.set('fechaDesde', fechaDesde);
+    if (fechaHasta) params = params.set('fechaHasta', fechaHasta);
 
     return this.http.get<InformeAlertasStockDto>(`${this.apiUrl}/alertas-stock`, { params });
   }

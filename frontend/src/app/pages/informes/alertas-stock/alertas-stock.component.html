@@ -11,13 +11,19 @@
       <span>Filtros</span>
     </div>
 
-    <!-- Período (Semanas) -->
+    <!-- Período -->
     <div class="filter-section">
-      <label class="filter-section-label">Período de historial</label>
+      <label class="filter-section-label">Período</label>
       <div class="period-chips">
-        <button class="chip" [class.active]="filtros.semanas === 5"  (click)="filtros.semanas=5;  aplicarFiltros()">Últ. 5 semanas</button>
-        <button class="chip" [class.active]="filtros.semanas === 12" (click)="filtros.semanas=12; aplicarFiltros()">Últ. 3 meses</button>
-        <button class="chip" [class.active]="filtros.semanas === 26" (click)="filtros.semanas=26; aplicarFiltros()">Últ. 6 meses</button>
+        <button class="chip" [class.active]="filtros.periodoPreset === '30'"     (click)="seleccionarPeriodo('30')">Últ. 30 días</button>
+        <button class="chip" [class.active]="filtros.periodoPreset === '90'"     (click)="seleccionarPeriodo('90')">Últ. 90 días</button>
+        <button class="chip" [class.active]="filtros.periodoPreset === 'custom'" (click)="seleccionarPeriodo('custom')">Personalizado</button>
+      </div>
+      <div class="custom-range" *ngIf="filtros.periodoPreset === 'custom'">
+        <label class="range-label">Desde</label>
+        <input type="date" class="ds-input ds-input--sm" [(ngModel)]="filtros.fechaDesde" />
+        <label class="range-label">Hasta</label>
+        <input type="date" class="ds-input ds-input--sm" [(ngModel)]="filtros.fechaHasta" />
       </div>
     </div>
 
@@ -25,7 +31,8 @@
     <div class="filter-section">
       <label class="filter-section-label">Sede</label>
       <select class="ds-input" [(ngModel)]="filtros.idSede">
-        <option *ngFor="let s of sedes" [ngValue]="s.id">{{ s.nombre }}</option>
+        <option [ngValue]="null">Todas</option>
+        <option *ngFor="let s of sedes" [ngValue]="s.idSede">{{ s.nombreSede }}</option>
       </select>
     </div>
 
@@ -86,7 +93,7 @@
         <span class="dot dot--blue"></span> Sede: <strong>{{ sedeSeleccionadaNombre }}</strong>
       </div>
       <div class="filter-summary-item">
-        <span class="dot dot--purple"></span> Período: <strong>{{ filtros.semanas }} semanas</strong>
+        <span class="dot dot--purple"></span> Período: <strong>{{ filtros.fechaDesde }} – {{ filtros.fechaHasta }}</strong>
       </div>
       <div class="filter-summary-item">
         <span class="dot dot--gray"></span> Top: <strong>{{ filtros.topN }}</strong>

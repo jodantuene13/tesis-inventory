@@ -341,7 +341,7 @@ a { text-decoration: none; color: inherit; }
   background: #ffffff !important;
   border: 1.5px solid #c7d0dd !important;
   border-radius: var(--radius-md) !important;
-  padding: 0 0.875rem !important;
+  padding: 0 0.875rem;
   font-size: 0.875rem !important;
   font-family: var(--font-body) !important;
   color: #1e293b !important;
@@ -373,7 +373,7 @@ input, select, textarea {
   background: #ffffff !important;
   border: 1.5px solid #c7d0dd !important;
   border-radius: var(--radius-md) !important;
-  padding: 0 0.875rem !important;
+  padding: 0 0.875rem;
   font-size: 0.875rem !important;
   font-family: var(--font-body) !important;
   color: #1e293b !important;

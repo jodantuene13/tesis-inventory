@@ -1,9 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../services/auth';
 import { ProductoService } from '../../services/producto.service';
 import { StockService } from '../../services/stock.service';
 import { TransferenciaService } from '../../services/transferencia.service';
+import { InformesService, ProductoAlertaStockDto } from '../../services/informes.service';
 import { Observable, forkJoin } from 'rxjs';
 import { User } from '../../models/user';
 import { RouterLink } from '@angular/router';
@@ -26,6 +27,9 @@ export class HomeComponent implements OnInit {
   transferenciasPendientes: number = 0;
   movimientosHoy: number = 0;
   
+  // Right Panel Data
+  alertasStock: ProductoAlertaStockDto[] = [];
+
   loading: boolean = true;
 
   constructor(
@@ -33,6 +37,7 @@ export class HomeComponent implements OnInit {
     private productoService: ProductoService,
     private stockService: StockService,
     private transferenciaService: TransferenciaService,
+    private informesService: InformesService,
     private sedeContextService: SedeContextService
   ) { }
 
@@ -54,13 +59,17 @@ export class HomeComponent implements OnInit {
       productos: this.productoService.getAll(false),
       stockBajo: this.stockService.getStockSede(undefined, undefined, undefined, true, true, 1, 10),
       transferencias: this.transferenciaService.getEntrantes(),
-      movimientos: this.stockService.getHistorialGlobal(undefined, undefined, undefined, undefined, undefined, today, today)
+      movimientos: this.stockService.getHistorialGlobal(undefined, undefined, undefined, undefined, undefined, today, today),
+      alertas: this.informesService.getAlertasStock(undefined, undefined, 1)
     }).subscribe({
       next: (data) => {
         this.totalProductos = data.productos.length;
         this.bajoStockCount = data.stockBajo.totalRecords || data.stockBajo.length || 0;
         this.transferenciasPendientes = data.transferencias.filter(t => t.estado === 0).length;
         this.movimientosHoy = data.movimientos.totalRecords || data.movimientos.length || 0;
+        
+        this.alertasStock = data.alertas.bajoStock ? data.alertas.bajoStock.slice(0, 4) : [];
+
         this.loading = false;
       },
       error: (err) => {

@@ -150,7 +150,9 @@ namespace TesisInventory.API.Controllers
         {
             try
             {
-                var sedeEfectiva = idSede ?? TryGetCurrentSedeId();
+                // idSede=0 significa "todas las sedes" (enviado explícitamente por el frontend).
+                // Sin idSede o idSede>0: usa contexto de sede como fallback.
+                int? sedeEfectiva = idSede == 0 ? null : (idSede ?? TryGetCurrentSedeId());
                 var hoy = DateTime.UtcNow.Date;
                 var desde = fechaDesde != null && DateTime.TryParse(fechaDesde, out var d) ? d : hoy.AddDays(-30);
                 var hasta = fechaHasta != null && DateTime.TryParse(fechaHasta, out var h) ? h : hoy;

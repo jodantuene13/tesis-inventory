@@ -60,7 +60,7 @@ export class HomeComponent implements OnInit {
       stockBajo: this.stockService.getStockSede(undefined, undefined, undefined, true, true, 1, 10),
       transferencias: this.transferenciaService.getEntrantes(),
       movimientos: this.stockService.getHistorialGlobal(undefined, undefined, undefined, undefined, undefined, today, today),
-      alertas: this.informesService.getAlertasStock(undefined, undefined, 1)
+      alertas: this.informesService.getAlertasStock()
     }).subscribe({
       next: (data) => {
         this.totalProductos = data.productos.length;

@@ -21,6 +21,7 @@ namespace TesisInventory.Application.DTOs.Informes
 
         public int StockActual { get; set; }
         public int StockMinimo { get; set; }
+        public string UnidadMedida { get; set; } = "u.";
         public DateTime UltimaAlerta { get; set; }
         public string EstadoActual { get; set; } = string.Empty;
         public string Criticidad { get; set; } = string.Empty;

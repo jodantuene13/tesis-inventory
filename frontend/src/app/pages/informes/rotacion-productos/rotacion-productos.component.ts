@@ -227,11 +227,17 @@ export class RotacionProductosComponent implements OnInit, AfterViewInit, OnDest
   get kpiMayorIngresoUnidades(): number {
     return this.datosMayorIngreso.length ? this.datosMayorIngreso[0].totalUnidades : 0;
   }
+  get kpiMayorIngresoUm(): string {
+    return this.datosMayorIngreso.length ? this.datosMayorIngreso[0].unidadMedida : 'u.';
+  }
   get kpiMayorEgreso(): string {
     return this.datosMayorEgreso.length ? this.datosMayorEgreso[0].producto : '—';
   }
   get kpiMayorEgresoUnidades(): number {
     return this.datosMayorEgreso.length ? this.datosMayorEgreso[0].totalUnidades : 0;
+  }
+  get kpiMayorEgresoUm(): string {
+    return this.datosMayorEgreso.length ? this.datosMayorEgreso[0].unidadMedida : 'u.';
   }
 
   get sedeSeleccionadaNombre(): string {
@@ -545,21 +551,21 @@ export class RotacionProductosComponent implements OnInit, AfterViewInit, OnDest
     let filename = '';
 
     if (this.activeTab === 'rotacion') {
-      csv = 'Producto,SKU,Familia,Sede,Ingresos,Egresos,Stock Promedio,Índice Rotación,Último Ingreso,Último Egreso,Tendencia\n';
+      csv = 'Producto,SKU,Familia,Sede,Unidad,Ingresos,Egresos,Stock Promedio,Índice Rotación,Último Ingreso,Último Egreso,Tendencia\n';
       this.datosRotFiltrados.forEach(p => {
-        csv += `"${p.producto}","${p.sku}","${p.familia}","${p.sede}",${p.totalIngresos},${p.totalEgresos},${p.stockPromedioPonderado},${p.indiceRotacion},"${p.ultimoIngreso ?? ''}","${p.ultimoEgreso ?? ''}","${p.tendencia}"\n`;
+        csv += `"${p.producto}","${p.sku}","${p.familia}","${p.sede}","${p.unidadMedida}",${p.totalIngresos},${p.totalEgresos},${p.stockPromedioPonderado},${p.indiceRotacion},"${p.ultimoIngreso ?? ''}","${p.ultimoEgreso ?? ''}","${p.tendencia}"\n`;
       });
       filename = 'rotacion';
     } else if (this.activeTab === 'ingresos') {
-      csv = 'Producto,SKU,Familia,Sede,Total Unidades,Cantidad Operaciones,Última Fecha\n';
+      csv = 'Producto,SKU,Familia,Sede,Unidad,Total Unidades,Cantidad Operaciones,Última Fecha\n';
       this.datosIngFiltrados.forEach(p => {
-        csv += `"${p.producto}","${p.sku}","${p.familia}","${p.sede}",${p.totalUnidades},${p.cantidadOperaciones},"${p.ultimaFecha ?? ''}"\n`;
+        csv += `"${p.producto}","${p.sku}","${p.familia}","${p.sede}","${p.unidadMedida}",${p.totalUnidades},${p.cantidadOperaciones},"${p.ultimaFecha ?? ''}"\n`;
       });
       filename = 'ingresos';
     } else if (this.activeTab === 'inmovilizado') {
-      csv = 'Producto,SKU,Familia,Sede,Stock Actual,Último Ingreso,Días sin Egreso\n';
+      csv = 'Producto,SKU,Familia,Sede,Unidad,Stock Actual,Último Ingreso,Días sin Egreso\n';
       this.datosInmFiltrados.forEach(p => {
-        csv += `"${p.producto}","${p.sku}","${p.familia}","${p.sede}",${p.stockActual},"${p.ultimoIngreso ? this.formatFecha(p.ultimoIngreso) : ''}",${p.diasSinEgreso}\n`;
+        csv += `"${p.producto}","${p.sku}","${p.familia}","${p.sede}","${p.unidadMedida}",${p.stockActual},"${p.ultimoIngreso ? this.formatFecha(p.ultimoIngreso) : ''}",${p.diasSinEgreso}\n`;
       });
       filename = 'inmovilizado';
     } else if (this.activeTab === 'familias') {
@@ -569,9 +575,9 @@ export class RotacionProductosComponent implements OnInit, AfterViewInit, OnDest
       });
       filename = 'familias-consumo';
     } else {
-      csv = 'Producto,SKU,Familia,Sede,Total Unidades,Cantidad Operaciones,Última Fecha\n';
+      csv = 'Producto,SKU,Familia,Sede,Unidad,Total Unidades,Cantidad Operaciones,Última Fecha\n';
       this.datosEgrFiltrados.forEach(p => {
-        csv += `"${p.producto}","${p.sku}","${p.familia}","${p.sede}",${p.totalUnidades},${p.cantidadOperaciones},"${p.ultimaFecha ?? ''}"\n`;
+        csv += `"${p.producto}","${p.sku}","${p.familia}","${p.sede}","${p.unidadMedida}",${p.totalUnidades},${p.cantidadOperaciones},"${p.ultimaFecha ?? ''}"\n`;
       });
       filename = 'egresos';
     }

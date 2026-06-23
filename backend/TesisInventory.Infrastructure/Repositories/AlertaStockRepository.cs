@@ -96,12 +96,14 @@ namespace TesisInventory.Infrastructure.Repositories
 
         public async Task<IEnumerable<(DateTime InicioSemana, int CantidadAlertas)>> GetEvolucionSemanalAsync(
             int? idSede = null,
-            int semanas = 5)
+            DateTime? fechaDesde = null,
+            DateTime? fechaHasta = null)
         {
-            var fechaLimite = DateTime.UtcNow.AddDays(-(semanas * 7));
+            var desde = fechaDesde ?? DateTime.UtcNow.AddDays(-30);
+            var hasta = fechaHasta ?? DateTime.UtcNow;
 
             var query = _context.AlertaStock
-                .Where(a => a.FechaUltimaAlerta >= fechaLimite)
+                .Where(a => a.FechaUltimaAlerta >= desde && a.FechaUltimaAlerta <= hasta)
                 .AsQueryable();
 
             if (idSede.HasValue)
@@ -109,15 +111,16 @@ namespace TesisInventory.Infrastructure.Repositories
 
             var alertas = await query.Select(a => a.FechaUltimaAlerta).ToListAsync();
 
-            // Agrupar en memoria por semana
+            // Construir semanas completas que cubran el rango
             var resultado = new List<(DateTime InicioSemana, int CantidadAlertas)>();
+            var inicioIterador = desde.Date.AddDays(-(int)desde.DayOfWeek);
 
-            for (int i = semanas - 1; i >= 0; i--)
+            while (inicioIterador <= hasta)
             {
-                var inicioSemana = DateTime.UtcNow.Date.AddDays(-(i * 7 + (int)DateTime.UtcNow.DayOfWeek));
-                var finSemana    = inicioSemana.AddDays(7);
-                var count        = alertas.Count(f => f >= inicioSemana && f < finSemana);
-                resultado.Add((inicioSemana, count));
+                var finSemana = inicioIterador.AddDays(7);
+                var count = alertas.Count(f => f >= inicioIterador && f < finSemana);
+                resultado.Add((inicioIterador, count));
+                inicioIterador = finSemana;
             }
 
             return resultado;

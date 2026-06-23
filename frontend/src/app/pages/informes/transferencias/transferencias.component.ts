@@ -246,8 +246,8 @@ export class TransferenciasComponent implements OnInit, OnDestroy {
           tooltip: { callbacks: { label: (ctx: any) => ` ${ctx.parsed[horizontal ? 'x' : 'y']} transferencias` } }
         },
         scales: {
-          x: { beginAtZero: true, grid: { color: '#f1f5f9' }, ticks: { font: { size: 11 } } },
-          y: { grid: { display: false }, ticks: { font: { size: 11 } } }
+          x: { beginAtZero: true, grid: { color: '#f1f5f9' }, ticks: { font: { size: 11 }, stepSize: 1, precision: 0 } },
+          y: { grid: { display: false }, ticks: { font: { size: 11 }, stepSize: 1, precision: 0 } }
         }
       }
     });
@@ -281,7 +281,7 @@ export class TransferenciasComponent implements OnInit, OnDestroy {
           tooltip: { callbacks: { label: (ctx: any) => ` ${ctx.parsed.y} transferencias` } }
         },
         scales: {
-          y: { beginAtZero: true, grid: { color: '#f1f5f9' }, ticks: { font: { size: 11 } } },
+          y: { beginAtZero: true, grid: { color: '#f1f5f9' }, ticks: { font: { size: 11 }, stepSize: 1, precision: 0 } },
           x: { grid: { display: false }, ticks: { font: { size: 10 }, maxRotation: 35 } }
         }
       }
@@ -362,7 +362,7 @@ export class TransferenciasComponent implements OnInit, OnDestroy {
           tooltip: { callbacks: { label: (ctx: any) => ` ${ctx.parsed.y} préstamos activos` } }
         },
         scales: {
-          y: { beginAtZero: true, grid: { color: '#f1f5f9' }, ticks: { font: { size: 11 } } },
+          y: { beginAtZero: true, grid: { color: '#f1f5f9' }, ticks: { font: { size: 11 }, stepSize: 1, precision: 0 } },
           x: { grid: { display: false }, ticks: { font: { size: 10 }, maxRotation: 0 } }
         }
       }
@@ -381,7 +381,7 @@ export class TransferenciasComponent implements OnInit, OnDestroy {
       data: {
         labels: data.map(r => r.producto.length > 20 ? r.producto.slice(0, 19) + '…' : r.producto),
         datasets: [{
-          label: 'Índice de rechazo (%)',
+          label: 'Tasa de rechazo (%)',
           data: data.map(r => r.indice),
           backgroundColor: '#ef4444',
           borderRadius: 5,
@@ -397,7 +397,7 @@ export class TransferenciasComponent implements OnInit, OnDestroy {
           tooltip: { callbacks: { label: (ctx: any) => ` Rechazo: ${ctx.parsed.x}%` } }
         },
         scales: {
-          x: { beginAtZero: true, max: 100, grid: { color: '#f1f5f9' }, ticks: { callback: (v: any) => v + '%', font: { size: 11 } } },
+          x: { beginAtZero: true, max: 100, grid: { color: '#f1f5f9' }, ticks: { callback: (v: any) => v + '%', font: { size: 11 }, stepSize: 1, precision: 0 } },
           y: { grid: { display: false }, ticks: { font: { size: 11 } } }
         }
       }

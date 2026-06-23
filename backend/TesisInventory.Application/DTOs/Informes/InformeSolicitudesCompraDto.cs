@@ -20,9 +20,10 @@ namespace TesisInventory.Application.DTOs.Informes
 
         // ── Tab 2: Pendientes ────────────────────────────────────────────────
         public List<SolicitudPendienteDto> Pendientes { get; set; } = new();
-        public int PendientesHasta5Dias { get; set; }
-        public int PendientesHasta10Dias { get; set; }
-        public int PendientesHasta30Dias { get; set; }
+        public int PendientesHasta5Dias   { get; set; }   // <= 5 días (recientes)
+        public int Pendientes6a10Dias     { get; set; }   // > 5 y <= 10 días
+        public int Pendientes11a30Dias    { get; set; }   // > 10 y <= 30 días
+        public int PendientesMasDe30Dias  { get; set; }   // > 30 días (críticos)
 
         // ── Tab 3: Productos más solicitados ─────────────────────────────────
         public List<ProductoSolicitadoDto> ProductosMasSolicitados { get; set; } = new();
@@ -59,6 +60,7 @@ namespace TesisInventory.Application.DTOs.Informes
         public string Producto { get; set; } = string.Empty;
         public string Sku { get; set; } = string.Empty;
         public string Familia { get; set; } = string.Empty;
+        public string UnidadMedida { get; set; } = "u.";
         public int TotalUnidades { get; set; }
         public int VecesSolicitado { get; set; }
         public int VecesEnAprobadas { get; set; }

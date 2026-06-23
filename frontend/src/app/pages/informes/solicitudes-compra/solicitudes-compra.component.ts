@@ -46,7 +46,7 @@ export class SolicitudesCompraInformeComponent implements OnInit, OnDestroy {
   vistaAgrupacion: 'usuario' | 'sede' = 'usuario';
 
   // ── Filtro pendientes (Tab 2) ─────────────────────────────────────────────
-  filtroPendientes: 'todos' | '5' | '10' | '30' = 'todos';
+  filtroPendientes: 'todos' | '5' | '10' | '30' | 'mas30' = 'todos';
 
   // ── Estado ────────────────────────────────────────────────────────────────
   informe: InformeSolicitudesCompraDto | null = null;
@@ -156,8 +156,9 @@ export class SolicitudesCompraInformeComponent implements OnInit, OnDestroy {
     if (!this.informe) return [];
     const all = this.informe.pendientes;
     if (this.filtroPendientes === '5') return all.filter(p => p.diasEsperando <= 5);
-    if (this.filtroPendientes === '10') return all.filter(p => p.diasEsperando <= 10);
-    if (this.filtroPendientes === '30') return all.filter(p => p.diasEsperando <= 30);
+    if (this.filtroPendientes === '10') return all.filter(p => p.diasEsperando > 5 && p.diasEsperando <= 10);
+    if (this.filtroPendientes === '30') return all.filter(p => p.diasEsperando > 10 && p.diasEsperando <= 30);
+    if (this.filtroPendientes === 'mas30') return all.filter(p => p.diasEsperando > 30);
     return all;
   }
 
@@ -313,9 +314,9 @@ export class SolicitudesCompraInformeComponent implements OnInit, OnDestroy {
       });
       filename = `solicitudes_pendientes_${new Date().toISOString().slice(0, 10)}.csv`;
     } else {
-      csv = 'Producto,SKU,Familia,Total unidades,Veces solicitado,Veces en aprobadas\n';
+      csv = 'Producto,SKU,Familia,Unidad,Total unidades,Veces solicitado,Veces en aprobadas\n';
       this.informe.productosMasSolicitados.forEach(p => {
-        csv += `"${p.producto}","${p.sku}","${p.familia}",${p.totalUnidades},${p.vecesSolicitado},${p.vecesEnAprobadas}\n`;
+        csv += `"${p.producto}","${p.sku}","${p.familia}","${p.unidadMedida}",${p.totalUnidades},${p.vecesSolicitado},${p.vecesEnAprobadas}\n`;
       });
       filename = `productos_solicitados_${new Date().toISOString().slice(0, 10)}.csv`;
     }

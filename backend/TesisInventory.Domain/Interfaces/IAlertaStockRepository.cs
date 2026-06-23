@@ -41,6 +41,7 @@ namespace TesisInventory.Domain.Interfaces
         /// </summary>
         Task<IEnumerable<(DateTime InicioSemana, int CantidadAlertas)>> GetEvolucionSemanalAsync(
             int? idSede = null,
-            int semanas = 5);
+            DateTime? fechaDesde = null,
+            DateTime? fechaHasta = null);
     }
 }

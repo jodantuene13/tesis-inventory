@@ -124,8 +124,8 @@
         </div>
         <div class="kpi-card kpi-card--amber">
           <span class="kpi-label">Pendientes</span>
-          <span class="kpi-value">{{ informe.pendientes.length }}</span>
-          <span class="kpi-sub">al día de hoy</span>
+          <span class="kpi-value">{{ informe.totalPendientes }}</span>
+          <span class="kpi-sub">en el período</span>
         </div>
         <div class="kpi-card kpi-card--indigo">
           <span class="kpi-label">T. prom. decisión</span>
@@ -252,13 +252,18 @@
           </div>
           <div class="pend-kpi pend-kpi--warning" [class.selected]="filtroPendientes==='10'"
             (click)="filtroPendientes = filtroPendientes==='10' ? 'todos' : '10'">
-            <span class="pend-kpi-val">{{ informe.pendientesHasta10Dias }}</span>
-            <span class="pend-kpi-label">≤ 10 días</span>
+            <span class="pend-kpi-val">{{ informe.pendientes6a10Dias }}</span>
+            <span class="pend-kpi-label">6 – 10 días</span>
           </div>
           <div class="pend-kpi pend-kpi--danger" [class.selected]="filtroPendientes==='30'"
             (click)="filtroPendientes = filtroPendientes==='30' ? 'todos' : '30'">
-            <span class="pend-kpi-val">{{ informe.pendientesHasta30Dias }}</span>
-            <span class="pend-kpi-label">≤ 30 días</span>
+            <span class="pend-kpi-val">{{ informe.pendientes11a30Dias }}</span>
+            <span class="pend-kpi-label">11 – 30 días</span>
+          </div>
+          <div class="pend-kpi pend-kpi--danger" [class.selected]="filtroPendientes==='mas30'"
+            (click)="filtroPendientes = filtroPendientes==='mas30' ? 'todos' : 'mas30'">
+            <span class="pend-kpi-val">{{ informe.pendientesMasDe30Dias }}</span>
+            <span class="pend-kpi-label">&gt; 30 días</span>
           </div>
           <div class="pend-kpi pend-kpi--total" [class.selected]="filtroPendientes==='todos'"
             (click)="filtroPendientes='todos'">
@@ -268,7 +273,7 @@
         </div>
 
         <p class="pend-note" *ngIf="filtroPendientes !== 'todos'">
-          Mostrando solicitudes con hasta {{ filtroPendientes }} días de espera (acumulado)
+          Mostrando solicitudes en el rango seleccionado de días de espera
           <button class="link-btn" (click)="filtroPendientes='todos'">Ver todas</button>
         </p>
 
@@ -340,7 +345,7 @@
                 <td class="nombre-col">{{ p.producto }}</td>
                 <td class="text-mono">{{ p.sku }}</td>
                 <td>{{ p.familia || '—' }}</td>
-                <td class="text-center"><strong>{{ p.totalUnidades }}</strong></td>
+                <td class="text-center"><strong>{{ p.totalUnidades }}</strong> {{ p.unidadMedida }}</td>
                 <td class="text-center">{{ p.vecesSolicitado }}</td>
                 <td class="text-center"><span class="badge badge-green">{{ p.vecesEnAprobadas }}</span></td>
               </tr>

@@ -14,6 +14,8 @@ namespace TesisInventory.Application.DTOs.Informes
         public string Familia { get; set; } = string.Empty;
         public string Sede { get; set; } = string.Empty;
 
+        public string UnidadMedida { get; set; } = "u.";
+
         /// <summary>Total de unidades ingresadas (ENTRADA + TRANSFERENCIA) en el período.</summary>
         public int TotalIngresos { get; set; }
 

@@ -14,7 +14,8 @@ namespace TesisInventory.Application.Interfaces
         Task<InformeAlertasStockDto> GetAlertasStockAsync(
             int? idSede = null,
             int? idFamilia = null,
-            int semanas = 5);
+            DateTime? fechaDesde = null,
+            DateTime? fechaHasta = null);
 
         /// <summary>
         /// Retorna los datos del informe de Rotación de Productos:

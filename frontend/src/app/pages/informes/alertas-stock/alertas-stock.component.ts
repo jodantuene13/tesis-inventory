@@ -8,6 +8,10 @@ import { Chart, registerables } from 'chart.js';
 import { InformesService, ProductoAlertaStockDto, ProductoRecurrenciaDto } from '../../../services/informes.service';
 import { FamiliaService } from '../../../services/familia.service';
 import { Familia } from '../../../models/familia.model';
+import { SedeService } from '../../../services/sede.service';
+import { Sede } from '../../../models/sede.model';
+
+type PeriodoPreset = '30' | '90' | 'custom';
 
 Chart.register(...registerables);
 
@@ -32,15 +36,12 @@ export class AlertasStockComponent implements OnInit, AfterViewInit, OnDestroy {
     idFamilia: null as number | null,
     estado: 'Todos',
     topN: 10,
-    semanas: 5,
+    periodoPreset: '30' as PeriodoPreset,
+    fechaDesde: this.defaultFechaDesde(30),
+    fechaHasta: this.today(),
   };
 
-  sedes = [
-    { id: null, nombre: 'Todas' },
-    { id: 1,    nombre: 'Centro' },
-    { id: 2,    nombre: 'Campus' },
-    { id: 3,    nombre: 'General Paz' }
-  ];
+  sedes: Sede[] = [];
 
   familias: Familia[] = [];
   topNOptions = [5, 10, 20, 50];
@@ -80,10 +81,12 @@ export class AlertasStockComponent implements OnInit, AfterViewInit, OnDestroy {
   constructor(
     private cdr: ChangeDetectorRef,
     private informesService: InformesService,
-    private familiaService: FamiliaService
+    private familiaService: FamiliaService,
+    private sedeService: SedeService
   ) {}
 
   ngOnInit(): void {
+    this.cargarSedes();
     this.cargarFamilias();
     this.cargarDatos();
   }
@@ -96,6 +99,14 @@ export class AlertasStockComponent implements OnInit, AfterViewInit, OnDestroy {
     this.chartBajoStock?.destroy();
     this.chartRecurrencia?.destroy();
     this.chartEvolucion?.destroy();
+  }
+
+  // ── Carga de sedes ────────────────────────────────────────────────────────
+  private cargarSedes(): void {
+    this.sedeService.getAll().subscribe({
+      next: (sedes) => { this.sedes = sedes; },
+      error: () => { this.sedes = []; }
+    });
   }
 
   // ── Carga de familias ─────────────────────────────────────────────────────
@@ -114,7 +125,8 @@ export class AlertasStockComponent implements OnInit, AfterViewInit, OnDestroy {
     this.informesService.getAlertasStock(
       this.filtros.idSede ?? undefined,
       this.filtros.idFamilia ?? undefined,
-      this.filtros.semanas
+      this.filtros.fechaDesde,
+      this.filtros.fechaHasta
     ).subscribe({
       next: (data) => {
         let bs = [...data.bajoStock];
@@ -149,12 +161,39 @@ export class AlertasStockComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
+  private today(): string {
+    return new Date().toISOString().slice(0, 10);
+  }
+
+  private defaultFechaDesde(dias: number): string {
+    const d = new Date();
+    d.setDate(d.getDate() - dias);
+    return d.toISOString().slice(0, 10);
+  }
+
+  seleccionarPeriodo(preset: PeriodoPreset): void {
+    this.filtros.periodoPreset = preset;
+    if (preset === '30') {
+      this.filtros.fechaDesde = this.defaultFechaDesde(30);
+      this.filtros.fechaHasta = this.today();
+      this.aplicarFiltros();
+    } else if (preset === '90') {
+      this.filtros.fechaDesde = this.defaultFechaDesde(90);
+      this.filtros.fechaHasta = this.today();
+      this.aplicarFiltros();
+    }
+    // 'custom': el usuario elige fechas y hace clic en "Aplicar"
+  }
+
   aplicarFiltros(): void {
     this.cargarDatos();
   }
 
   limpiarFiltros(): void {
-    this.filtros = { idSede: null, idFamilia: null, estado: 'Todos', topN: 10, semanas: 5 };
+    this.filtros = {
+      idSede: null, idFamilia: null, estado: 'Todos', topN: 10,
+      periodoPreset: '30', fechaDesde: this.defaultFechaDesde(30), fechaHasta: this.today()
+    };
     this.busquedaBS = '';
     this.busquedaRec = '';
     this.cargarDatos();
@@ -185,7 +224,7 @@ export class AlertasStockComponent implements OnInit, AfterViewInit, OnDestroy {
 
   get sedeSeleccionadaNombre(): string {
     if (this.filtros.idSede === null) return 'Todas';
-    return this.sedes.find(s => s.id === this.filtros.idSede)?.nombre ?? 'Todas';
+    return this.sedes.find(s => s.idSede === this.filtros.idSede)?.nombreSede ?? 'Todas';
   }
 
   get kpiMayorRecurrencia(): string {
@@ -338,7 +377,7 @@ export class AlertasStockComponent implements OnInit, AfterViewInit, OnDestroy {
           }
         },
         scales: {
-          x: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { font: { size: 11 } } },
+          x: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { font: { size: 11 }, stepSize: 1, precision: 0 } },
           y: { grid: { display: false }, ticks: { font: { size: 11 } } }
         }
       }
@@ -438,14 +477,14 @@ export class AlertasStockComponent implements OnInit, AfterViewInit, OnDestroy {
   exportarCSV(): void {
     let csv = '';
     if (this.activeTab === 'bajoStock') {
-      csv = 'Producto,Familia,Sede,Stock Actual,Stock Mínimo,Diferencia,Días en Alerta,Última Alerta,Criticidad\n';
+      csv = 'Producto,Familia,Sede,Unidad,Stock Actual,Stock Mínimo,Diferencia,Días en Alerta,Última Alerta,Criticidad\n';
       this.datosBSFiltrados.forEach(p => {
-        csv += `"${p.producto}","${p.familia}","${p.sede}",${p.stockActual},${p.stockMinimo},${p.diferencia},${p.diasEnAlerta},"${p.ultimaAlerta}","${p.criticidad}"\n`;
+        csv += `"${p.producto}","${p.familia}","${p.sede}","${p.unidadMedida}",${p.stockActual},${p.stockMinimo},${p.diferencia},${p.diasEnAlerta},"${p.ultimaAlerta}","${p.criticidad}"\n`;
       });
     } else {
-      csv = 'Producto,Familia,Sede,Cantidad Alertas,Días Acumulados,Stock Actual,Stock Mínimo,Última Alerta,Estado Actual,Criticidad\n';
+      csv = 'Producto,Familia,Sede,Cantidad Alertas,Días Acumulados,Unidad,Stock Actual,Stock Mínimo,Última Alerta,Estado Actual,Criticidad\n';
       this.datosRecFiltrados.forEach(p => {
-        csv += `"${p.producto}","${p.familia}","${p.sede}",${p.cantidadAlertas},${p.diasAcumulados},${p.stockActual},${p.stockMinimo},"${p.ultimaAlerta}","${p.estadoActual}","${p.criticidad}"\n`;
+        csv += `"${p.producto}","${p.familia}","${p.sede}",${p.cantidadAlertas},${p.diasAcumulados},"${p.unidadMedida}",${p.stockActual},${p.stockMinimo},"${p.ultimaAlerta}","${p.estadoActual}","${p.criticidad}"\n`;
       });
     }
 

@@ -11,6 +11,7 @@ export interface ProductoAlertaStockDto {
   producto: string;
   familia: string;
   sede: string;
+  unidadMedida: string;
   stockActual: number;
   stockMinimo: number;
   diferencia: number;
@@ -24,6 +25,7 @@ export interface ProductoRecurrenciaDto {
   producto: string;
   familia: string;
   sede: string;
+  unidadMedida: string;
   cantidadAlertas: number;
   diasAcumulados: number;
   stockActual: number;
@@ -52,6 +54,7 @@ export interface ProductoRotacionDto {
   sku: string;
   familia: string;
   sede: string;
+  unidadMedida: string;
   totalIngresos: number;
   totalEgresos: number;
   stockPromedioPonderado: number;
@@ -67,6 +70,7 @@ export interface ProductoMovimientoDto {
   sku: string;
   familia: string;
   sede: string;
+  unidadMedida: string;
   totalUnidades: number;
   cantidadOperaciones: number;
   ultimaFecha: string;
@@ -159,6 +163,7 @@ export interface ProductoInmovilizadoDto {
   sku: string;
   familia: string;
   sede: string;
+  unidadMedida: string;
   stockActual: number;
   ultimoIngreso?: string;
   diasSinEgreso: number;
@@ -204,6 +209,7 @@ export interface ProductoSolicitadoDto {
   producto: string;
   sku: string;
   familia: string;
+  unidadMedida: string;
   totalUnidades: number;
   vecesSolicitado: number;
   vecesEnAprobadas: number;
@@ -221,8 +227,9 @@ export interface InformeSolicitudesCompraDto {
   porSede: SolicitudesPorEntidadDto[];
   pendientes: SolicitudPendienteDto[];
   pendientesHasta5Dias: number;
-  pendientesHasta10Dias: number;
-  pendientesHasta30Dias: number;
+  pendientes6a10Dias: number;
+  pendientes11a30Dias: number;
+  pendientesMasDe30Dias: number;
   productosMasSolicitados: ProductoSolicitadoDto[];
 }
 
@@ -239,15 +246,19 @@ export class InformesService {
   getAlertasStock(
     idSede?: number,
     idFamilia?: number,
-    semanas: number = 5
+    fechaDesde?: string,
+    fechaHasta?: string
   ): Observable<InformeAlertasStockDto> {
-    let params = new HttpParams().set('semanas', semanas.toString());
+    let params = new HttpParams();
 
     if (idSede !== undefined && idSede !== null)
       params = params.set('idSede', idSede.toString());
 
     if (idFamilia !== undefined && idFamilia !== null)
       params = params.set('idFamilia', idFamilia.toString());
+
+    if (fechaDesde) params = params.set('fechaDesde', fechaDesde);
+    if (fechaHasta) params = params.set('fechaHasta', fechaHasta);
 
     return this.http.get<InformeAlertasStockDto>(`${this.apiUrl}/alertas-stock`, { params });
   }

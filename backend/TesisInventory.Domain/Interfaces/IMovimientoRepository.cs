@@ -39,5 +39,13 @@ namespace TesisInventory.Domain.Interfaces
         Task<IEnumerable<Movimiento>> GetIngresosAsync(
             int? idSede,
             int? idFamilia);
+
+        /// <summary>
+        /// Retorna todos los egresos (sin filtro de fecha) para las sedes/familias indicadas.
+        /// Usado para calcular días reales sin egreso por producto en stock inmovilizado.
+        /// </summary>
+        Task<IEnumerable<Movimiento>> GetEgresosAsync(
+            int? idSede,
+            int? idFamilia);
     }
 }

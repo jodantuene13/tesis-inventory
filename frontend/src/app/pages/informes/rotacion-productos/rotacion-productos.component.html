@@ -167,7 +167,7 @@
           <div class="kpi-card__body">
             <div class="kpi-card__label">Producto con mayor ingreso</div>
             <div class="kpi-card__value kpi-card__value--sm">{{ kpiMayorIngreso }}</div>
-            <div class="kpi-card__meta">Ingresos: <strong>{{ kpiMayorIngresoUnidades }} u.</strong></div>
+            <div class="kpi-card__meta">Ingresos: <strong>{{ kpiMayorIngresoUnidades }} {{ kpiMayorIngresoUm }}</strong></div>
           </div>
         </div>
 
@@ -182,7 +182,7 @@
           <div class="kpi-card__body">
             <div class="kpi-card__label">Producto con mayor egreso</div>
             <div class="kpi-card__value kpi-card__value--sm">{{ kpiMayorEgreso }}</div>
-            <div class="kpi-card__meta">Egresos: <strong>{{ kpiMayorEgresoUnidades }} u.</strong></div>
+            <div class="kpi-card__meta">Egresos: <strong>{{ kpiMayorEgresoUnidades }} {{ kpiMayorEgresoUm }}</strong></div>
           </div>
         </div>
 
@@ -197,9 +197,7 @@
           <div class="kpi-card__body">
             <div class="kpi-card__label">Rotación promedio del período</div>
             <div class="kpi-card__value">{{ rotacionPromedio }} veces</div>
-            <div class="kpi-card__meta">
-              Saldo neto: <strong [class]="saldoNetoClass()">{{ saldoNetoTotal >= 0 ? '+' : '' }}{{ saldoNetoTotal }} u.</strong>
-            </div>
+            <div class="kpi-card__meta">índice promedio de salida</div>
           </div>
         </div>
 
@@ -295,8 +293,8 @@
                   <td class="cell-primary">{{ p.producto }}</td>
                   <td>{{ p.familia }}</td>
                   <td><span class="sede-chip">{{ p.sede }}</span></td>
-                  <td class="cell-ingreso">+{{ p.totalIngresos }} u.</td>
-                  <td class="cell-egreso">-{{ p.totalEgresos }} u.</td>
+                  <td class="cell-ingreso">+{{ p.totalIngresos }} {{ p.unidadMedida }}</td>
+                  <td class="cell-egreso">-{{ p.totalEgresos }} {{ p.unidadMedida }}</td>
                   <td class="cell-rotacion">
                     <span class="rotacion-badge">{{ p.indiceRotacion }} veces</span>
                   </td>
@@ -365,7 +363,7 @@
                   <td class="cell-primary">{{ p.producto }}</td>
                   <td>{{ p.familia }}</td>
                   <td><span class="sede-chip">{{ p.sede }}</span></td>
-                  <td class="cell-ingreso"><strong>+{{ p.totalUnidades }}</strong> u.</td>
+                  <td class="cell-ingreso"><strong>+{{ p.totalUnidades }}</strong> {{ p.unidadMedida }}</td>
                   <td>{{ p.cantidadOperaciones }}</td>
                   <td>{{ formatFecha(p.ultimaFecha) }}</td>
                 </tr>
@@ -434,7 +432,7 @@
                   <td class="cell-primary">{{ p.producto }}</td>
                   <td>{{ p.familia }}</td>
                   <td><span class="sede-chip">{{ p.sede }}</span></td>
-                  <td class="cell-egreso"><strong>-{{ p.totalUnidades }}</strong> u.</td>
+                  <td class="cell-egreso"><strong>-{{ p.totalUnidades }}</strong> {{ p.unidadMedida }}</td>
                   <td>{{ p.cantidadOperaciones }}</td>
                   <td>{{ formatFecha(p.ultimaFecha) }}</td>
                 </tr>
@@ -508,7 +506,7 @@
                   <td><span class="sede-chip">{{ p.sede }}</span></td>
                   <td>
                     <span class="rotacion-badge" style="background:rgba(239,68,68,0.1);color:#dc2626;">
-                      {{ p.stockActual }} u.
+                      {{ p.stockActual }} {{ p.unidadMedida }}
                     </span>
                   </td>
                   <td>{{ formatFecha(p.ultimoIngreso) }}</td>
@@ -567,8 +565,8 @@
                 <tr>
                   <th>#</th>
                   <th>Familia</th>
-                  <th>Ingresos (u.)</th>
-                  <th>Egresos (u.)</th>
+                  <th>Ingresos</th>
+                  <th>Egresos</th>
                   <th>Ratio consumo</th>
                   <th>Productos activos</th>
                 </tr>
@@ -577,8 +575,8 @@
                 <tr *ngFor="let f of datosFamiliasFiltrados; let i = index">
                   <td class="cell-num">{{ i + 1 }}</td>
                   <td class="cell-primary">{{ f.familia }}</td>
-                  <td class="cell-ingreso">+{{ f.totalIngresos }} u.</td>
-                  <td class="cell-egreso">-{{ f.totalEgresos }} u.</td>
+                  <td class="cell-ingreso">+{{ f.totalIngresos }}</td>
+                  <td class="cell-egreso">-{{ f.totalEgresos }}</td>
                   <td class="cell-rotacion">
                     <span class="rotacion-badge">{{ f.ratioConsumo }}</span>
                   </td>

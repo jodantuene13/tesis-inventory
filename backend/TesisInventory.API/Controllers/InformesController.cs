@@ -46,12 +46,13 @@ namespace TesisInventory.API.Controllers
         public async Task<IActionResult> GetAlertasStock(
             [FromQuery] int? idSede = null,
             [FromQuery] int? idFamilia = null,
-            [FromQuery] int semanas = 5)
+            [FromQuery] DateTime? fechaDesde = null,
+            [FromQuery] DateTime? fechaHasta = null)
         {
             try
             {
                 var sedeEfectiva = idSede ?? TryGetCurrentSedeId();
-                var resultado = await _informesService.GetAlertasStockAsync(sedeEfectiva, idFamilia, semanas);
+                var resultado = await _informesService.GetAlertasStockAsync(sedeEfectiva, idFamilia, fechaDesde, fechaHasta);
                 return Ok(resultado);
             }
             catch (Exception ex)

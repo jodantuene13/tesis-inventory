@@ -307,13 +307,14 @@ export class InformesService {
   }
 
   getInformeSolicitudesCompra(
-    idSede?: number,
+    idSede: number | null | undefined,
     fechaDesde?: string,
     fechaHasta?: string,
     topN: number = 10
   ): Observable<InformeSolicitudesCompraDto> {
     let params = new HttpParams().set('topN', topN.toString());
-    if (idSede) params = params.set('idSede', idSede.toString());
+    // 0 = señal explícita de "todas las sedes"; null/undefined = no enviar (usa contexto del backend)
+    params = params.set('idSede', idSede != null ? idSede.toString() : '0');
     if (fechaDesde) params = params.set('fechaDesde', fechaDesde);
     if (fechaHasta) params = params.set('fechaHasta', fechaHasta);
     return this.http.get<InformeSolicitudesCompraDto>(`${this.apiUrl}/solicitudes-compra`, { params });

@@ -116,7 +116,7 @@ export class SolicitudesCompraInformeComponent implements OnInit, OnDestroy {
     this.loading = true;
     this.error = '';
     this.informesService.getInformeSolicitudesCompra(
-      this.sedeId ?? undefined,
+      this.sedeId,
       this.fechaDesde,
       this.fechaHasta,
       15

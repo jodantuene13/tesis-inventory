@@ -438,14 +438,14 @@ export class AlertasStockComponent implements OnInit, AfterViewInit, OnDestroy {
   exportarCSV(): void {
     let csv = '';
     if (this.activeTab === 'bajoStock') {
-      csv = 'Producto,Familia,Sede,Stock Actual,Stock Mínimo,Diferencia,Días en Alerta,Última Alerta,Criticidad\n';
+      csv = 'Producto,Familia,Sede,Unidad,Stock Actual,Stock Mínimo,Diferencia,Días en Alerta,Última Alerta,Criticidad\n';
       this.datosBSFiltrados.forEach(p => {
-        csv += `"${p.producto}","${p.familia}","${p.sede}",${p.stockActual},${p.stockMinimo},${p.diferencia},${p.diasEnAlerta},"${p.ultimaAlerta}","${p.criticidad}"\n`;
+        csv += `"${p.producto}","${p.familia}","${p.sede}","${p.unidadMedida}",${p.stockActual},${p.stockMinimo},${p.diferencia},${p.diasEnAlerta},"${p.ultimaAlerta}","${p.criticidad}"\n`;
       });
     } else {
-      csv = 'Producto,Familia,Sede,Cantidad Alertas,Días Acumulados,Stock Actual,Stock Mínimo,Última Alerta,Estado Actual,Criticidad\n';
+      csv = 'Producto,Familia,Sede,Cantidad Alertas,Días Acumulados,Unidad,Stock Actual,Stock Mínimo,Última Alerta,Estado Actual,Criticidad\n';
       this.datosRecFiltrados.forEach(p => {
-        csv += `"${p.producto}","${p.familia}","${p.sede}",${p.cantidadAlertas},${p.diasAcumulados},${p.stockActual},${p.stockMinimo},"${p.ultimaAlerta}","${p.estadoActual}","${p.criticidad}"\n`;
+        csv += `"${p.producto}","${p.familia}","${p.sede}",${p.cantidadAlertas},${p.diasAcumulados},"${p.unidadMedida}",${p.stockActual},${p.stockMinimo},"${p.ultimaAlerta}","${p.estadoActual}","${p.criticidad}"\n`;
       });
     }
 

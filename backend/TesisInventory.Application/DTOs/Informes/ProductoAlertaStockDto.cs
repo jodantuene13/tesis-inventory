@@ -16,6 +16,7 @@ namespace TesisInventory.Application.DTOs.Informes
         public int StockActual { get; set; }
         public int StockMinimo { get; set; }
         public int Diferencia { get; set; }
+        public string UnidadMedida { get; set; } = "u.";
 
         /// <summary>Días transcurridos desde que se creó la alerta.</summary>
         public int DiasEnAlerta { get; set; }

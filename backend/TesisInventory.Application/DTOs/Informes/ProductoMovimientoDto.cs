@@ -13,6 +13,8 @@ namespace TesisInventory.Application.DTOs.Informes
         public string Familia { get; set; } = string.Empty;
         public string Sede { get; set; } = string.Empty;
 
+        public string UnidadMedida { get; set; } = "u.";
+
         /// <summary>Total de unidades movidas en el tipo de movimiento correspondiente.</summary>
         public int TotalUnidades { get; set; }
 

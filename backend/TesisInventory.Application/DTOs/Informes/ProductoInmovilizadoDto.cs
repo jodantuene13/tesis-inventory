@@ -10,6 +10,7 @@ namespace TesisInventory.Application.DTOs.Informes
         public string Familia { get; set; } = string.Empty;
         public string Sede { get; set; } = string.Empty;
         public int StockActual { get; set; }
+        public string UnidadMedida { get; set; } = "u.";
         public DateTime? UltimoIngreso { get; set; }
         public int DiasSinEgreso { get; set; }
     }

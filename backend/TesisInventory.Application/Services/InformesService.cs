@@ -47,6 +47,7 @@ namespace TesisInventory.Application.Services
                 Producto      = a.Producto?.Nombre ?? string.Empty,
                 Familia       = a.Producto?.Familia?.Nombre ?? string.Empty,
                 Sede          = a.Sede?.NombreSede ?? string.Empty,
+                UnidadMedida  = !string.IsNullOrEmpty(a.Producto?.UnidadMedida) ? a.Producto.UnidadMedida : "u.",
                 StockActual   = a.StockAlMomento,
                 StockMinimo   = a.PuntoReposicion,
                 Diferencia    = a.StockAlMomento - a.PuntoReposicion,
@@ -75,6 +76,7 @@ namespace TesisInventory.Application.Services
                         Producto        = ultimo.Producto?.Nombre ?? string.Empty,
                         Familia         = ultimo.Producto?.Familia?.Nombre ?? string.Empty,
                         Sede            = ultimo.Sede?.NombreSede ?? string.Empty,
+                        UnidadMedida    = !string.IsNullOrEmpty(ultimo.Producto?.UnidadMedida) ? ultimo.Producto.UnidadMedida : "u.",
                         CantidadAlertas = g.Count(),
                         DiasAcumulados  = diasAcumulados,
                         StockActual     = ultimo.StockAlMomento,
@@ -128,6 +130,8 @@ namespace TesisInventory.Application.Services
                 string sku            = movGrupo.First().Producto?.Sku ?? string.Empty;
                 string familia        = movGrupo.First().Producto?.Familia?.Nombre ?? string.Empty;
                 string sede           = movGrupo.First().Sede?.NombreSede ?? string.Empty;
+                string unidadMedida   = !string.IsNullOrEmpty(movGrupo.First().Producto?.UnidadMedida)
+                                        ? movGrupo.First().Producto!.UnidadMedida : "u.";
 
                 int totalIngresos = movGrupo
                     .Where(m => m.TipoMovimiento == TipoMovimiento.Ingreso)
@@ -137,7 +141,7 @@ namespace TesisInventory.Application.Services
                     .Where(m => m.TipoMovimiento == TipoMovimiento.Egreso)
                     .Sum(m => m.Cantidad);
 
-                double stockPonderado = CalcularStockPonderado(movGrupo, fechaDesde, fechaHasta, totalDias);
+                double stockPonderado = CalcularStockPonderado(movGrupo, fechaDesde, fechaHasta);
 
                 double indice = stockPonderado > 0
                     ? Math.Round((double)totalEgresos / stockPonderado, 2)
@@ -160,6 +164,7 @@ namespace TesisInventory.Application.Services
                     Sku                    = sku,
                     Familia                = familia,
                     Sede                   = sede,
+                    UnidadMedida           = unidadMedida,
                     TotalIngresos          = totalIngresos,
                     TotalEgresos           = totalEgresos,
                     StockPromedioPonderado = Math.Round(stockPonderado, 2),
@@ -191,6 +196,7 @@ namespace TesisInventory.Application.Services
                     Sku                 = g.First().Producto?.Sku ?? string.Empty,
                     Familia             = g.First().Producto?.Familia?.Nombre ?? string.Empty,
                     Sede                = g.First().Sede?.NombreSede ?? string.Empty,
+                    UnidadMedida        = !string.IsNullOrEmpty(g.First().Producto?.UnidadMedida) ? g.First().Producto!.UnidadMedida : "u.",
                     TotalUnidades       = g.Sum(m => m.Cantidad),
                     CantidadOperaciones = g.Count(),
                     UltimaFecha         = g.Max(m => m.Fecha)
@@ -208,6 +214,7 @@ namespace TesisInventory.Application.Services
                     Sku                 = g.First().Producto?.Sku ?? string.Empty,
                     Familia             = g.First().Producto?.Familia?.Nombre ?? string.Empty,
                     Sede                = g.First().Sede?.NombreSede ?? string.Empty,
+                    UnidadMedida        = !string.IsNullOrEmpty(g.First().Producto?.UnidadMedida) ? g.First().Producto!.UnidadMedida : "u.",
                     TotalUnidades       = g.Sum(m => m.Cantidad),
                     CantidadOperaciones = g.Count(),
                     UltimaFecha         = g.Max(m => m.Fecha)
@@ -430,21 +437,29 @@ namespace TesisInventory.Application.Services
             // Todos los stocks activos (CantidadActual > 0) para la sede/familia
             var todosLosStocks = (await _stockRepository.GetAllStocksAsync(idSede, idFamilia)).ToList();
 
-            // Último ingreso histórico por (producto, sede) para mostrar como dato
+            // Último ingreso y último egreso históricos por (producto, sede)
             var todosLosIngresos = (await _movimientoRepository.GetIngresosAsync(idSede, idFamilia)).ToList();
+            var todosLosEgresos  = (await _movimientoRepository.GetEgresosAsync(idSede, idFamilia)).ToList();
 
             var ultimosIngresos = todosLosIngresos
                 .GroupBy(m => (m.IdProducto, m.IdSede))
-                .ToDictionary(g => g.Key, g => g.First().Fecha); // vienen ordenados desc
+                .ToDictionary(g => g.Key, g => g.First().Fecha); // ordenados desc
+
+            var ultimosEgresos = todosLosEgresos
+                .GroupBy(m => (m.IdProducto, m.IdSede))
+                .ToDictionary(g => g.Key, g => g.First().Fecha); // ordenados desc
 
             var hoy = DateTime.UtcNow.Date;
-            int diasSinEgreso = Math.Max(1, (int)(hoy - fechaDesde.Date).TotalDays);
 
             var resultado = todosLosStocks
                 .Where(s => !conEgresoPeriodo.Contains((s.IdProducto, s.IdSede)))
                 .Select(s =>
                 {
                     ultimosIngresos.TryGetValue((s.IdProducto, s.IdSede), out var ultimoIngreso);
+                    int diasSinEgreso = ultimosEgresos.TryGetValue((s.IdProducto, s.IdSede), out var ultimoEgreso)
+                        ? Math.Max(1, (int)(hoy - ultimoEgreso.Date).TotalDays)
+                        : Math.Max(1, (int)(hoy - fechaDesde.Date).TotalDays);
+
                     return new ProductoInmovilizadoDto
                     {
                         IdProducto    = s.IdProducto,
@@ -452,6 +467,7 @@ namespace TesisInventory.Application.Services
                         Sku           = s.Producto?.Sku ?? string.Empty,
                         Familia       = s.Producto?.Familia?.Nombre ?? string.Empty,
                         Sede          = s.Sede?.NombreSede ?? string.Empty,
+                        UnidadMedida  = !string.IsNullOrEmpty(s.Producto?.UnidadMedida) ? s.Producto.UnidadMedida : "u.",
                         StockActual   = s.CantidadActual,
                         UltimoIngreso = ultimoIngreso == default ? null : (DateTime?)ultimoIngreso,
                         DiasSinEgreso = diasSinEgreso
@@ -562,9 +578,10 @@ namespace TesisInventory.Application.Services
                 MotivoSolicitud   = s.MotivoSolicitud ?? string.Empty
             }).OrderByDescending(p => p.DiasEsperando).ToList();
 
-            int pend5  = listaPendientes.Count(p => p.DiasEsperando <= 5);
-            int pend10 = listaPendientes.Count(p => p.DiasEsperando <= 10);
-            int pend30 = listaPendientes.Count(p => p.DiasEsperando <= 30);
+            int pend5     = listaPendientes.Count(p => p.DiasEsperando <= 5);
+            int pend6a10  = listaPendientes.Count(p => p.DiasEsperando is > 5 and <= 10);
+            int pend11a30 = listaPendientes.Count(p => p.DiasEsperando is > 10 and <= 30);
+            int pendMas30 = listaPendientes.Count(p => p.DiasEsperando > 30);
 
             // ── Tab 3: Productos más solicitados ──────────────────────────────
             var productosSolicitados = solicitudes
@@ -580,6 +597,7 @@ namespace TesisInventory.Application.Services
                         Producto         = g.First().Detalle.Producto!.Nombre,
                         Sku              = g.First().Detalle.Producto!.Sku,
                         Familia          = g.First().Detalle.Producto!.Familia?.Nombre ?? string.Empty,
+                        UnidadMedida     = !string.IsNullOrEmpty(g.First().Detalle.Producto!.UnidadMedida) ? g.First().Detalle.Producto!.UnidadMedida : "u.",
                         TotalUnidades    = g.Sum(x => x.Detalle.Cantidad),
                         VecesSolicitado  = solicitudesDelProd.Count,
                         VecesEnAprobadas = solicitudesDelProd.Count(s => s.Estado == EstadoSolicitudCompra.Aprobada)
@@ -602,8 +620,9 @@ namespace TesisInventory.Application.Services
                 PorSede                     = porSede,
                 Pendientes                  = listaPendientes,
                 PendientesHasta5Dias        = pend5,
-                PendientesHasta10Dias       = pend10,
-                PendientesHasta30Dias       = pend30,
+                Pendientes6a10Dias          = pend6a10,
+                Pendientes11a30Dias         = pend11a30,
+                PendientesMasDe30Dias       = pendMas30,
                 ProductosMasSolicitados     = productosSolicitados
             };
         }
@@ -644,24 +663,34 @@ namespace TesisInventory.Application.Services
         /// <summary>
         /// Reconstruye el stock promedio ponderado por tiempo usando CantidadRestante
         /// (stock después del movimiento) como punto de control de la curva de stock.
-        /// Σ(Stockᵢ × Díasᵢ) / totalDías
+        /// La ventana de ponderación arranca recién cuando el producto tiene stock real
+        /// dentro del período: si ya tenía existencias antes, se cuenta desde fechaDesde;
+        /// si ingresó por primera vez dentro del período (stock inicial 0), se cuenta desde
+        /// ese primer movimiento. El divisor son los días reales de vida del producto en la
+        /// ventana, no el período completo, para no inflar la rotación de productos nuevos.
+        /// Promedio = Σ(Stockᵢ × Díasᵢ) / díasDeVidaEnLaVentana
         /// </summary>
         private static double CalcularStockPonderado(
             List<Domain.Entities.Movimiento> movimientos,
             DateTime fechaDesde,
-            DateTime fechaHasta,
-            int totalDias)
+            DateTime fechaHasta)
         {
             if (!movimientos.Any()) return 0;
 
-            double acumulado = 0;
-            DateTime puntoAnterior = fechaDesde;
-
             // Stock estimado antes del primer movimiento del período
-            int stockAnterior = movimientos.First().CantidadRestante +
-                                (movimientos.First().TipoMovimiento == TipoMovimiento.Egreso
-                                    ? movimientos.First().Cantidad
-                                    : -movimientos.First().Cantidad);
+            int stockInicial = movimientos.First().CantidadRestante +
+                               (movimientos.First().TipoMovimiento == TipoMovimiento.Egreso
+                                   ? movimientos.First().Cantidad
+                                   : -movimientos.First().Cantidad);
+
+            // Inicio efectivo de la ventana:
+            //  • Si el producto ya tenía stock antes del período → desde fechaDesde.
+            //  • Si arrancó en 0 (recién ingresó en el período) → desde el primer movimiento.
+            DateTime inicioVentana = stockInicial > 0 ? fechaDesde : movimientos.First().Fecha;
+
+            double acumulado = 0;
+            DateTime puntoAnterior = inicioVentana;
+            int stockAnterior = stockInicial;
 
             foreach (var mov in movimientos)
             {
@@ -678,7 +707,9 @@ namespace TesisInventory.Application.Services
             if (diasFinales > 0)
                 acumulado += stockAnterior * diasFinales;
 
-            return totalDias > 0 ? acumulado / totalDias : 0;
+            // Divisor: días reales de vida del producto dentro de la ventana
+            double diasVida = (fechaHasta - inicioVentana).TotalDays;
+            return diasVida > 0 ? acumulado / diasVida : stockAnterior;
         }
     }
 }

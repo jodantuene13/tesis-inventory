@@ -116,7 +116,7 @@
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
         
         <!-- Main Actions (Shortcuts) -->
-        <div class="lg:col-span-8">
+        <div class="lg:col-span-12">
             <h2 class="text-xl font-black text-gray-800 mb-6 flex items-center gap-2">
                 <span class="w-2 h-8 bg-blue-600 rounded-full"></span>
                 Accesos Rápidos
@@ -147,59 +147,60 @@
                     </div>
                 </a>
 
-                <a routerLink="/inventory/catalogo" class="group bg-white p-6 rounded-3xl shadow-sm border border-gray-100 hover:shadow-lg transition-all flex items-center gap-5">
+                <a routerLink="/inventory/productos" class="group bg-white p-6 rounded-3xl shadow-sm border border-gray-100 hover:shadow-lg transition-all flex items-center gap-5">
                     <div class="w-14 h-14 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white transition-colors duration-300">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                         </svg>
                     </div>
                     <div>
-                        <h4 class="font-bold text-gray-900 text-lg">Maestro Productos</h4>
-                        <p class="text-gray-500 text-sm">Administración y configuración del catálogo maestro.</p>
+                        <h4 class="font-bold text-gray-900 text-lg">Gestión de Productos</h4>
+                        <p class="text-gray-500 text-sm">Administración y configuración del catálogo.</p>
                     </div>
                 </a>
 
-                <a routerLink="/inventory/historial" class="group bg-white p-6 rounded-3xl shadow-sm border border-gray-100 hover:shadow-lg transition-all flex items-center gap-5">
-                    <div class="w-14 h-14 bg-rose-50 rounded-2xl flex items-center justify-center text-rose-600 group-hover:bg-rose-600 group-hover:text-white transition-colors duration-300">
+                <a routerLink="/solicitudes-compra" class="group bg-white p-6 rounded-3xl shadow-sm border border-gray-100 hover:shadow-lg transition-all flex items-center gap-5">
+                    <div class="w-14 h-14 bg-amber-50 rounded-2xl flex items-center justify-center text-amber-600 group-hover:bg-amber-600 group-hover:text-white transition-colors duration-300">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                         </svg>
                     </div>
                     <div>
-                        <h4 class="font-bold text-gray-900 text-lg">Historial Auditoría</h4>
-                        <p class="text-gray-500 text-sm">Visualiza el rastro de todos los movimientos.</p>
+                        <h4 class="font-bold text-gray-900 text-lg">Solicitudes de Compra</h4>
+                        <p class="text-gray-500 text-sm">Gestión de pedidos y abastecimiento.</p>
                     </div>
                 </a>
             </div>
-        </div>
-
-        <!-- System Status or News -->
-        <div class="lg:col-span-4">
-            <h2 class="text-xl font-black text-gray-800 mb-6 flex items-center gap-2">
-                <span class="w-2 h-8 bg-purple-600 rounded-full"></span>
-                Estado Global
-            </h2>
             
-            <div class="bg-gray-900 p-8 rounded-[40px] text-white shadow-2xl relative overflow-hidden">
-                <div class="relative z-10">
-                    <div class="inline-flex py-1 px-3 rounded-full bg-emerald-500/20 text-emerald-400 text-[10px] font-black uppercase tracking-widest mb-4 border border-emerald-500/30">
-                        Sistema Online
-                    </div>
-                    <h4 class="text-2xl font-black mb-4 leading-tight">Optimiza tu gestión hoy</h4>
-                    <p class="text-gray-400 text-sm mb-6 leading-relaxed">
-                        Recuerda realizar el cierre de stock semanal para mantener la integridad de los datos en todas las sedes.
-                    </p>
-                    <button (click)="loadDashboardData()" class="w-full bg-white text-gray-900 font-bold py-3 rounded-2xl flex items-center justify-center gap-2 hover:bg-gray-100 transition-colors">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                        </svg>
-                        Sincronizar Datos
-                    </button>
+            <h2 class="text-xl font-black text-gray-800 mb-6 mt-8 flex items-center gap-2">
+                <span class="w-2 h-8 bg-rose-600 rounded-full"></span>
+                Alertas de Stock Recientes
+            </h2>
+            <div class="bg-white rounded-3xl shadow-sm border border-gray-100 p-6">
+                <div *ngIf="alertasStock.length === 0" class="text-center text-gray-500 py-4">
+                    No hay alertas de stock recientes.
                 </div>
-                <!-- Background decoration -->
-                <div class="absolute -top-24 -right-24 w-64 h-64 bg-purple-600/20 rounded-full blur-3xl"></div>
-                <div class="absolute -bottom-24 -left-24 w-64 h-64 bg-blue-600/20 rounded-full blur-3xl"></div>
+                <div *ngIf="alertasStock.length > 0" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div *ngFor="let alerta of alertasStock" class="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-gray-50 rounded-2xl border border-gray-100 hover:border-red-100 transition-colors">
+                        <div class="flex items-center gap-4">
+                            <div class="w-10 h-10 rounded-xl bg-red-100 flex items-center justify-center text-red-600 shrink-0">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                </svg>
+                            </div>
+                            <div class="min-w-0">
+                                <p class="font-bold text-gray-900 truncate" [title]="alerta.producto">{{alerta.producto}}</p>
+                                <p class="text-xs text-gray-500 truncate" [title]="alerta.familia + ' - ' + alerta.sede">{{alerta.familia}} - {{alerta.sede}}</p>
+                            </div>
+                        </div>
+                        <div class="text-right shrink-0 mt-2 sm:mt-0 w-full sm:w-auto">
+                            <p class="font-black text-red-600 text-lg">{{alerta.stockActual}}</p>
+                            <p class="text-[10px] text-gray-400 uppercase tracking-wider font-bold">Min: {{alerta.stockMinimo}}</p>
+                        </div>
+                    </div>
+                </div>
             </div>
+
         </div>
 
     </div>

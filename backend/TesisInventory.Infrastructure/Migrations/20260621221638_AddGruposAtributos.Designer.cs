@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TesisInventory.Infrastructure.Persistence;
 
@@ -11,9 +12,11 @@ using TesisInventory.Infrastructure.Persistence;
 namespace TesisInventory.Infrastructure.Migrations
 {
     [DbContext(typeof(InventoryDbContext))]
-    partial class InventoryDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260621221638_AddGruposAtributos")]
+    partial class AddGruposAtributos
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -100,6 +103,9 @@ namespace TesisInventory.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
+                    b.Property<string>("Unidad")
+                        .HasColumnType("longtext");
+
                     b.HasKey("IdAtributo");
 
                     b.HasIndex("CodigoAtributo")
@@ -135,21 +141,6 @@ namespace TesisInventory.Infrastructure.Migrations
                     b.HasIndex("IdAtributo");
 
                     b.ToTable("AtributoOpcion", (string)null);
-                });
-
-            modelBuilder.Entity("TesisInventory.Domain.Entities.AtributoUnidadMedida", b =>
-                {
-                    b.Property<int>("IdAtributo")
-                        .HasColumnType("int");
-
-                    b.Property<int>("IdUnidadMedida")
-                        .HasColumnType("int");
-
-                    b.HasKey("IdAtributo", "IdUnidadMedida");
-
-                    b.HasIndex("IdUnidadMedida");
-
-                    b.ToTable("AtributoUnidadMedida", (string)null);
                 });
 
             modelBuilder.Entity("TesisInventory.Domain.Entities.AuditLog", b =>
@@ -371,17 +362,12 @@ namespace TesisInventory.Infrastructure.Migrations
                     b.Property<int>("IdGrupoAtributo")
                         .HasColumnType("int");
 
-                    b.Property<int?>("IdUnidadMedida")
-                        .HasColumnType("int");
-
                     b.Property<int>("Orden")
                         .HasColumnType("int");
 
                     b.HasKey("IdGrupoAtributoItem");
 
                     b.HasIndex("IdAtributo");
-
-                    b.HasIndex("IdUnidadMedida");
 
                     b.HasIndex("IdGrupoAtributo", "IdAtributo")
                         .IsUnique();
@@ -620,9 +606,6 @@ namespace TesisInventory.Infrastructure.Migrations
                     b.Property<int>("IdProducto")
                         .HasColumnType("int");
 
-                    b.Property<int?>("IdUnidadMedida")
-                        .HasColumnType("int");
-
                     b.Property<bool?>("ValorBool")
                         .HasColumnType("tinyint(1)");
 
@@ -641,8 +624,6 @@ namespace TesisInventory.Infrastructure.Migrations
                     b.HasKey("IdProductoAtributoValor");
 
                     b.HasIndex("IdAtributo");
-
-                    b.HasIndex("IdUnidadMedida");
 
                     b.HasIndex("IdProducto", "IdAtributo")
                         .IsUnique();
@@ -983,33 +964,6 @@ namespace TesisInventory.Infrastructure.Migrations
                     b.ToTable("TransferenciaDetalle", (string)null);
                 });
 
-            modelBuilder.Entity("TesisInventory.Domain.Entities.UnidadMedida", b =>
-                {
-                    b.Property<int>("IdUnidadMedida")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("IdUnidadMedida"));
-
-                    b.Property<bool>("Activo")
-                        .HasColumnType("tinyint(1)");
-
-                    b.Property<string>("Nombre")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("Simbolo")
-                        .IsRequired()
-                        .HasColumnType("varchar(255)");
-
-                    b.HasKey("IdUnidadMedida");
-
-                    b.HasIndex("Simbolo")
-                        .IsUnique();
-
-                    b.ToTable("UnidadMedida", (string)null);
-                });
-
             modelBuilder.Entity("TesisInventory.Domain.Entities.Usuario", b =>
                 {
                     b.Property<int>("IdUsuario")
@@ -1119,25 +1073,6 @@ namespace TesisInventory.Infrastructure.Migrations
                     b.Navigation("Atributo");
                 });
 
-            modelBuilder.Entity("TesisInventory.Domain.Entities.AtributoUnidadMedida", b =>
-                {
-                    b.HasOne("TesisInventory.Domain.Entities.Atributo", "Atributo")
-                        .WithMany("UnidadesMedida")
-                        .HasForeignKey("IdAtributo")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("TesisInventory.Domain.Entities.UnidadMedida", "UnidadMedida")
-                        .WithMany("AtributoUnidades")
-                        .HasForeignKey("IdUnidadMedida")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Atributo");
-
-                    b.Navigation("UnidadMedida");
-                });
-
             modelBuilder.Entity("TesisInventory.Domain.Entities.Familia", b =>
                 {
                     b.HasOne("TesisInventory.Domain.Entities.Rubro", "Rubro")
@@ -1201,16 +1136,9 @@ namespace TesisInventory.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("TesisInventory.Domain.Entities.UnidadMedida", "UnidadMedida")
-                        .WithMany("GrupoItems")
-                        .HasForeignKey("IdUnidadMedida")
-                        .OnDelete(DeleteBehavior.SetNull);
-
                     b.Navigation("Atributo");
 
                     b.Navigation("GrupoAtributo");
-
-                    b.Navigation("UnidadMedida");
                 });
 
             modelBuilder.Entity("TesisInventory.Domain.Entities.HistorialTransferencia", b =>
@@ -1310,16 +1238,9 @@ namespace TesisInventory.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("TesisInventory.Domain.Entities.UnidadMedida", "UnidadMedida")
-                        .WithMany("ValoresProducto")
-                        .HasForeignKey("IdUnidadMedida")
-                        .OnDelete(DeleteBehavior.SetNull);
-
                     b.Navigation("Atributo");
 
                     b.Navigation("Producto");
-
-                    b.Navigation("UnidadMedida");
                 });
 
             modelBuilder.Entity("TesisInventory.Domain.Entities.RolPermiso", b =>
@@ -1515,8 +1436,6 @@ namespace TesisInventory.Infrastructure.Migrations
                     b.Navigation("GrupoItems");
 
                     b.Navigation("Opciones");
-
-                    b.Navigation("UnidadesMedida");
                 });
 
             modelBuilder.Entity("TesisInventory.Domain.Entities.Familia", b =>
@@ -1599,15 +1518,6 @@ namespace TesisInventory.Infrastructure.Migrations
                     b.Navigation("Detalles");
 
                     b.Navigation("HistorialTransferencias");
-                });
-
-            modelBuilder.Entity("TesisInventory.Domain.Entities.UnidadMedida", b =>
-                {
-                    b.Navigation("AtributoUnidades");
-
-                    b.Navigation("GrupoItems");
-
-                    b.Navigation("ValoresProducto");
                 });
 
             modelBuilder.Entity("TesisInventory.Domain.Entities.Usuario", b =>

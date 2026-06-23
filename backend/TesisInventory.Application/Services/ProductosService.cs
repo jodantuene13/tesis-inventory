@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using TesisInventory.Application.DTOs;
 using TesisInventory.Application.DTOs.Productos;
 using TesisInventory.Application.Interfaces;
 using TesisInventory.Domain.Entities;
@@ -140,6 +141,7 @@ namespace TesisInventory.Application.Services
                 {
                     IdProducto = producto.IdProducto,
                     IdAtributo = attrDto.IdAtributo,
+                    IdUnidadMedida = attrDto.IdUnidadMedida,
                     ValorTexto = attrDto.ValorTexto,
                     ValorNumero = attrDto.ValorNumero,
                     ValorDecimal = attrDto.ValorDecimal,
@@ -247,6 +249,7 @@ namespace TesisInventory.Application.Services
                 
                 if (existingVal != null)
                 {
+                    existingVal.IdUnidadMedida = reqAttr.IdUnidadMedida;
                     existingVal.ValorTexto = reqAttr.ValorTexto;
                     existingVal.ValorNumero = reqAttr.ValorNumero;
                     existingVal.ValorDecimal = reqAttr.ValorDecimal;
@@ -261,6 +264,7 @@ namespace TesisInventory.Application.Services
                     {
                         IdProducto = id,
                         IdAtributo = reqAttr.IdAtributo,
+                        IdUnidadMedida = reqAttr.IdUnidadMedida,
                         ValorTexto = reqAttr.ValorTexto,
                         ValorNumero = reqAttr.ValorNumero,
                         ValorDecimal = reqAttr.ValorDecimal,
@@ -376,6 +380,17 @@ namespace TesisInventory.Application.Services
                     CodigoAtributo = pav.Atributo?.CodigoAtributo ?? "",
                     NombreAtributo = pav.Atributo?.Nombre ?? "",
                     TipoDatoAtributo = pav.Atributo?.TipoDato ?? "",
+                    IdUnidadMedida = pav.IdUnidadMedida,
+                    SimboloUnidad = pav.UnidadMedida?.Simbolo,
+                    UnidadesPermitidas = (pav.Atributo?.UnidadesMedida ?? Enumerable.Empty<Domain.Entities.AtributoUnidadMedida>())
+                        .Where(au => au.UnidadMedida != null)
+                        .Select(au => new UnidadMedidaDto
+                        {
+                            IdUnidadMedida = au.UnidadMedida!.IdUnidadMedida,
+                            Simbolo = au.UnidadMedida.Simbolo,
+                            Nombre = au.UnidadMedida.Nombre,
+                            Activo = au.UnidadMedida.Activo
+                        }).ToList(),
                     ValorTexto = pav.ValorTexto,
                     ValorNumero = pav.ValorNumero,
                     ValorDecimal = pav.ValorDecimal,

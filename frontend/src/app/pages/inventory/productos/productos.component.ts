@@ -6,11 +6,13 @@ import { ProductoService } from '../../../services/producto.service';
 import { RubroService } from '../../../services/rubro.service';
 import { FamiliaService } from '../../../services/familia.service';
 import { AtributoService } from '../../../services/atributo.service';
+import { GrupoAtributoService } from '../../../services/grupo-atributo.service';
 
 import { Producto, CreateProducto, CreateProductoAtributoValor, ProductoAtributoValor } from '../../../models/producto.model';
 import { Rubro } from '../../../models/rubro.model';
 import { Familia } from '../../../models/familia.model';
 import { FamiliaAtributo, AtributoOpcion } from '../../../models/atributo.model';
+import { FamiliaGrupoAtributo } from '../../../models/grupo-atributo.model';
 
 import Swal from 'sweetalert2';
 
@@ -57,6 +59,9 @@ export class ProductosComponent implements OnInit {
     opcionesListas: { [idAtributo: number]: AtributoOpcion[] } = {};
     originalAtributos: ProductoAtributoValor[] = [];
 
+    gruposDinamicos: FamiliaGrupoAtributo[] = [];
+    grupoItemValues: { [grupoId: number]: { [atributoId: number]: number | null } } = {};
+
     productForm: FormGroup;
 
     constructor(
@@ -64,7 +69,8 @@ export class ProductosComponent implements OnInit {
         private productoService: ProductoService,
         private rubroService: RubroService,
         private familiaService: FamiliaService,
-        private atributoService: AtributoService
+        private atributoService: AtributoService,
+        private grupoService: GrupoAtributoService
     ) {
         this.productForm = this.fb.group({
             idRubro: ['', Validators.required],
@@ -142,6 +148,26 @@ export class ProductosComponent implements OnInit {
 
     loadAtributosConfiguracion(idFamilia: number, existingValues?: any[]): void {
         this.clearAtributosForm();
+
+        // Cargar grupos de atributos de la familia
+        this.grupoService.getGruposDeFamilia(idFamilia).subscribe({
+            next: (grupos) => {
+                this.gruposDinamicos = grupos.filter(fg => fg.activo);
+                this.grupoItemValues = {};
+                this.gruposDinamicos.forEach(fg => {
+                    this.grupoItemValues[fg.idGrupoAtributo] = {};
+                    fg.items.filter(i => i.activo).forEach(item => {
+                        let val: number | null = null;
+                        if (existingValues) {
+                            const ev = existingValues.find(e => e.idAtributo === item.idAtributo);
+                            if (ev) val = ev.valorNumero ?? ev.valorDecimal ?? null;
+                        }
+                        this.grupoItemValues[fg.idGrupoAtributo][item.idAtributo] = val;
+                    });
+                });
+            }
+        });
+
         this.atributoService.getAtributosDeFamilia(idFamilia).subscribe({
             next: (data) => {
                 this.atributosDinamicos = data;
@@ -167,12 +193,20 @@ export class ProductosComponent implements OnInit {
                     if (fa.tipoDatoAtributo === 'BOOLEAN' && val === null) val = false; // Default booleano
 
                     const validators = fa.obligatorio ? [Validators.required] : [];
+                    let idUnidadMedida: number | null = null;
+                    if (existingValues) {
+                        const ev = existingValues.find(e => e.idAtributo === fa.idAtributo);
+                        if (ev?.idUnidadMedida) idUnidadMedida = ev.idUnidadMedida;
+                    }
+
                     const formGroupControl = this.fb.group({
                         idAtributo: [fa.idAtributo],
                         tipoDato: [fa.tipoDatoAtributo],
                         nombreAtributo: [fa.nombreAtributo],
                         obligatorio: [fa.obligatorio],
-                        valor: [val, validators]
+                        valor: [val, validators],
+                        idUnidadMedida: [idUnidadMedida],
+                        unidadesPermitidas: [fa.unidadesMedida ?? []]
                     });
 
                     this.atributosFormArray.push(formGroupControl);
@@ -194,6 +228,16 @@ export class ProductosComponent implements OnInit {
             this.atributosFormArray.removeAt(0);
         }
         this.atributosDinamicos = [];
+        this.gruposDinamicos = [];
+        this.grupoItemValues = {};
+    }
+
+    formatGrupoPreview(fg: FamiliaGrupoAtributo): string {
+        return fg.items
+            .filter(i => i.activo)
+            .sort((a, b) => a.orden - b.orden)
+            .map(i => this.grupoItemValues[fg.idGrupoAtributo]?.[i.idAtributo] ?? '?')
+            .join(fg.separador) + (fg.unidadSufijo ?? '');
     }
 
     openCreateModal(): void {
@@ -266,7 +310,10 @@ export class ProductosComponent implements OnInit {
 
         // Mapear arreglo reactivo al modelo esperado por backend
         const attrsPayload: CreateProductoAtributoValor[] = formVal.atributosForm.map((af: any) => {
-            let attrVal: CreateProductoAtributoValor = { idAtributo: af.idAtributo };
+            let attrVal: CreateProductoAtributoValor = {
+                idAtributo: af.idAtributo,
+                idUnidadMedida: af.idUnidadMedida ?? undefined
+            };
 
             if (af.tipoDato === 'STRING') attrVal.valorTexto = af.valor;
             else if (af.tipoDato === 'NUMBER') attrVal.valorNumero = Number(af.valor);
@@ -275,6 +322,22 @@ export class ProductosComponent implements OnInit {
             else if (af.tipoDato === 'LIST') attrVal.valorLista = af.valor;
 
             return attrVal;
+        });
+
+        // Agregar valores de atributos de grupos
+        this.gruposDinamicos.forEach(fg => {
+            fg.items.filter(i => i.activo).forEach(item => {
+                const val = this.grupoItemValues[fg.idGrupoAtributo]?.[item.idAtributo];
+                if (val !== null && val !== undefined) {
+                    const attrVal: CreateProductoAtributoValor = {
+                        idAtributo: item.idAtributo,
+                        idUnidadMedida: item.idUnidadMedida ?? undefined
+                    };
+                    if (item.tipoDatoAtributo === 'NUMBER') attrVal.valorNumero = Number(val);
+                    else if (item.tipoDatoAtributo === 'DECIMAL') attrVal.valorDecimal = parseFloat(String(val));
+                    attrsPayload.push(attrVal);
+                }
+            });
         });
 
         if (this.isEdit && this.currentProductoId) {

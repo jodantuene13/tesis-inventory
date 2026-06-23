@@ -17,6 +17,9 @@ export interface ProductoAtributoValor {
     codigoAtributo: string;
     nombreAtributo: string;
     tipoDatoAtributo: string;
+    idUnidadMedida?: number;
+    simboloUnidad?: string;
+    unidadesPermitidas: { idUnidadMedida: number; simbolo: string; nombre: string }[];
     valorTexto?: string;
     valorNumero?: number;
     valorDecimal?: number;
@@ -44,6 +47,7 @@ export interface UpdateProducto {
 
 export interface CreateProductoAtributoValor {
     idAtributo: number;
+    idUnidadMedida?: number;
     valorTexto?: string;
     valorNumero?: number;
     valorDecimal?: number;

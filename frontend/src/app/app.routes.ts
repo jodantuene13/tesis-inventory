@@ -26,6 +26,8 @@ export const routes: Routes = [
                 children: [
                     { path: 'rubros-familias', loadComponent: () => import('./pages/inventory/rubros-familias/rubros-familias.component').then(m => m.RubrosFamiliasComponent) },
                     { path: 'atributos', loadComponent: () => import('./pages/inventory/atributos/atributos.component').then(m => m.AtributosComponent) },
+                    { path: 'grupos-atributos', loadComponent: () => import('./pages/inventory/grupos-atributos/grupos-atributos.component').then(m => m.GruposAtributosComponent) },
+                    { path: 'unidades-medida', loadComponent: () => import('./pages/inventory/unidades-medida/unidades-medida.component').then(m => m.UnidadesMedidaComponent) },
                     { path: 'productos', loadComponent: () => import('./pages/inventory/productos/productos.component').then(m => m.ProductosComponent) },
                     { path: 'stock', loadComponent: () => import('./pages/inventory/stock/stock').then(m => m.StockComponent) },
                     { path: 'remitos', loadComponent: () => import('./pages/inventory/remitos/remitos.component').then(m => m.RemitosComponent) },

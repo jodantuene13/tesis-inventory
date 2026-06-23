@@ -4,7 +4,9 @@ import { FormsModule } from '@angular/forms';
 import { AtributoService } from '../../../services/atributo.service';
 import { RubroService } from '../../../services/rubro.service';
 import { FamiliaService } from '../../../services/familia.service';
+import { UnidadMedidaService } from '../../../services/unidad-medida.service';
 import { Atributo, CreateAtributo, UpdateAtributo, AtributoOpcion, CreateAtributoOpcion, FamiliaAtributo, CreateFamiliaAtributo } from '../../../models/atributo.model';
+import { UnidadMedida } from '../../../models/unidad-medida.model';
 import { Rubro } from '../../../models/rubro.model';
 import { Familia } from '../../../models/familia.model';
 import Swal from 'sweetalert2';
@@ -29,13 +31,40 @@ export class AtributosComponent implements OnInit {
     // Atributo Modal
     showAtributoModal = false;
     isEditAtributo = false;
-    currentAtributoForm: CreateAtributo | UpdateAtributo = { codigoAtributo: '', nombre: '', tipoDato: 'STRING', activo: true };
+    currentAtributoForm: CreateAtributo | UpdateAtributo = { codigoAtributo: '', nombre: '', tipoDato: 'STRING', idsUnidadesMedida: [], activo: true };
     currentAtributoId: number | null = null;
     tiposDatos = ['STRING', 'NUMBER', 'DECIMAL', 'BOOLEAN', 'LIST'];
 
     // Opciones LIST
     opciones: AtributoOpcion[] = [];
     nuevaOpcionForm: CreateAtributoOpcion = { codigoOpcion: '', valor: '', activo: true };
+
+    // Unidades de medida
+    unidades: UnidadMedida[] = [];
+    unidadesSearchTerm = '';
+    showUnidadesDropdown = false;
+
+    get unidadesFiltradas(): UnidadMedida[] {
+        const t = this.unidadesSearchTerm.toLowerCase();
+        if (!t) return this.unidades;
+        return this.unidades.filter(u =>
+            u.nombre.toLowerCase().includes(t) || u.simbolo.toLowerCase().includes(t)
+        );
+    }
+
+    get unidadesSeleccionadas(): UnidadMedida[] {
+        const ids: number[] = (this.currentAtributoForm as any).idsUnidadesMedida ?? [];
+        return this.unidades.filter(u => ids.includes(u.idUnidadMedida));
+    }
+
+    toggleUnidadesDropdown(): void {
+        this.showUnidadesDropdown = !this.showUnidadesDropdown;
+        if (this.showUnidadesDropdown) this.unidadesSearchTerm = '';
+    }
+
+    closeUnidadesDropdown(): void {
+        this.showUnidadesDropdown = false;
+    }
 
     // Asignacion Familia
     rubros: Rubro[] = [];
@@ -59,12 +88,20 @@ export class AtributosComponent implements OnInit {
     constructor(
         private atributoService: AtributoService,
         private rubroService: RubroService,
-        private familiaService: FamiliaService
+        private familiaService: FamiliaService,
+        private unidadMedidaService: UnidadMedidaService
     ) { }
 
     ngOnInit(): void {
         this.loadAtributos();
         this.loadRubros();
+        this.loadUnidades();
+    }
+
+    loadUnidades(): void {
+        this.unidadMedidaService.getAll(false).subscribe({
+            next: (data) => this.unidades = data.filter(u => u.activo)
+        });
     }
 
     // ==== Atributo Maestros ====
@@ -94,7 +131,7 @@ export class AtributosComponent implements OnInit {
 
     openCreateModal(): void {
         this.isEditAtributo = false;
-        this.currentAtributoForm = { codigoAtributo: '', nombre: '', tipoDato: 'STRING', unidad: '', descripcion: '', activo: true };
+        this.currentAtributoForm = { codigoAtributo: '', nombre: '', tipoDato: 'STRING', idsUnidadesMedida: [], descripcion: '', activo: true };
         this.showAtributoModal = true;
     }
 
@@ -102,12 +139,31 @@ export class AtributosComponent implements OnInit {
         event.stopPropagation();
         this.isEditAtributo = true;
         this.currentAtributoId = attr.idAtributo;
-        this.currentAtributoForm = { ...attr };
+        this.currentAtributoForm = {
+            codigoAtributo: attr.codigoAtributo,
+            nombre: attr.nombre,
+            tipoDato: attr.tipoDato,
+            idsUnidadesMedida: attr.unidadesMedida?.map(u => u.idUnidadMedida) ?? [],
+            descripcion: attr.descripcion,
+            activo: attr.activo
+        };
         this.showAtributoModal = true;
     }
 
     closeAtributoModal(): void {
         this.showAtributoModal = false;
+    }
+
+    isUnidadSelected(id: number): boolean {
+        return (this.currentAtributoForm as any).idsUnidadesMedida?.includes(id) ?? false;
+    }
+
+    toggleUnidad(id: number): void {
+        const form = this.currentAtributoForm as any;
+        if (!form.idsUnidadesMedida) form.idsUnidadesMedida = [];
+        const idx = form.idsUnidadesMedida.indexOf(id);
+        if (idx >= 0) form.idsUnidadesMedida.splice(idx, 1);
+        else form.idsUnidadesMedida.push(id);
     }
 
     saveAtributo(): void {

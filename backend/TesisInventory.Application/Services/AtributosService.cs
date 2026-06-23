@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using TesisInventory.Application.DTOs;
 using TesisInventory.Application.DTOs.Atributos;
 using TesisInventory.Application.Interfaces;
 using TesisInventory.Domain.Entities;
@@ -25,36 +26,13 @@ namespace TesisInventory.Application.Services
         public async Task<IEnumerable<AtributoDto>> GetAllAtributosAsync(bool includeInactive = false)
         {
             var attrs = await _atributoRepository.GetAllAtributosAsync(includeInactive);
-            return attrs.Select(a => new AtributoDto
-            {
-                IdAtributo = a.IdAtributo,
-                CodigoAtributo = a.CodigoAtributo,
-                Nombre = a.Nombre,
-                TipoDato = a.TipoDato,
-                Unidad = a.Unidad,
-                Descripcion = a.Descripcion,
-                Activo = a.Activo,
-                FechaCreacion = a.FechaCreacion,
-                FechaActualizacion = a.FechaActualizacion
-            });
+            return attrs.Select(MapAtributoDto);
         }
 
         public async Task<AtributoDto?> GetAtributoByIdAsync(int id)
         {
             var a = await _atributoRepository.GetAtributoByIdAsync(id);
-            if (a == null) return null;
-            return new AtributoDto
-            {
-                IdAtributo = a.IdAtributo,
-                CodigoAtributo = a.CodigoAtributo,
-                Nombre = a.Nombre,
-                TipoDato = a.TipoDato,
-                Unidad = a.Unidad,
-                Descripcion = a.Descripcion,
-                Activo = a.Activo,
-                FechaCreacion = a.FechaCreacion,
-                FechaActualizacion = a.FechaActualizacion
-            };
+            return a == null ? null : MapAtributoDto(a);
         }
 
         public async Task<AtributoDto> CreateAtributoAsync(CreateAtributoDto createDto)
@@ -66,15 +44,13 @@ namespace TesisInventory.Application.Services
                 {
                     existing.Nombre = createDto.Nombre;
                     existing.TipoDato = createDto.TipoDato;
-                    existing.Unidad = createDto.Unidad;
                     existing.Descripcion = createDto.Descripcion;
                     existing.Activo = true;
                     existing.FechaActualizacion = DateTime.UtcNow;
-                    
                     await _atributoRepository.UpdateAtributoAsync(existing);
+                    await _atributoRepository.SyncUnidadesMedidaAsync(existing.IdAtributo, createDto.IdsUnidadesMedida);
                     return await GetAtributoByIdAsync(existing.IdAtributo) ?? throw new Exception("Error al reactivar atributo.");
                 }
-                
                 throw new InvalidOperationException("Ya existe un atributo con este código.");
             }
 
@@ -83,7 +59,6 @@ namespace TesisInventory.Application.Services
                 CodigoAtributo = createDto.CodigoAtributo,
                 Nombre = createDto.Nombre,
                 TipoDato = createDto.TipoDato,
-                Unidad = createDto.Unidad,
                 Descripcion = createDto.Descripcion,
                 Activo = createDto.Activo,
                 FechaCreacion = DateTime.UtcNow,
@@ -91,6 +66,7 @@ namespace TesisInventory.Application.Services
             };
 
             await _atributoRepository.AddAtributoAsync(newAttr);
+            await _atributoRepository.SyncUnidadesMedidaAsync(newAttr.IdAtributo, createDto.IdsUnidadesMedida);
             return await GetAtributoByIdAsync(newAttr.IdAtributo) ?? throw new Exception("Error al obtener atributo creado");
         }
 
@@ -108,12 +84,12 @@ namespace TesisInventory.Application.Services
             attr.CodigoAtributo = updateDto.CodigoAtributo;
             attr.Nombre = updateDto.Nombre;
             attr.TipoDato = updateDto.TipoDato;
-            attr.Unidad = updateDto.Unidad;
             attr.Descripcion = updateDto.Descripcion;
             attr.Activo = updateDto.Activo;
             attr.FechaActualizacion = DateTime.UtcNow;
 
             await _atributoRepository.UpdateAtributoAsync(attr);
+            await _atributoRepository.SyncUnidadesMedidaAsync(id, updateDto.IdsUnidadesMedida);
             return await GetAtributoByIdAsync(attr.IdAtributo) ?? throw new Exception("Error al leer post update");
         }
 
@@ -186,7 +162,16 @@ namespace TesisInventory.Application.Services
                 NombreAtributo = fa.Atributo?.Nombre ?? "",
                 TipoDatoAtributo = fa.Atributo?.TipoDato ?? "",
                 Obligatorio = fa.Obligatorio,
-                Activo = fa.Activo
+                Activo = fa.Activo,
+                UnidadesMedida = (fa.Atributo?.UnidadesMedida ?? Enumerable.Empty<Domain.Entities.AtributoUnidadMedida>())
+                    .Where(au => au.UnidadMedida != null)
+                    .Select(au => new UnidadMedidaDto
+                    {
+                        IdUnidadMedida = au.UnidadMedida!.IdUnidadMedida,
+                        Simbolo = au.UnidadMedida.Simbolo,
+                        Nombre = au.UnidadMedida.Nombre,
+                        Activo = au.UnidadMedida.Activo
+                    }).ToList()
             });
         }
 
@@ -276,5 +261,26 @@ namespace TesisInventory.Application.Services
                 Activo = fa.Activo
             });
         }
+
+        private static AtributoDto MapAtributoDto(Domain.Entities.Atributo a) => new()
+        {
+            IdAtributo = a.IdAtributo,
+            CodigoAtributo = a.CodigoAtributo,
+            Nombre = a.Nombre,
+            TipoDato = a.TipoDato,
+            UnidadesMedida = a.UnidadesMedida
+                .Where(au => au.UnidadMedida != null)
+                .Select(au => new UnidadMedidaDto
+                {
+                    IdUnidadMedida = au.UnidadMedida!.IdUnidadMedida,
+                    Simbolo = au.UnidadMedida.Simbolo,
+                    Nombre = au.UnidadMedida.Nombre,
+                    Activo = au.UnidadMedida.Activo
+                }).ToList(),
+            Descripcion = a.Descripcion,
+            Activo = a.Activo,
+            FechaCreacion = a.FechaCreacion,
+            FechaActualizacion = a.FechaActualizacion
+        };
     }
 }

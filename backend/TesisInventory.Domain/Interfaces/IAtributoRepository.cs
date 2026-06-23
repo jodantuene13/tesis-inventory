@@ -28,5 +28,8 @@ namespace TesisInventory.Domain.Interfaces
         Task DeleteFamiliaAtributoAsync(FamiliaAtributo familiaAtributo);
         Task<FamiliaAtributo?> GetFamiliaAtributoAsync(int idFamilia, int idAtributo);
         Task<IEnumerable<FamiliaAtributo>> GetFamiliasByAtributoIdAsync(int idAtributo);
+
+        // AtributoUnidadMedida
+        Task SyncUnidadesMedidaAsync(int idAtributo, IEnumerable<int> idsUnidades);
     }
 }

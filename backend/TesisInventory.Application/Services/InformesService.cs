@@ -58,7 +58,8 @@ namespace TesisInventory.Application.Services
             }).ToList();
 
             var desde = fechaDesde ?? DateTime.UtcNow.AddDays(-30);
-            var historial  = await _alertaRepository.GetHistorialAlertasAsync(idSede, idFamilia, desde, fechaHasta);
+            var hasta = fechaHasta.HasValue ? fechaHasta.Value.AddDays(1).AddTicks(-1) : (DateTime?)null;
+            var historial  = await _alertaRepository.GetHistorialAlertasAsync(idSede, idFamilia, desde, hasta);
 
             var recurrencia = historial
                 .GroupBy(a => new { a.IdProducto, a.IdSede })

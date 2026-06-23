@@ -83,10 +83,10 @@ namespace TesisInventory.Infrastructure.Repositories
                 query = query.Where(a => a.Producto!.IdFamilia == idFamilia.Value);
 
             if (fechaDesde.HasValue)
-                query = query.Where(a => a.FechaCreacion >= fechaDesde.Value);
+                query = query.Where(a => a.FechaUltimaAlerta >= fechaDesde.Value);
 
             if (fechaHasta.HasValue)
-                query = query.Where(a => a.FechaCreacion <= fechaHasta.Value);
+                query = query.Where(a => a.FechaUltimaAlerta <= fechaHasta.Value);
 
             return await query
                 .OrderByDescending(a => a.FechaUltimaAlerta)

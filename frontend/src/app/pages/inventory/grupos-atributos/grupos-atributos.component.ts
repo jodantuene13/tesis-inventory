@@ -30,6 +30,32 @@ export class GruposAtributosComponent implements OnInit {
     loadingGrupos = false;
     selectedGrupo: GrupoAtributo | null = null;
 
+    // Search/filter state
+    searchGrupo = '';
+    selectedEstadoGrupo = '';
+
+    get hasGrupoFilter(): boolean {
+        return !!this.searchGrupo || !!this.selectedEstadoGrupo;
+    }
+
+    get gruposFiltered(): GrupoAtributo[] {
+        let list = this.grupos;
+        if (this.searchGrupo) {
+            const t = this.searchGrupo.toLowerCase();
+            list = list.filter(g => g.nombre.toLowerCase().includes(t) || g.codigoGrupo.toLowerCase().includes(t));
+        }
+        if (this.selectedEstadoGrupo !== '') {
+            const activo = this.selectedEstadoGrupo === 'true';
+            list = list.filter(g => g.activo === activo);
+        }
+        return list;
+    }
+
+    clearGrupoFilter(): void {
+        this.searchGrupo = '';
+        this.selectedEstadoGrupo = '';
+    }
+
     // KPIs
     indicatorTotal = 0;
     indicatorActivos = 0;
@@ -59,7 +85,23 @@ export class GruposAtributosComponent implements OnInit {
         this.idUnidadMedidaParaItem = null;
     }
 
-    // Sección asignación a familia
+    // Modal de familias asociadas al grupo
+    showFamiliasModal = false;
+    selectedGrupoParaFamilias: GrupoAtributo | null = null;
+    familiasDelGrupo: FamiliaGrupoAtributo[] = [];
+    loadingFamiliasDelGrupo = false;
+
+    // Panel de asociación dentro del modal
+    modalRubroId: number | null = null;
+    modalFamiliasSelect: Familia[] = [];
+    modalFamiliaId: number | null = null;
+    modalObligatorio = false;
+
+    get modalFamiliaNombre(): string {
+        return this.modalFamiliasSelect.find(f => f.idFamilia === this.modalFamiliaId)?.nombre ?? '';
+    }
+
+    // Sección asignación a familia (card inferior)
     rubros: Rubro[] = [];
     familiasSelect: Familia[] = [];
     selectedRubroId: number | null = null;
@@ -113,6 +155,85 @@ export class GruposAtributosComponent implements OnInit {
 
     selectGrupo(g: GrupoAtributo): void {
         this.selectedGrupo = g;
+    }
+
+    openFamiliasModal(g: GrupoAtributo, event: Event): void {
+        event.stopPropagation();
+        this.selectedGrupoParaFamilias = g;
+        this.familiasDelGrupo = [];
+        this.showFamiliasModal = true;
+        this.loadingFamiliasDelGrupo = true;
+        this.grupoService.getFamiliasByGrupo(g.idGrupoAtributo).subscribe({
+            next: (data) => {
+                this.familiasDelGrupo = data;
+                this.loadingFamiliasDelGrupo = false;
+            },
+            error: () => { this.loadingFamiliasDelGrupo = false; }
+        });
+    }
+
+    closeFamiliasModal(): void {
+        this.showFamiliasModal = false;
+        this.selectedGrupoParaFamilias = null;
+        this.familiasDelGrupo = [];
+        this.modalRubroId = null;
+        this.modalFamiliaId = null;
+        this.modalFamiliasSelect = [];
+        this.modalObligatorio = false;
+    }
+
+    onModalRubroChange(): void {
+        this.modalFamiliaId = null;
+        this.modalFamiliasSelect = [];
+        if (this.modalRubroId) {
+            this.familiaService.getByRubro(this.modalRubroId, false).subscribe({
+                next: (data) => this.modalFamiliasSelect = data
+            });
+        }
+    }
+
+    asignarGrupoDesdeModal(): void {
+        if (!this.modalFamiliaId || !this.selectedGrupoParaFamilias) return;
+        this.grupoService.assignToFamilia(this.modalFamiliaId, {
+            idGrupoAtributo: this.selectedGrupoParaFamilias.idGrupoAtributo,
+            obligatorio: this.modalObligatorio,
+            activo: true
+        }).subscribe({
+            next: () => {
+                this.reloadFamiliasEnModal();
+                Swal.fire('Éxito', 'Grupo asignado a la familia', 'success');
+            },
+            error: (err) => Swal.fire('Error', err.error?.message || 'Error al asignar', 'error')
+        });
+    }
+
+    desasociarFamiliaDesdeModal(idFamilia: number, idGrupo: number): void {
+        Swal.fire({
+            title: '¿Quitar grupo de la familia?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Sí, quitar',
+            cancelButtonText: 'No'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                this.grupoService.removeFromFamilia(idFamilia, idGrupo).subscribe({
+                    next: () => this.reloadFamiliasEnModal(),
+                    error: (err) => Swal.fire('Error', err.error?.message, 'error')
+                });
+            }
+        });
+    }
+
+    reloadFamiliasEnModal(): void {
+        if (!this.selectedGrupoParaFamilias) return;
+        this.loadingFamiliasDelGrupo = true;
+        this.grupoService.getFamiliasByGrupo(this.selectedGrupoParaFamilias.idGrupoAtributo).subscribe({
+            next: (data) => {
+                this.familiasDelGrupo = data;
+                this.loadingFamiliasDelGrupo = false;
+            },
+            error: () => { this.loadingFamiliasDelGrupo = false; }
+        });
     }
 
     openCreateModal(): void {

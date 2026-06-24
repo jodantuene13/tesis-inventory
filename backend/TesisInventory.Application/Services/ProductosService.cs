@@ -290,7 +290,9 @@ namespace TesisInventory.Application.Services
                 throw new InvalidOperationException("El nombre de confirmación no coincide exactamente con el producto.");
             }
 
-            await _productoRepository.DeleteProductoAsync(producto);
+            producto.Activo = false;
+            producto.FechaActualizacion = DateTime.UtcNow;
+            await _productoRepository.UpdateProductoAsync(producto);
         }
 
         public async Task RegenerateSkusForFamiliaAsync(int idFamilia)

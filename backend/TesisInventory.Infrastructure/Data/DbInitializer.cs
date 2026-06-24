@@ -24,7 +24,7 @@ namespace TesisInventory.Infrastructure.Data
                 context.SaveChanges();
             }
 
-            // Seed Permisos
+            // Seed Permisos (inicial para BD vacía)
             if (!context.Permiso.Any())
             {
                 var permisosData = new List<(string Modulo, string Nombre, string Descripcion)>
@@ -39,15 +39,24 @@ namespace TesisInventory.Infrastructure.Data
                     ("Inventario", "Inventario_Historial_Ver", "Ver Historial de Movimientos de Inventario"),
                     ("Solicitudes", "Solicitudes_VerBuscarImprimir", "Ver, buscar e imprimir Solicitudes de Compra"),
                     ("Solicitudes", "Solicitudes_Crear", "Crear Solicitudes de Compra"),
+                    ("Solicitudes", "Solicitudes_Aprobar", "Aprobar o rechazar Solicitudes de Compra"),
                     ("Transferencias", "Transferencias_Ver", "Ver módulo de Transferencias"),
                     ("Transferencias", "Transferencias_Crear", "Crear nueva solicitud de Transferencia"),
+                    ("Transferencias", "Transferencias_Aprobar", "Aprobar o rechazar solicitudes de Transferencia"),
                     ("Transferencias", "Transferencias_PedidosAMiSede_Ver", "Ver Pedidos a mi Sede en Transferencias"),
                     ("Transferencias", "Transferencias_MisPedidos_Ver", "Ver Mis Pedidos en Transferencias"),
                     ("Transferencias", "Transferencias_Historico_Ver", "Ver Histórico de Transferencias"),
                     ("Parametricas", "Parametricas_Ver", "Ver módulo de Paramétricas del Gestor"),
                     ("Parametricas", "Parametricas_RubrosFamilias_ABM", "Ver, crear y modificar Rubros y Familias"),
                     ("Parametricas", "Parametricas_Atributos_ABM", "Ver, crear, asociar y modificar Atributos"),
+                    ("Parametricas", "Parametricas_GruposAtributos_ABM", "Ver, crear y modificar Grupos de Atributos"),
+                    ("Parametricas", "Parametricas_UnidadesMedida_ABM", "Ver, crear y modificar Unidades de Medida"),
                     ("Parametricas", "Parametricas_Productos_ABM", "Crear y modificar Productos"),
+                    ("Informes", "Informes_Ver", "Ver módulo de Informes"),
+                    ("Informes", "Informes_AlertasStock_Ver", "Ver Informe de Stock bajo y alertas"),
+                    ("Informes", "Informes_RotacionProductos_Ver", "Ver Informe de Rotación de Productos"),
+                    ("Informes", "Informes_Transferencias_Ver", "Ver Informe de Transferencias y Préstamos"),
+                    ("Informes", "Informes_SolicitudesCompra_Ver", "Ver Informe de Solicitudes de Compra"),
                     ("Configuracion", "ConfiguracionAdmin_Ver", "Ver Configuración Admin")
                 };
 
@@ -73,6 +82,11 @@ namespace TesisInventory.Infrastructure.Data
                     context.RolPermiso.AddRange(adminRolPermisos);
                     context.SaveChanges();
                 }
+            }
+            else
+            {
+                // Seed incremental: agrega permisos nuevos a una BD ya inicializada
+                SeedPermisosIncrementales(context);
             }
 
             // Seed Sedes
@@ -179,6 +193,56 @@ namespace TesisInventory.Infrastructure.Data
 
             // Seed Stock
             // (No stock seeds for the new database)
+        }
+
+        private static void SeedPermisosIncrementales(InventoryDbContext context)
+        {
+            var nuevosPermisos = new List<(string Modulo, string Nombre, string Descripcion)>
+            {
+                ("Solicitudes", "Solicitudes_Aprobar", "Aprobar o rechazar Solicitudes de Compra"),
+                ("Transferencias", "Transferencias_Aprobar", "Aprobar o rechazar solicitudes de Transferencia"),
+                ("Parametricas", "Parametricas_GruposAtributos_ABM", "Ver, crear y modificar Grupos de Atributos"),
+                ("Parametricas", "Parametricas_UnidadesMedida_ABM", "Ver, crear y modificar Unidades de Medida"),
+                ("Informes", "Informes_Ver", "Ver módulo de Informes"),
+                ("Informes", "Informes_AlertasStock_Ver", "Ver Informe de Stock bajo y alertas"),
+                ("Informes", "Informes_RotacionProductos_Ver", "Ver Informe de Rotación de Productos"),
+                ("Informes", "Informes_Transferencias_Ver", "Ver Informe de Transferencias y Préstamos"),
+                ("Informes", "Informes_SolicitudesCompra_Ver", "Ver Informe de Solicitudes de Compra"),
+            };
+
+            var existentes = context.Permiso.Select(p => p.Nombre).ToHashSet();
+            var faltantes = nuevosPermisos.Where(p => !existentes.Contains(p.Nombre)).ToList();
+
+            if (!faltantes.Any()) return;
+
+            var maxId = context.Permiso.Max(p => p.IdPermiso);
+            var permisosToAdd = faltantes.Select((p, i) => new Permiso
+            {
+                IdPermiso = maxId + i + 1,
+                Modulo = p.Modulo,
+                Nombre = p.Nombre,
+                Descripcion = p.Descripcion
+            }).ToList();
+
+            context.Permiso.AddRange(permisosToAdd);
+            context.SaveChanges();
+
+            // Asignar los nuevos permisos al Administrador
+            var adminPermisoIds = context.RolPermiso
+                .Where(rp => rp.IdRol == 1)
+                .Select(rp => rp.IdPermiso)
+                .ToHashSet();
+
+            var nuevosRolPermisos = permisosToAdd
+                .Where(p => !adminPermisoIds.Contains(p.IdPermiso))
+                .Select(p => new RolPermiso { IdRol = 1, IdPermiso = p.IdPermiso })
+                .ToList();
+
+            if (nuevosRolPermisos.Any())
+            {
+                context.RolPermiso.AddRange(nuevosRolPermisos);
+                context.SaveChanges();
+            }
         }
     }
 }

@@ -21,7 +21,33 @@ import Swal from 'sweetalert2';
 export class AtributosComponent implements OnInit {
     atributos: Atributo[] = [];
     loadingAtributos = false;
-    
+
+    // Search/filter state
+    searchAtributo = '';
+    selectedEstadoAtributo = '';
+
+    get hasAtributoFilter(): boolean {
+        return !!this.searchAtributo || !!this.selectedEstadoAtributo;
+    }
+
+    get atributosFiltered(): Atributo[] {
+        let list = this.atributos;
+        if (this.searchAtributo) {
+            const t = this.searchAtributo.toLowerCase();
+            list = list.filter(a => a.nombre.toLowerCase().includes(t) || a.codigoAtributo.toLowerCase().includes(t));
+        }
+        if (this.selectedEstadoAtributo !== '') {
+            const activo = this.selectedEstadoAtributo === 'true';
+            list = list.filter(a => a.activo === activo);
+        }
+        return list;
+    }
+
+    clearAtributoFilter(): void {
+        this.searchAtributo = '';
+        this.selectedEstadoAtributo = '';
+    }
+
     // Indicators
     indicatorTotal: number = 0;
     indicatorActivos: number = 0;

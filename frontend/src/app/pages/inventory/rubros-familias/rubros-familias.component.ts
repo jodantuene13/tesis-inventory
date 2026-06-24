@@ -43,7 +43,57 @@ export class RubrosFamiliasComponent implements OnInit {
     loadingAsociaciones = false;
     currentAsociaciones: FamiliaAsociaciones | null = null;
     currentFamiliaName = '';
-    
+
+    // Search/filter state
+    searchRubro = '';
+    selectedEstadoRubro = '';
+    searchFamilia = '';
+    selectedEstadoFamilia = '';
+
+    get hasRubroFilter(): boolean {
+        return !!this.searchRubro || !!this.selectedEstadoRubro;
+    }
+
+    get hasFamiliaFilter(): boolean {
+        return !!this.searchFamilia || !!this.selectedEstadoFamilia;
+    }
+
+    get rubrosFiltered(): Rubro[] {
+        let list = this.rubros;
+        if (this.searchRubro) {
+            const t = this.searchRubro.toLowerCase();
+            list = list.filter(r => r.nombre.toLowerCase().includes(t) || r.codigoRubro.toLowerCase().includes(t));
+        }
+        if (this.selectedEstadoRubro !== '') {
+            const activo = this.selectedEstadoRubro === 'true';
+            list = list.filter(r => r.activo === activo);
+        }
+        return list;
+    }
+
+    get familiasFiltered(): Familia[] {
+        let list = this.familias;
+        if (this.searchFamilia) {
+            const t = this.searchFamilia.toLowerCase();
+            list = list.filter(f => f.nombre.toLowerCase().includes(t) || f.codigoFamilia.toLowerCase().includes(t));
+        }
+        if (this.selectedEstadoFamilia !== '') {
+            const activo = this.selectedEstadoFamilia === 'true';
+            list = list.filter(f => f.activo === activo);
+        }
+        return list;
+    }
+
+    clearRubroFilter(): void {
+        this.searchRubro = '';
+        this.selectedEstadoRubro = '';
+    }
+
+    clearFamiliaFilter(): void {
+        this.searchFamilia = '';
+        this.selectedEstadoFamilia = '';
+    }
+
     // Original state for comparison
     private rubroOriginalActivo: boolean = true;
 

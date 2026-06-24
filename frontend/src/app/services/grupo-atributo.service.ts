@@ -53,6 +53,10 @@ export class GrupoAtributoService {
         return this.http.get<FamiliaGrupoAtributo[]>(`${this.apiUrl}/familia/${idFamilia}`);
     }
 
+    getFamiliasByGrupo(idGrupo: number): Observable<FamiliaGrupoAtributo[]> {
+        return this.http.get<FamiliaGrupoAtributo[]>(`${this.apiUrl}/${idGrupo}/familias`);
+    }
+
     assignToFamilia(idFamilia: number, dto: CreateFamiliaGrupoAtributo): Observable<FamiliaGrupoAtributo> {
         return this.http.post<FamiliaGrupoAtributo>(`${this.apiUrl}/familia/${idFamilia}`, dto);
     }

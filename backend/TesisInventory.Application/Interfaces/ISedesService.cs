@@ -11,5 +11,6 @@ namespace TesisInventory.Application.Interfaces
         Task<SedeDto> CreateSedeAsync(CreateSedeDto createDto);
         Task<SedeDto?> UpdateSedeAsync(int id, UpdateSedeDto updateDto);
         Task<bool> DeleteSedeAsync(int id);
+        Task TransferirStockAsync(int sedeOrigenId, int sedeDestinoId, int idUsuario);
     }
 }

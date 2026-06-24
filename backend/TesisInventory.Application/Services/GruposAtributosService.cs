@@ -149,6 +149,12 @@ namespace TesisInventory.Application.Services
             return list.Select(fg => MapFamiliaGrupoToDto(fg));
         }
 
+        public async Task<IEnumerable<FamiliaGrupoAtributoDto>> GetFamiliasByGrupoAsync(int idGrupo)
+        {
+            var list = await _grupoRepo.GetFamiliasByGrupoIdAsync(idGrupo);
+            return list.Select(fg => MapFamiliaGrupoToDto(fg));
+        }
+
         public async Task<FamiliaGrupoAtributoDto> AssignGrupoToFamiliaAsync(int idFamilia, CreateFamiliaGrupoAtributoDto dto)
         {
             var familia = await _familiaRepo.GetByIdAsync(idFamilia);

@@ -19,6 +19,7 @@ namespace TesisInventory.Application.Interfaces
 
         // Asignación a familia
         Task<IEnumerable<FamiliaGrupoAtributoDto>> GetGruposDeFamiliaAsync(int idFamilia);
+        Task<IEnumerable<FamiliaGrupoAtributoDto>> GetFamiliasByGrupoAsync(int idGrupo);
         Task<FamiliaGrupoAtributoDto> AssignGrupoToFamiliaAsync(int idFamilia, CreateFamiliaGrupoAtributoDto dto);
         Task RemoveGrupoFromFamiliaAsync(int idFamilia, int idGrupo);
     }

@@ -81,6 +81,13 @@ namespace TesisInventory.API.Controllers
             return Ok(result);
         }
 
+        [HttpGet("{idGrupo}/familias")]
+        public async Task<IActionResult> GetFamiliasByGrupo(int idGrupo)
+        {
+            var result = await _service.GetFamiliasByGrupoAsync(idGrupo);
+            return Ok(result);
+        }
+
         [HttpPost("familia/{idFamilia}")]
         public async Task<IActionResult> AssignGrupoToFamilia(int idFamilia, CreateFamiliaGrupoAtributoDto dto)
         {

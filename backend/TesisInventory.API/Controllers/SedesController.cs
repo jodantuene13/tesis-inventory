@@ -1,6 +1,9 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 using System.Threading.Tasks;
+using TesisInventory.Application.DTOs.Sedes;
+using TesisInventory.Application.Exceptions;
 using TesisInventory.Application.Interfaces;
 using TesisInventory.API.Filters;
 
@@ -16,6 +19,12 @@ namespace TesisInventory.API.Controllers
         public SedesController(ISedesService sedesService)
         {
             _sedesService = sedesService;
+        }
+
+        private int GetCurrentUserId()
+        {
+            var claim = User.FindFirstValue("id") ?? User.FindFirstValue(ClaimTypes.NameIdentifier);
+            return int.TryParse(claim, out var id) ? id : 0;
         }
 
         [HttpGet]
@@ -35,7 +44,7 @@ namespace TesisInventory.API.Controllers
 
         [HttpPost]
         [RequirePermiso("ConfiguracionAdmin_Ver")]
-        public async Task<IActionResult> Create([FromBody] TesisInventory.Application.DTOs.Sedes.CreateSedeDto createDto)
+        public async Task<IActionResult> Create([FromBody] CreateSedeDto createDto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
@@ -46,7 +55,7 @@ namespace TesisInventory.API.Controllers
 
         [HttpPut("{id}")]
         [RequirePermiso("ConfiguracionAdmin_Ver")]
-        public async Task<IActionResult> Update(int id, [FromBody] TesisInventory.Application.DTOs.Sedes.UpdateSedeDto updateDto)
+        public async Task<IActionResult> Update(int id, [FromBody] UpdateSedeDto updateDto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
@@ -65,7 +74,32 @@ namespace TesisInventory.API.Controllers
             {
                 var deleted = await _sedesService.DeleteSedeAsync(id);
                 if (!deleted) return NotFound();
+                return NoContent();
+            }
+            catch (SedeDeleteBloqueadaException ex)
+            {
+                return BadRequest(new { bloqueantes = ex.Bloqueantes });
+            }
+            catch (System.InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Microsoft.EntityFrameworkCore.DbUpdateException)
+            {
+                return StatusCode(500, new { message = "Error de base de datos al intentar eliminar la sede." });
+            }
+        }
 
+        [HttpPost("{id}/transferir-stock")]
+        [RequirePermiso("ConfiguracionAdmin_Ver")]
+        public async Task<IActionResult> TransferirStock(int id, [FromBody] TransferirStockDto dto)
+        {
+            var userId = GetCurrentUserId();
+            if (userId == 0) return Unauthorized();
+
+            try
+            {
+                await _sedesService.TransferirStockAsync(id, dto.IdSedeDestino, userId);
                 return NoContent();
             }
             catch (System.InvalidOperationException ex)

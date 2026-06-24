@@ -18,6 +18,32 @@ export class UnidadesMedidaComponent implements OnInit {
     indicatorTotal = 0;
     indicatorActivos = 0;
 
+    // Search/filter state
+    searchUnidad = '';
+    selectedEstadoUnidad = '';
+
+    get hasUnidadFilter(): boolean {
+        return !!this.searchUnidad || !!this.selectedEstadoUnidad;
+    }
+
+    get unidadesFiltered(): UnidadMedida[] {
+        let list = this.unidades;
+        if (this.searchUnidad) {
+            const t = this.searchUnidad.toLowerCase();
+            list = list.filter(u => u.nombre.toLowerCase().includes(t) || u.simbolo.toLowerCase().includes(t));
+        }
+        if (this.selectedEstadoUnidad !== '') {
+            const activo = this.selectedEstadoUnidad === 'true';
+            list = list.filter(u => u.activo === activo);
+        }
+        return list;
+    }
+
+    clearUnidadFilter(): void {
+        this.searchUnidad = '';
+        this.selectedEstadoUnidad = '';
+    }
+
     showModal = false;
     isEdit = false;
     currentId: number | null = null;

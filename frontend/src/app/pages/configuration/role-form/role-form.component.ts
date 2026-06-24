@@ -94,4 +94,36 @@ export class RoleFormComponent implements OnInit {
     objectKeys(obj: any): string[] {
         return Object.keys(obj);
     }
+
+    getPermissionLabel(permiso: Permiso): string {
+        let label = permiso.descripcion;
+
+        // Quitar prefijo "Ver Informe de " (módulo Informes)
+        label = label.replace(/^Ver Informe de /i, '');
+
+        // Quitar sufijos que repiten el nombre del módulo
+        const sufijos: Record<string, string[]> = {
+            'Solicitudes':  ['Solicitudes de Compra', 'Solicitudes'],
+            'Transferencias': ['de Transferencias', 'de Transferencia', 'en Transferencias'],
+            'Inventario':   ['de Inventario', 'de Stock Local'],
+            'Parametricas': ['de Paramétricas del Gestor'],
+            'Informes':     ['de Informes'],
+            'Inicio':       ['de Inicio'],
+        };
+
+        for (const sufijo of sufijos[permiso.modulo] ?? []) {
+            const re = new RegExp('[,\\s]*' + sufijo.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '$', 'i');
+            label = label.replace(re, '');
+        }
+
+        return label.trim() || permiso.descripcion;
+    }
+
+    getModuloLabel(modulo: string): string {
+        const labels: Record<string, string> = {
+            'Parametricas': 'Paramétricas',
+            'Configuracion': 'Configuración',
+        };
+        return labels[modulo] ?? modulo;
+    }
 }

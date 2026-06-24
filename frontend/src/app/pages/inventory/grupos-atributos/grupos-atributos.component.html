@@ -9,7 +9,6 @@
                 (ej: <strong>120*150*30mm</strong>).
             </p>
         </div>
-        <button class="btn btn-primary" (click)="openCreateModal()">+ Nuevo Grupo</button>
     </div>
 
     <!-- KPIs -->
@@ -40,178 +39,367 @@
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
-        <!-- Panel izquierdo: lista de grupos -->
-        <div class="ds-card">
-            <div class="ds-card__header">
-                <span class="ds-card__title">Grupos definidos</span>
-                <span class="text-xs text-gray-400">Clic para seleccionar y gestionar sus atributos</span>
-            </div>
-            <div class="ds-card__body" style="min-height:300px; padding:0;">
-                <div *ngIf="loadingGrupos" class="text-center text-gray-400 py-8">Cargando...</div>
-                <div *ngIf="!loadingGrupos && grupos.length === 0" class="text-center text-gray-400 py-8 px-4">
-                    No hay grupos definidos aún.
+        <!-- Panel izquierdo: tabla de grupos -->
+        <div class="bg-white/40 backdrop-blur-sm rounded-3xl shadow-2xl border border-white/40 flex flex-col overflow-hidden">
+            <div class="p-6 border-b border-gray-50 flex justify-between items-center bg-white">
+                <div class="flex items-center gap-3">
+                    <div class="w-2.5 h-10 bg-indigo-600 rounded-full shadow-[0_0_15px_rgba(79,70,229,0.5)]"></div>
+                    <h3 class="text-2xl font-bold text-gray-900 tracking-tight">Grupos de Atributos</h3>
                 </div>
-                <ul *ngIf="!loadingGrupos && grupos.length > 0" style="list-style:none; margin:0; padding:0;">
-                    <li *ngFor="let g of grupos"
-                        (click)="selectGrupo(g)"
-                        style="cursor:pointer; border-bottom: 1px solid var(--color-gray-100); padding: 0.75rem 1.25rem; display:flex; align-items:center; gap:0.5rem; transition:background 0.15s;"
-                        [style.background]="selectedGrupo?.idGrupoAtributo === g.idGrupoAtributo ? 'rgba(99,102,241,0.08)' : ''"
-                        [style.borderLeft]="selectedGrupo?.idGrupoAtributo === g.idGrupoAtributo ? '3px solid #4f46e5' : '3px solid transparent'">
-                        <div style="flex:1; min-width:0;">
-                            <div style="display:flex; align-items:center; gap:0.4rem; flex-wrap:wrap;">
-                                <span style="font-size:0.7rem; font-weight:700; color:#6366f1; font-family:monospace;">{{ g.codigoGrupo }}</span>
-                                <span style="font-weight:600; color:var(--color-gray-800);">{{ g.nombre }}</span>
-                                <span class="badge badge-neutral">sep: "{{ g.separador }}"</span>
-                                <span *ngIf="g.unidadSufijo" class="badge badge-primary">{{ g.unidadSufijo }}</span>
-                            </div>
-                            <div style="margin-top:0.2rem; font-size:0.78rem; color:var(--color-gray-400);">
-                                Preview: {{ formatPreview(g) }}
-                                (ej: 120{{ g.separador }}150{{ g.separador }}30{{ g.unidadSufijo ?? '' }})
-                            </div>
-                        </div>
-                        <div style="display:flex; align-items:center; gap:0.5rem;">
-                            <span [class]="g.activo ? 'badge badge-success' : 'badge badge-neutral'">
-                                {{ g.activo ? 'Activo' : 'Inactivo' }}
-                            </span>
-                            <button class="btn btn-secondary btn--sm btn--icon" title="Editar"
-                                    (click)="openEditModal(g, $event)">✏️</button>
-                            <button class="btn btn-danger btn--sm btn--icon" title="Desactivar"
-                                    (click)="deleteGrupo(g.idGrupoAtributo, $event)">🗑️</button>
-                        </div>
-                    </li>
-                </ul>
+                <button class="btn-vibrant pulse" (click)="openCreateModal()">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+                    </svg>
+                    Nuevo
+                </button>
+            </div>
+
+            <!-- Filter Grupos -->
+            <div class="filter-bar border-b border-gray-100 bg-white px-4 py-2" style="border-radius:0; flex-wrap:wrap; gap:0.5rem;">
+                <div class="filter-group filter-group--grow">
+                    <label class="filter-label">Buscar</label>
+                    <input type="text" class="ds-input" [(ngModel)]="searchGrupo" placeholder="Nombre o código...">
+                </div>
+                <div class="filter-group">
+                    <label class="filter-label">Estado</label>
+                    <select class="ds-input" [(ngModel)]="selectedEstadoGrupo" style="width:100px">
+                        <option value="">Todos</option>
+                        <option value="true">Activo</option>
+                        <option value="false">Inactivo</option>
+                    </select>
+                </div>
+                <div class="filter-group" *ngIf="hasGrupoFilter" style="justify-content:flex-end">
+                    <label class="filter-label">&nbsp;</label>
+                    <button class="btn btn-ghost" (click)="clearGrupoFilter()">Limpiar</button>
+                </div>
+            </div>
+
+            <div class="flex-1 flex flex-col overflow-hidden">
+            <div class="flex-1 overflow-y-auto min-h-0">
+                <table class="ds-table">
+                    <thead class="sticky top-0 z-10 bg-gray-50 shadow-sm">
+                        <tr>
+                            <th class="py-4 px-6 text-left">Código</th>
+                            <th class="py-4 px-6 text-left">Nombre</th>
+                            <th class="py-4 px-6 text-center">Separador</th>
+                            <th class="py-4 px-6 text-center">Sufijo</th>
+                            <th class="py-4 px-6 text-center">Estado</th>
+                            <th class="py-4 px-6 text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-gray-600 text-sm font-light">
+                        <tr *ngIf="loadingGrupos">
+                            <td colspan="6" class="py-4 text-center text-gray-500 italic">Cargando...</td>
+                        </tr>
+                        <tr *ngIf="!loadingGrupos && gruposFiltered.length === 0">
+                            <td colspan="6" class="py-4 text-center text-gray-400 italic">{{ hasGrupoFilter ? 'Sin resultados para la búsqueda.' : 'No hay grupos definidos aún.' }}</td>
+                        </tr>
+                        <tr *ngFor="let g of gruposFiltered"
+                            class="border-b border-gray-50 cursor-pointer transition-all duration-200"
+                            [ngClass]="{'bg-blue-50/50 border-l-4 border-blue-600': selectedGrupo?.idGrupoAtributo === g.idGrupoAtributo, 'hover:bg-gray-50': selectedGrupo?.idGrupoAtributo !== g.idGrupoAtributo}"
+                            (click)="selectGrupo(g)">
+                            <td class="py-4 px-6 text-left whitespace-nowrap">
+                                <span class="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs font-mono font-bold">{{ g.codigoGrupo }}</span>
+                            </td>
+                            <td class="py-4 px-6 text-left font-semibold text-gray-800">{{ g.nombre }}</td>
+                            <td class="py-4 px-6 text-center">
+                                <span class="bg-indigo-50 text-indigo-700 py-1 px-2 rounded text-[10px] font-bold tracking-wider border border-indigo-100">
+                                    {{ g.separador }}
+                                </span>
+                            </td>
+                            <td class="py-4 px-6 text-center text-gray-500 font-mono text-xs">
+                                {{ g.unidadSufijo || '—' }}
+                            </td>
+                            <td class="py-4 px-6 text-center">
+                                <span class="py-1 px-3 rounded-full text-[11px] font-bold uppercase tracking-tight"
+                                    [ngClass]="g.activo ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'">
+                                    {{ g.activo ? 'Activo' : 'Inactivo' }}
+                                </span>
+                            </td>
+                            <td class="py-3 px-4 text-center">
+                                <div class="flex items-center justify-center space-x-3">
+                                    <button (click)="openFamiliasModal(g, $event)"
+                                        class="transform hover:text-green-500 hover:scale-110 transition duration-150 ease-in-out text-gray-500"
+                                        title="Ver Asociaciones a Familias">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                            stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244" />
+                                        </svg>
+                                    </button>
+                                    <button (click)="openEditModal(g, $event)"
+                                        class="transform hover:text-blue-500 hover:scale-110 transition duration-150 ease-in-out text-gray-500"
+                                        title="Editar">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                            stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+                                        </svg>
+                                    </button>
+                                    <button (click)="deleteGrupo(g.idGrupoAtributo, $event)"
+                                        [disabled]="!g.activo"
+                                        class="transform hover:scale-110 transition duration-150 ease-in-out disabled:opacity-30 disabled:cursor-not-allowed"
+                                        [ngClass]="g.activo ? 'hover:text-amber-600 text-gray-500' : 'text-gray-300'"
+                                        title="Dar de baja">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 0 0 5.636 5.636m12.728 12.728A9 9 0 0 1 5.636 5.636m12.728 12.728L5.636 5.636" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
             </div>
         </div>
 
-        <!-- Panel derecho: atributos del grupo -->
-        <div class="ds-card">
-            <div class="ds-card__header">
+        <!-- Panel derecho: atributos del grupo seleccionado -->
+        <div class="bg-white/40 backdrop-blur-sm rounded-3xl shadow-2xl border border-white/40 flex flex-col overflow-hidden">
+            <div class="p-6 border-b border-indigo-100 bg-gradient-to-r from-indigo-50 to-white flex items-center gap-4" *ngIf="selectedGrupo">
+                <div class="w-14 h-14 rounded-2xl bg-indigo-600 flex items-center justify-center text-white shadow-[0_10px_20px_rgba(79,70,229,0.3)] transform -rotate-3 hover:rotate-0 transition-transform flex-shrink-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-7 h-7">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 12h16.5m-16.5 3.75h16.5M3.75 19.5h16.5M5.625 4.5h12.75a1.875 1.875 0 0 1 0 3.75H5.625a1.875 1.875 0 0 1 0-3.75Z" />
+                    </svg>
+                </div>
                 <div>
-                    <span class="ds-card__title">
-                        <span *ngIf="!selectedGrupo">Seleccioná un grupo</span>
-                        <span *ngIf="selectedGrupo">Atributos de "{{ selectedGrupo.nombre }}"</span>
-                    </span>
-                    <div *ngIf="selectedGrupo" style="font-size:0.75rem; color:var(--color-gray-400); margin-top:0.2rem;">
+                    <h3 class="text-xs font-black text-indigo-400 uppercase tracking-widest mb-1">Atributos del Grupo</h3>
+                    <p class="text-2xl font-black text-gray-900 leading-none">{{ selectedGrupo.nombre }}</p>
+                    <p class="text-xs text-gray-400 mt-1">
                         Formato: <strong>{{ formatPreview(selectedGrupo) }}</strong>
                         → ej: 120{{ selectedGrupo.separador }}150{{ selectedGrupo.separador }}30{{ selectedGrupo.unidadSufijo ?? '' }}
-                    </div>
+                    </p>
                 </div>
             </div>
-            <div class="ds-card__body" style="min-height:300px;">
-                <div *ngIf="!selectedGrupo" class="text-center text-gray-400 py-12">
-                    Seleccioná un grupo de la lista para gestionar sus atributos.
-                </div>
-
+            <div class="p-6 border-b border-gray-50 flex items-center justify-center bg-white min-h-[80px]" *ngIf="!selectedGrupo">
+                <p class="text-gray-400 italic text-sm">Seleccioná un grupo de la lista para gestionar sus atributos.</p>
+            </div>
+            <div class="flex-1 overflow-y-auto p-6">
                 <ng-container *ngIf="selectedGrupo">
+
                     <!-- Items actuales -->
-                    <p class="section-title">Atributos en el grupo (en orden)</p>
+                    <h4 class="text-md font-bold text-gray-700 mb-3 border-b border-gray-200 pb-2">Atributos en el grupo (en orden)</h4>
                     <div *ngIf="selectedGrupo.items.length === 0"
-                         style="font-size:0.85rem; color:var(--color-gray-400); margin-bottom:1rem;">
+                         class="text-sm text-gray-400 mb-4 italic">
                         Sin atributos. Agregá uno abajo.
                     </div>
                     <ul *ngIf="selectedGrupo.items.length > 0"
-                        style="list-style:none; padding:0; margin:0 0 1rem 0; border:1px solid var(--color-gray-100); border-radius:8px; overflow:hidden;">
+                        class="bg-white border border-gray-200 rounded-md divide-y divide-gray-200 shadow-sm mb-4">
                         <li *ngFor="let item of selectedGrupo.items"
-                            style="display:flex; align-items:center; gap:0.5rem; padding:0.625rem 1rem; border-bottom:1px solid var(--color-gray-100);">
-                            <span class="badge badge-neutral">Orden {{ item.orden }}</span>
-                            <span style="font-weight:600; flex:1;">{{ item.nombreAtributo }}</span>
-                            <span class="badge badge-primary">{{ item.tipoDatoAtributo }}</span>
-                            <span *ngIf="item.simboloUnidad" style="font-size:0.75rem; color:var(--color-gray-400);">({{ item.simboloUnidad }})</span>
-                            <button class="btn btn-danger btn--sm" (click)="removeItemFromGrupo(item.idAtributo)">✕ Quitar</button>
+                            class="flex items-center gap-3 p-3 hover:bg-gray-50 transition-colors">
+                            <span class="px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-xs font-mono">{{ item.orden }}</span>
+                            <span class="font-semibold text-gray-800 flex-1 text-sm">{{ item.nombreAtributo }}</span>
+                            <span class="bg-indigo-50 text-indigo-700 py-0.5 px-2 rounded text-[10px] font-bold border border-indigo-100">{{ item.tipoDatoAtributo }}</span>
+                            <span *ngIf="item.simboloUnidad" class="text-xs text-gray-400 font-mono">({{ item.simboloUnidad }})</span>
+                            <button
+                                class="text-red-500 hover:text-red-700 hover:bg-red-50 px-2 py-1 rounded transition text-xs font-semibold"
+                                (click)="removeItemFromGrupo(item.idAtributo)">Quitar</button>
                         </li>
                     </ul>
 
                     <!-- Agregar item -->
-                    <div *ngIf="selectedGrupo.activo" style="background:var(--color-gray-50); border-radius:8px; padding:1rem;">
-                        <p class="section-title" style="margin-bottom:0.5rem;">Agregar atributo al grupo</p>
-                        <div style="display:flex; gap:0.5rem; flex-wrap:wrap; align-items:center;">
+                    <div *ngIf="selectedGrupo.activo" class="bg-gray-50 border border-dashed border-gray-300 p-4 rounded-md mt-4">
+                        <h5 class="font-bold text-gray-700 mb-3 text-sm">Agregar atributo al grupo</h5>
+                        <div class="flex gap-2 flex-wrap items-center">
                             <select [(ngModel)]="selectedAtributoIdParaItem"
                                     (change)="onAtributoParaItemChange()"
-                                    style="flex:1; min-width:160px;">
+                                    class="flex-1 min-w-[160px] px-3 py-2 border border-gray-300 rounded-md text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
                                 <option [ngValue]="null">-- Seleccioná atributo --</option>
                                 <option *ngFor="let a of atributosNumericos"
                                         [ngValue]="a.idAtributo"
                                         [disabled]="atributoYaEnGrupo(a.idAtributo)">
-                                    {{ a.nombre }} ({{ a.tipoDato }})
-                                    {{ atributoYaEnGrupo(a.idAtributo) ? ' ✓' : '' }}
+                                    {{ a.nombre }} ({{ a.tipoDato }}){{ atributoYaEnGrupo(a.idAtributo) ? ' ✓' : '' }}
                                 </option>
                             </select>
-                            <select [(ngModel)]="idUnidadMedidaParaItem" style="min-width:130px;"
+                            <select [(ngModel)]="idUnidadMedidaParaItem"
                                     [disabled]="!selectedAtributoIdParaItem || unidadesParaItemSeleccionado.length === 0"
-                                    title="Unidad para este atributo en el grupo">
-                                <option [ngValue]="null">
-                                    {{ unidadesParaItemSeleccionado.length === 0 ? 'Sin unidades definidas' : 'Usar sufijo del grupo' }}
-                                </option>
+                                    class="min-w-[130px] px-3 py-2 border border-gray-300 rounded-md text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed">
+                                <option [ngValue]="null">{{ unidadesParaItemSeleccionado.length === 0 ? 'Sin unidades' : 'Sufijo del grupo' }}</option>
                                 <option *ngFor="let u of unidadesParaItemSeleccionado" [ngValue]="u.idUnidadMedida">
                                     {{ u.simbolo }} — {{ u.nombre }}
                                 </option>
                             </select>
-                            <button class="btn btn-primary" (click)="addItemToGrupo()">Agregar</button>
+                            <button class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded shadow transition text-sm"
+                                    (click)="addItemToGrupo()">Agregar</button>
                         </div>
-                        <p style="font-size:0.73rem; color:var(--color-gray-400); margin-top:0.4rem;">
-                            Solo atributos NUMBER o DECIMAL. La unidad elegida por item anula el sufijo global del grupo.
-                        </p>
+                        <p class="text-xs text-gray-400 mt-2">Solo NUMBER o DECIMAL. La unidad por ítem anula el sufijo global del grupo.</p>
                     </div>
+
                 </ng-container>
             </div>
         </div>
 
         <!-- Sección asignación a familia -->
-        <div class="ds-card lg:col-span-2">
-            <div class="ds-card__header">
+        <div class="bg-white/40 backdrop-blur-sm rounded-3xl shadow-2xl border border-white/40 flex flex-col overflow-hidden lg:col-span-2">
+            <div class="p-6 border-b border-gray-50 flex items-center gap-3 bg-white">
+                <div class="w-2.5 h-10 bg-indigo-600 rounded-full shadow-[0_0_15px_rgba(79,70,229,0.5)]"></div>
                 <div>
-                    <span class="ds-card__title">Configuración de Grupos por Familia</span>
-                    <div style="font-size:0.75rem; color:var(--color-gray-400); margin-top:0.2rem;">
-                        Seleccioná un grupo arriba y una familia abajo para asignarlo.
-                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 tracking-tight">Configuración de Grupos por Familia</h3>
+                    <p class="text-xs text-gray-400 mt-0.5">Seleccioná un grupo de la lista y una familia para asignarlo.</p>
                 </div>
             </div>
-            <div class="ds-card__body">
+            <div class="p-6">
+
                 <!-- Selector de familia -->
-                <div style="display:flex; gap:0.75rem; flex-wrap:wrap; align-items:center; margin-bottom:1rem;">
-                    <select [(ngModel)]="selectedRubroId" (change)="onRubroChange()">
+                <div class="flex gap-3 flex-wrap items-center mb-5">
+                    <select class="px-3 py-2 border border-gray-300 rounded-md text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            [(ngModel)]="selectedRubroId" (change)="onRubroChange()">
                         <option [ngValue]="null">-- Rubro --</option>
                         <option *ngFor="let r of rubros" [value]="r.idRubro">{{ r.nombre }}</option>
                     </select>
-                    <select [(ngModel)]="selectedFamiliaId" (change)="onFamiliaChange()" [disabled]="!selectedRubroId">
+                    <select class="px-3 py-2 border border-gray-300 rounded-md text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                            [(ngModel)]="selectedFamiliaId" (change)="onFamiliaChange()" [disabled]="!selectedRubroId">
                         <option [ngValue]="null">-- Familia --</option>
                         <option *ngFor="let f of familiasSelect" [value]="f.idFamilia">{{ f.nombre }}</option>
                     </select>
-                    <label *ngIf="selectedFamiliaId" style="display:flex; align-items:center; gap:0.4rem; text-transform:none; font-size:0.85rem;">
-                        <input type="checkbox" [(ngModel)]="configObligatorio" style="width:auto; height:auto;" />
+                    <label *ngIf="selectedFamiliaId" class="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
+                        <input type="checkbox" [(ngModel)]="configObligatorio" class="h-4 w-4 text-blue-600 border-gray-300 rounded" style="width:auto;height:auto;" />
                         Obligatorio
                     </label>
-                    <button class="btn btn-primary"
-                            [disabled]="!selectedFamiliaId || !selectedGrupo"
-                            (click)="asignarGrupoAFamilia()">
+                    <button
+                        class="bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-300 disabled:cursor-not-allowed text-white font-bold py-2 px-4 rounded shadow transition text-sm"
+                        [disabled]="!selectedFamiliaId || !selectedGrupo"
+                        (click)="asignarGrupoAFamilia()">
                         Asignar "{{ selectedGrupo?.nombre ?? '—' }}" a {{ selectedFamiliaNombre || 'familia' }}
                     </button>
                 </div>
 
-                <!-- Grupos ya asignados -->
+                <!-- Grupos ya asignados a la familia seleccionada -->
                 <div *ngIf="selectedFamiliaId">
-                    <p class="section-title">Grupos asignados a <strong>{{ selectedFamiliaNombre }}</strong></p>
-                    <div *ngIf="gruposDeFamilia.length === 0"
-                         style="font-size:0.85rem; color:var(--color-gray-400);">
+                    <h4 class="text-sm font-bold text-gray-700 border-b border-gray-200 pb-2 mb-3">
+                        Grupos asignados a <span class="text-indigo-600">{{ selectedFamiliaNombre }}</span>
+                    </h4>
+                    <div *ngIf="gruposDeFamilia.length === 0" class="text-sm text-gray-400 italic">
                         Esta familia no tiene grupos asignados.
                     </div>
                     <ul *ngIf="gruposDeFamilia.length > 0"
-                        style="list-style:none; padding:0; margin:0; border:1px solid var(--color-gray-100); border-radius:8px; overflow:hidden;">
+                        class="bg-white border border-gray-200 rounded-md divide-y divide-gray-200 shadow-sm">
                         <li *ngFor="let fg of gruposDeFamilia"
-                            style="display:flex; align-items:center; gap:0.5rem; padding:0.625rem 1rem; border-bottom:1px solid var(--color-gray-100);">
-                            <span style="font-weight:600; flex:1;">{{ fg.nombreGrupo }}</span>
-                            <span class="badge badge-neutral">{{ fg.separador }}</span>
-                            <span *ngIf="fg.unidadSufijo" class="badge badge-primary">{{ fg.unidadSufijo }}</span>
-                            <span *ngIf="fg.obligatorio" class="badge badge-warning">Obligatorio</span>
-                            <span style="font-size:0.78rem; color:var(--color-gray-400);">{{ formatGrupoDisplay(fg) }}</span>
-                            <button class="btn btn-danger btn--sm"
-                                    (click)="removerGrupoDeFamilia(fg.idGrupoAtributo)">Quitar</button>
+                            class="flex items-center gap-3 p-3 hover:bg-gray-50 transition-colors">
+                            <span class="font-semibold text-gray-800 flex-1 text-sm">{{ fg.nombreGrupo }}</span>
+                            <span class="bg-indigo-50 text-indigo-700 py-0.5 px-2 rounded text-[10px] font-bold border border-indigo-100">{{ fg.separador }}</span>
+                            <span *ngIf="fg.unidadSufijo" class="text-xs font-mono text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded">{{ fg.unidadSufijo }}</span>
+                            <span *ngIf="fg.obligatorio" class="py-0.5 px-2 rounded-full text-[11px] font-bold bg-amber-100 text-amber-700">Obligatorio</span>
+                            <span class="text-xs text-gray-400">{{ formatGrupoDisplay(fg) }}</span>
+                            <button
+                                class="text-red-600 hover:text-red-800 hover:bg-red-50 border border-transparent hover:border-red-200 px-3 py-1.5 rounded transition text-xs font-bold"
+                                (click)="removerGrupoDeFamilia(fg.idGrupoAtributo)">Quitar</button>
                         </li>
                     </ul>
                 </div>
             </div>
         </div>
 
+    </div>
+</div>
+
+<!-- Modal Ver Familias Asociadas -->
+<div class="fixed inset-0 bg-black bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4"
+    *ngIf="showFamiliasModal">
+    <div class="relative mx-auto p-6 border w-full max-w-4xl shadow-lg rounded-md bg-white">
+
+        <!-- Header -->
+        <div class="flex justify-between items-center mb-5 border-b pb-3">
+            <h3 class="text-xl font-bold text-gray-800">
+                Asociaciones a Familias:
+                <span class="text-blue-600">{{ selectedGrupoParaFamilias?.nombre }}</span>
+            </h3>
+            <button
+                class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 inline-flex justify-center items-center"
+                (click)="closeFamiliasModal()">
+                <svg class="w-3 h-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
+                </svg>
+            </button>
+        </div>
+
+        <!-- Dos columnas -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+            <!-- Columna izquierda: familias asociadas -->
+            <div>
+                <h4 class="text-sm font-bold text-gray-700 uppercase tracking-wide mb-3 border-b border-gray-200 pb-2">
+                    Familias asociadas
+                </h4>
+
+                <div *ngIf="loadingFamiliasDelGrupo" class="flex justify-center items-center py-8">
+                    <span class="text-gray-500 italic text-sm">Cargando...</span>
+                </div>
+
+                <div *ngIf="!loadingFamiliasDelGrupo && familiasDelGrupo.length === 0"
+                    class="bg-blue-50 border border-blue-200 text-blue-800 p-4 rounded-md text-sm">
+                    Este grupo no está asignado a ninguna familia actualmente.
+                </div>
+
+                <ul *ngIf="!loadingFamiliasDelGrupo && familiasDelGrupo.length > 0"
+                    class="bg-white border border-gray-200 rounded-md divide-y divide-gray-200 shadow-sm max-h-72 overflow-y-auto">
+                    <li *ngFor="let fg of familiasDelGrupo"
+                        class="flex items-center justify-between p-3 hover:bg-gray-50 transition-colors">
+                        <div class="flex flex-col">
+                            <span class="font-bold text-sm text-gray-800">{{ fg.nombreFamilia }}</span>
+                            <span class="text-xs" [ngClass]="fg.obligatorio ? 'text-red-500 font-semibold' : 'text-gray-400'">
+                                {{ fg.obligatorio ? 'Obligatorio' : 'Opcional' }}
+                            </span>
+                        </div>
+                        <button
+                            class="text-red-600 hover:text-red-800 hover:bg-red-50 border border-transparent hover:border-red-200 px-3 py-1.5 rounded transition text-xs font-bold shadow-sm"
+                            (click)="desasociarFamiliaDesdeModal(fg.idFamilia, fg.idGrupoAtributo)">
+                            Desasociar de Familia
+                        </button>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Columna derecha: asociar a familia -->
+            <div>
+                <h4 class="text-sm font-bold text-gray-700 uppercase tracking-wide mb-3 border-b border-gray-200 pb-2">
+                    Asociar a Familia
+                </h4>
+
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Rubro</label>
+                    <select
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-sm"
+                        [(ngModel)]="modalRubroId" (change)="onModalRubroChange()">
+                        <option [ngValue]="null">-- Rubro --</option>
+                        <option *ngFor="let r of rubros" [value]="r.idRubro">{{ r.nombre }}</option>
+                    </select>
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Familia</label>
+                    <select
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-sm disabled:bg-gray-100 disabled:cursor-not-allowed"
+                        [(ngModel)]="modalFamiliaId" [disabled]="!modalRubroId">
+                        <option [ngValue]="null">-- Familia --</option>
+                        <option *ngFor="let f of modalFamiliasSelect" [value]="f.idFamilia">{{ f.nombre }}</option>
+                    </select>
+                </div>
+
+                <div class="mb-5 flex items-center gap-2">
+                    <input type="checkbox" [(ngModel)]="modalObligatorio" id="modalObligatorio"
+                        class="h-4 w-4 text-blue-600 border-gray-300 rounded" style="width:auto; height:auto;" />
+                    <label for="modalObligatorio" class="text-sm text-gray-700 cursor-pointer" style="text-transform:none; font-weight:500; margin:0;">
+                        Obligatorio
+                    </label>
+                </div>
+
+                <button
+                    class="w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-300 disabled:cursor-not-allowed text-white font-bold py-2 px-4 rounded shadow transition text-sm"
+                    [disabled]="!modalFamiliaId"
+                    (click)="asignarGrupoDesdeModal()">
+                    Asignar "{{ selectedGrupoParaFamilias?.nombre ?? '—' }}" a {{ modalFamiliaNombre || 'familia' }}
+                </button>
+            </div>
+
+        </div>
+
+        <div class="flex justify-end gap-3 mt-6 pt-4 border-t border-gray-100">
+            <button
+                class="px-5 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition font-medium text-sm"
+                (click)="closeFamiliasModal()">Cerrar</button>
+        </div>
     </div>
 </div>
 

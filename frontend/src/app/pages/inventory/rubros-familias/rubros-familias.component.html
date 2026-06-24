@@ -73,6 +73,26 @@
                 </button>
             </div>
 
+            <!-- Filter Rubros -->
+            <div class="filter-bar border-b border-gray-100 bg-white px-4 py-2" style="border-radius:0; flex-wrap:wrap; gap:0.5rem;">
+                <div class="filter-group filter-group--grow">
+                    <label class="filter-label">Buscar</label>
+                    <input type="text" class="ds-input" [(ngModel)]="searchRubro" placeholder="Nombre o código...">
+                </div>
+                <div class="filter-group">
+                    <label class="filter-label">Estado</label>
+                    <select class="ds-input" [(ngModel)]="selectedEstadoRubro" style="width:100px">
+                        <option value="">Todos</option>
+                        <option value="true">Activo</option>
+                        <option value="false">Inactivo</option>
+                    </select>
+                </div>
+                <div class="filter-group" *ngIf="hasRubroFilter" style="justify-content:flex-end">
+                    <label class="filter-label">&nbsp;</label>
+                    <button class="btn btn-ghost" (click)="clearRubroFilter()">Limpiar</button>
+                </div>
+            </div>
+
             <div class="flex-1 flex flex-col overflow-hidden">
                 <div class="flex-1 overflow-y-auto min-h-0">
                     <table class="ds-table">
@@ -85,7 +105,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr *ngFor="let r of rubros"
+                            <tr *ngFor="let r of rubrosFiltered"
                                 class="cursor-pointer"
                                 [ngClass]="{'bg-blue-50/50 border-l-2 border-blue-600': r.idRubro === selectedRubroId}"
                                 (click)="selectRubro(r.idRubro)">
@@ -127,11 +147,11 @@
                         <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto mb-4"></div>
                         <p>Cargando rubros...</p>
                     </div>
-                    <div *ngIf="!loadingRubros && rubros.length === 0" class="ds-table-empty">
+                    <div *ngIf="!loadingRubros && rubrosFiltered.length === 0" class="ds-table-empty">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                         </svg>
-                        <p>No hay rubros creados.</p>
+                        <p>{{ hasRubroFilter ? 'Sin resultados para la búsqueda.' : 'No hay rubros creados.' }}</p>
                     </div>
                 </div>
             </div>
@@ -156,6 +176,26 @@
                 </button>
             </div>
 
+            <!-- Filter Familias -->
+            <div class="filter-bar border-b border-gray-100 bg-white px-4 py-2" style="border-radius:0; flex-wrap:wrap; gap:0.5rem;">
+                <div class="filter-group filter-group--grow">
+                    <label class="filter-label">Buscar</label>
+                    <input type="text" class="ds-input" [(ngModel)]="searchFamilia" placeholder="Nombre o código...">
+                </div>
+                <div class="filter-group">
+                    <label class="filter-label">Estado</label>
+                    <select class="ds-input" [(ngModel)]="selectedEstadoFamilia" style="width:100px">
+                        <option value="">Todos</option>
+                        <option value="true">Activo</option>
+                        <option value="false">Inactivo</option>
+                    </select>
+                </div>
+                <div class="filter-group" *ngIf="hasFamiliaFilter" style="justify-content:flex-end">
+                    <label class="filter-label">&nbsp;</label>
+                    <button class="btn btn-ghost" (click)="clearFamiliaFilter()">Limpiar</button>
+                </div>
+            </div>
+
             <div class="flex-1 flex flex-col overflow-hidden">
                 <div *ngIf="!selectedRubroId"
                     class="flex items-center justify-center h-full text-gray-500 italic p-6 text-center">
@@ -173,7 +213,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr *ngFor="let f of familias">
+                            <tr *ngFor="let f of familiasFiltered">
                                 <td><span class="cell-mono bg-gray-100 rounded px-2 py-1 border border-gray-200">{{ f.codigoFamilia }}</span></td>
                                 <td class="font-bold text-gray-800">{{ f.nombre }}</td>
                                 <td style="text-align:center">
@@ -221,11 +261,11 @@
                         <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto mb-4"></div>
                         <p>Cargando familias...</p>
                     </div>
-                    <div *ngIf="!loadingFamilias && familias.length === 0" class="ds-table-empty">
+                    <div *ngIf="!loadingFamilias && familiasFiltered.length === 0" class="ds-table-empty">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                         </svg>
-                        <p>No hay familias en este rubro.</p>
+                        <p>{{ hasFamiliaFilter ? 'Sin resultados para la búsqueda.' : 'No hay familias en este rubro.' }}</p>
                     </div>
                 </div>
             </div>

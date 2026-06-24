@@ -39,12 +39,31 @@
         <div class="ds-card__header">
             <span class="ds-card__title">Unidades registradas</span>
         </div>
+        <!-- Filter embedded -->
+        <div class="filter-bar border-b border-gray-100 bg-white px-4 py-2" style="border-radius:0; flex-wrap:wrap; gap:0.5rem;">
+            <div class="filter-group filter-group--grow">
+                <label class="filter-label">Buscar</label>
+                <input type="text" class="ds-input" [(ngModel)]="searchUnidad" placeholder="Nombre o símbolo...">
+            </div>
+            <div class="filter-group">
+                <label class="filter-label">Estado</label>
+                <select class="ds-input" [(ngModel)]="selectedEstadoUnidad" style="width:100px">
+                    <option value="">Todos</option>
+                    <option value="true">Activo</option>
+                    <option value="false">Inactivo</option>
+                </select>
+            </div>
+            <div class="filter-group" *ngIf="hasUnidadFilter" style="justify-content:flex-end">
+                <label class="filter-label">&nbsp;</label>
+                <button class="btn btn-ghost" (click)="clearUnidadFilter()">Limpiar</button>
+            </div>
+        </div>
         <div class="ds-card__body" style="padding:0;">
             <div *ngIf="loading" class="text-center text-gray-400 py-8">Cargando...</div>
-            <div *ngIf="!loading && unidades.length === 0" class="text-center text-gray-400 py-8">
-                No hay unidades de medida registradas.
+            <div *ngIf="!loading && unidadesFiltered.length === 0" class="text-center text-gray-400 py-8">
+                {{ hasUnidadFilter ? 'Sin resultados para la búsqueda.' : 'No hay unidades de medida registradas.' }}
             </div>
-            <table *ngIf="!loading && unidades.length > 0" class="ds-table">
+            <table *ngIf="!loading && unidadesFiltered.length > 0" class="ds-table">
                 <thead>
                     <tr>
                         <th>Símbolo</th>
@@ -54,7 +73,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr *ngFor="let u of unidades">
+                    <tr *ngFor="let u of unidadesFiltered">
                         <td class="cell-mono">{{ u.simbolo }}</td>
                         <td class="cell-primary">{{ u.nombre }}</td>
                         <td>

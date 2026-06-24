@@ -78,6 +78,26 @@
                 </button>
             </div>
 
+            <!-- Filter Atributos -->
+            <div class="filter-bar border-b border-gray-100 bg-white px-4 py-2" style="border-radius:0; flex-wrap:wrap; gap:0.5rem;">
+                <div class="filter-group filter-group--grow">
+                    <label class="filter-label">Buscar</label>
+                    <input type="text" class="ds-input" [(ngModel)]="searchAtributo" placeholder="Nombre o código...">
+                </div>
+                <div class="filter-group">
+                    <label class="filter-label">Estado</label>
+                    <select class="ds-input" [(ngModel)]="selectedEstadoAtributo" style="width:100px">
+                        <option value="">Todos</option>
+                        <option value="true">Activo</option>
+                        <option value="false">Inactivo</option>
+                    </select>
+                </div>
+                <div class="filter-group" *ngIf="hasAtributoFilter" style="justify-content:flex-end">
+                    <label class="filter-label">&nbsp;</label>
+                    <button class="btn btn-ghost" (click)="clearAtributoFilter()">Limpiar</button>
+                </div>
+            </div>
+
             <div class="flex-1 flex flex-col overflow-hidden">
                 <div class="flex-1 overflow-y-auto min-h-0">
                     <table class="ds-table">
@@ -95,7 +115,10 @@
                         <tr *ngIf="loadingAtributos">
                             <td colspan="6" class="py-4 text-center text-gray-500 italic">Cargando...</td>
                         </tr>
-                        <tr *ngFor="let a of atributos"
+                        <tr *ngIf="!loadingAtributos && atributosFiltered.length === 0">
+                            <td colspan="6" class="py-4 text-center text-gray-400 italic">{{ hasAtributoFilter ? 'Sin resultados para la búsqueda.' : 'No hay atributos creados.' }}</td>
+                        </tr>
+                        <tr *ngFor="let a of atributosFiltered"
                             class="border-b border-gray-50 cursor-pointer transition-all duration-200 group"
                             [ngClass]="{'bg-blue-50/50 border-l-4 border-blue-600': a.idAtributo === selectedAtributo?.idAtributo, 'hover:bg-gray-50': a.idAtributo !== selectedAtributo?.idAtributo}"
                             (click)="selectAtributo(a)">

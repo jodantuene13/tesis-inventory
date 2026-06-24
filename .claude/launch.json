@@ -5,6 +5,7 @@
       "name": "frontend",
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "start"],
+      "cwd": "frontend",
       "port": 4200,
       "autoPort": false
     }

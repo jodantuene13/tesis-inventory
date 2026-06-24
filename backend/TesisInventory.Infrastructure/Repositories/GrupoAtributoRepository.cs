@@ -132,6 +132,16 @@ namespace TesisInventory.Infrastructure.Repositories
                 .ToListAsync();
         }
 
+        public async Task<IEnumerable<FamiliaGrupoAtributo>> GetFamiliasByGrupoIdAsync(int idGrupo)
+        {
+            return await _context.FamiliaGrupoAtributo
+                .Include(fg => fg.Familia)
+                .Include(fg => fg.GrupoAtributo)
+                .Where(fg => fg.IdGrupoAtributo == idGrupo && fg.Activo)
+                .OrderBy(fg => fg.Familia!.Nombre)
+                .ToListAsync();
+        }
+
         public async Task<FamiliaGrupoAtributo?> GetFamiliaGrupoAsync(int idFamilia, int idGrupo)
         {
             return await _context.FamiliaGrupoAtributo

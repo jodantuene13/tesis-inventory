@@ -23,6 +23,7 @@ namespace TesisInventory.Domain.Interfaces
 
         // Familia-Grupo
         Task<IEnumerable<FamiliaGrupoAtributo>> GetGruposByFamiliaIdAsync(int idFamilia);
+        Task<IEnumerable<FamiliaGrupoAtributo>> GetFamiliasByGrupoIdAsync(int idGrupo);
         Task<FamiliaGrupoAtributo?> GetFamiliaGrupoAsync(int idFamilia, int idGrupo);
         Task<FamiliaGrupoAtributo> AddFamiliaGrupoAsync(FamiliaGrupoAtributo familiaGrupo);
         Task UpdateFamiliaGrupoAsync(FamiliaGrupoAtributo familiaGrupo);

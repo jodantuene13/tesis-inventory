@@ -38,7 +38,7 @@ export class ProductosComponent implements OnInit {
     searchTerm: string = '';
     selectedRubroId: number | null = null;
     selectedFamiliaId: number | null = null;
-    selectedEstado: string = '';
+    selectedEstado: string = 'true';
     selectedUM: string = '';
     hasSearched: boolean = false;
     filterFamilias: Familia[] = [];

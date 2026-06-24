@@ -11,5 +11,6 @@ namespace TesisInventory.Domain.Interfaces
         Task<Sede> AddAsync(Sede sede);
         Task UpdateAsync(Sede sede);
         Task DeleteAsync(Sede sede);
+        Task SoftDeleteAsync(int id);
     }
 }

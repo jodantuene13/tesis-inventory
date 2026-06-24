@@ -31,4 +31,8 @@ export class SedeService {
     delete(id: number): Observable<void> {
         return this.http.delete<void>(`${this.apiUrl}/${id}`);
     }
+
+    transferirStock(id: number, idSedeDestino: number): Observable<void> {
+        return this.http.post<void>(`${this.apiUrl}/${id}/transferir-stock`, { idSedeDestino });
+    }
 }

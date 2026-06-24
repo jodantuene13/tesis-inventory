@@ -1163,8 +1163,10 @@ label {
 }
 
 /* ---- Tailwind utility overrides — backgrounds ---- */
-[data-theme="dark"] .bg-white {
-  background-color: #1e293b !important;
+@media screen {
+  [data-theme="dark"] .bg-white {
+    background-color: var(--surface-raised) !important;
+  }
 }
 [data-theme="dark"] .bg-white\/40 {
   background-color: rgba(30,41,59,0.85) !important;

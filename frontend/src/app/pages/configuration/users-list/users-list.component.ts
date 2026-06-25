@@ -86,16 +86,25 @@ export class UsersListComponent implements OnInit {
     }
 
     toggleStatus(user: User): void {
-        this.userService.changeStatus(user.idUsuario, !user.estado).subscribe(updatedUser => {
-            // Update local state directly or reload
-            user.estado = updatedUser.estado;
+        const nuevoEstado = !user.estado;
+        const mensaje = nuevoEstado
+            ? `¿Desea activar al usuario "${user.nombreUsuario}"?`
+            : `¿Desea desactivar al usuario "${user.nombreUsuario}"?`;
+        if (!confirm(mensaje)) return;
+        this.userService.changeStatus(user.idUsuario, nuevoEstado).subscribe({
+            next: updatedUser => { user.estado = updatedUser.estado; },
+            error: () => alert('No se pudo cambiar el estado del usuario.')
         });
     }
 
     deleteUser(id: number): void {
-        if (confirm('¿Está seguro de que desea eliminar este usuario?')) {
-            this.userService.delete(id).subscribe(() => {
-                this.loadUsers();
+        if (confirm('¿Está seguro de que desea eliminar este usuario? Esta acción no se puede deshacer.')) {
+            this.userService.delete(id).subscribe({
+                next: () => this.loadUsers(),
+                error: (err) => {
+                    const msg = err?.error?.message || 'No se pudo eliminar el usuario.';
+                    alert(msg);
+                }
             });
         }
     }

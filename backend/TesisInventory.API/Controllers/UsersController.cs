@@ -75,9 +75,16 @@ namespace TesisInventory.API.Controllers
         [RequirePermiso("ConfiguracionAdmin_Ver")]
         public async Task<IActionResult> Delete(int id)
         {
-            var result = await _usersService.DeleteUserAsync(id);
-            if (!result) return NotFound();
-            return NoContent();
+            try
+            {
+                var result = await _usersService.DeleteUserAsync(id);
+                if (!result) return NotFound();
+                return NoContent();
+            }
+            catch (Microsoft.EntityFrameworkCore.DbUpdateException)
+            {
+                return Conflict(new { message = "No se puede eliminar el usuario porque tiene registros asociados en el sistema (movimientos, transferencias u operaciones)." });
+            }
         }
 
         [HttpPatch("{id}/status")]

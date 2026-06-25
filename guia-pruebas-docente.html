@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Guía de Pruebas de Concepto — Gestor de Inventario</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #22263a;
+    --border: #2e3354;
+    --accent: #6c8fff;
+    --accent2: #a78bfa;
+    --green: #34d399;
+    --yellow: #fbbf24;
+    --red: #f87171;
+    --text: #e2e8f0;
+    --muted: #8892b0;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    padding: 32px 20px;
+    font-size: 14px;
+    max-width: 860px;
+    margin: 0 auto;
+  }
+  .header {
+    text-align: center;
+    margin-bottom: 24px;
+  }
+  .header h1 {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--accent);
+    margin-bottom: 6px;
+  }
+  .header p { color: var(--muted); font-size: 13px; }
+
+  .scenario-banner {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--accent2);
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-bottom: 20px;
+  }
+  .scenario-banner .label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 4px; }
+  .scenario-banner .text { font-size: 13px; line-height: 1.6; }
+  .scenario-banner strong { color: var(--accent2); }
+
+  .phases { display: flex; flex-direction: column; gap: 14px; }
+
+  .phase {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    transition: border-color .2s;
+  }
+  .phase:hover { border-color: var(--accent); }
+
+  .phase-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 14px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .phase-num {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 13px;
+    flex-shrink: 0;
+  }
+  .phase-title { flex: 1; }
+  .phase-title .name { font-weight: 600; font-size: 14px; }
+  .phase-title .sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .phase-badge {
+    font-size: 10px;
+    padding: 3px 8px;
+    border-radius: 20px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .phase-arrow { color: var(--muted); font-size: 12px; transition: transform .2s; }
+  .phase.open .phase-arrow { transform: rotate(90deg); }
+
+  .phase-body {
+    display: none;
+    padding: 0 14px 14px;
+    border-top: 1px solid var(--border);
+  }
+  .phase.open .phase-body { display: block; }
+
+  .steps { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; }
+  .step {
+    display: flex;
+    gap: 10px;
+    background: var(--surface2);
+    border-radius: 8px;
+    padding: 10px 12px;
+  }
+  .step-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+  .step-title { font-weight: 600; font-size: 13px; margin-bottom: 3px; }
+  .step-desc { font-size: 12px; color: var(--muted); line-height: 1.5; }
+  .step-path {
+    display: inline-block;
+    margin-top: 5px;
+    background: #1e2233;
+    border: 1px solid #3a4060;
+    border-radius: 4px;
+    padding: 2px 8px;
+    font-size: 11px;
+    font-family: monospace;
+    color: var(--accent);
+  }
+  .step-tip {
+    margin-top: 6px;
+    font-size: 11px;
+    color: var(--yellow);
+  }
+  .check-row {
+    display: flex; align-items: center; gap: 6px;
+    margin-top: 6px;
+    cursor: pointer;
+  }
+  .check-row input[type=checkbox] { accent-color: var(--green); width: 14px; height: 14px; cursor: pointer; }
+  .check-label { font-size: 11px; color: var(--muted); cursor: pointer; }
+  .check-row.done .check-label { text-decoration: line-through; color: #4a5568; }
+
+  .progress-bar-wrap {
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    margin-top: 8px;
+    overflow: hidden;
+  }
+  .progress-bar-fill { height: 100%; border-radius: 2px; transition: width .3s; }
+
+  .p1 .phase-num { background: #1e3a5f; color: #60a5fa; }
+  .p1 .phase-badge { background: #1e3a5f; color: #60a5fa; }
+  .p1 .progress-bar-fill { background: #60a5fa; }
+  .p2 .phase-num { background: #1e4a3a; color: #34d399; }
+  .p2 .phase-badge { background: #1e4a3a; color: #34d399; }
+  .p2 .progress-bar-fill { background: #34d399; }
+  .p3 .phase-num { background: #3a2e1e; color: #fbbf24; }
+  .p3 .phase-badge { background: #3a2e1e; color: #fbbf24; }
+  .p3 .progress-bar-fill { background: #fbbf24; }
+  .p4 .phase-num { background: #3a1e3a; color: #c084fc; }
+  .p4 .phase-badge { background: #3a1e3a; color: #c084fc; }
+  .p4 .progress-bar-fill { background: #c084fc; }
+  .p5 .phase-num { background: #3a1e1e; color: #f87171; }
+  .p5 .phase-badge { background: #3a1e1e; color: #f87171; }
+  .p5 .progress-bar-fill { background: #f87171; }
+  .p6 .phase-num { background: #1e3a3a; color: #22d3ee; }
+  .p6 .phase-badge { background: #1e3a3a; color: #22d3ee; }
+  .p6 .progress-bar-fill { background: #22d3ee; }
+
+  .global-progress {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 14px;
+    margin-bottom: 16px;
+  }
+  .gp-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+  .gp-label { font-size: 12px; color: var(--muted); }
+  .gp-count { font-size: 13px; font-weight: 700; color: var(--green); }
+  .progress-bar-wrap.big { height: 8px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Guía de Pruebas de Concepto</h1>
+  <p>Gestor de Inventario &middot; Escenario: Universidad con múltiples sedes</p>
+</div>
+
+<div class="scenario-banner">
+  <div class="label">Contexto del escenario</div>
+  <div class="text">
+    Una universidad gestiona el inventario de insumos y equipamiento entre <strong>tres sedes</strong> (Sede Central, Facultad A y Facultad B).
+    Hay tres actores: un <strong>Administrador</strong> (acceso total), un <strong>Encargado de depósito</strong>
+    (operaciones de stock en su sede) y un <strong>Supervisor</strong> (consulta y reportes).
+  </div>
+</div>
+
+<div class="global-progress">
+  <div class="gp-row">
+    <span class="gp-label">Progreso general</span>
+    <span class="gp-count" id="gp-count">0 / 18 pasos</span>
+  </div>
+  <div class="progress-bar-wrap big">
+    <div class="progress-bar-fill" id="gp-bar" style="background: linear-gradient(90deg, #6c8fff, #a78bfa); width: 0%"></div>
+  </div>
+</div>
+
+<div class="phases" id="phases">
+
+  <!-- FASE 1 -->
+  <div class="phase p1 open" data-phase="1">
+    <div class="phase-header" onclick="togglePhase(this)">
+      <div class="phase-num">1</div>
+      <div class="phase-title">
+        <div class="name">Configuración inicial del sistema</div>
+        <div class="sub">Roles, usuarios y sedes</div>
+      </div>
+      <div class="phase-badge">~10 min</div>
+      <div class="phase-arrow">▶</div>
+    </div>
+    <div class="phase-body">
+      <div class="progress-bar-wrap"><div class="progress-bar-fill" id="pb-1" style="width:0%"></div></div>
+      <div class="steps">
+        <div class="step">
+          <div class="step-icon">🏢</div>
+          <div class="step-content">
+            <div class="step-title">Crear las tres sedes</div>
+            <div class="step-desc">Añadir "Sede Central", "Facultad A" y "Facultad B" con sus datos.</div>
+            <span class="step-path">Administración → Sedes → Nueva Sede</span>
+            <div class="step-tip">💡 Al crear cada sede, el sistema genera automáticamente los registros de stock vacíos para todos los productos existentes.</div>
+            <label class="check-row" onclick="toggleCheck(this)"><input type="checkbox"> <span class="check-label">Tres sedes creadas y visibles en el listado</span></label>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-icon">🎭</div>
+          <div class="step-content">
+            <div class="step-title">Definir dos roles diferenciados</div>
+            <div class="step-desc">Crear "Encargado Depósito" (permisos de stock local + transferencias) y "Supervisor" (solo lectura + informes). Observar la granularidad de permisos disponibles.</div>
+            <span class="step-path">Administración → Roles → Nuevo Rol</span>
+            <div class="step-tip">💡 Asignar Inventario_StockLocal_Ver y Transferencias_Crear al primero; solo Informes_Ver al segundo.</div>
+            <label class="check-row" onclick="toggleCheck(this)"><input type="checkbox"> <span class="check-label">Roles con permisos diferenciados guardados</span></label>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-icon">👤</div>
+          <div class="step-content">
+            <div class="step-title">Crear usuarios y asignar roles/sede</div>
+            <div class="step-desc">Crear "María García" (Encargada, Sede Central) y "Carlos López" (Supervisor, todas las sedes).</div>
+            <span class="step-path">Administración → Usuarios → Nuevo Usuario</span>
+            <label class="check-row" onclick="toggleCheck(this)"><input type="checkbox"> <span class="check-label">Usuarios creados con su rol y sede asignados</span></label>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FASE 2 -->
+  <div class="phase p2" data-phase="2">
+    <div class="phase-header" onclick="togglePhase(this)">
+      <div class="phase-num">2</div>
+      <div class="phase-title">
+        <div class="name">Catálogo de productos</div>
+        <div class="sub">Rubros, familias, atributos y productos con SKU</div>
+      </div>
+      <div class="phase-badge">~15 min</div>
+      <div class="phase-arrow">▶</div>
+    </div>
+    <div class="phase-body">
+      <div class="progress-bar-wrap"><div class="progress-bar-fill" id="pb-2" style="width:0%"></div></div>
+      <div class="steps">
+        <div class="step">
+          <div class="step-icon">📁</div>
+          <div class="step-content">
+            <div class="step-title">Crear jerarquía de categorías</div>
+            <div class="step-desc">Rubro: "Informática" → Familia: "Periféricos". Rubro: "Librería" → Familia: "Papelería".</div>
+            <span class="step-path">Inventario → Rubros y Familias</span>
+            <div class="step-tip">💡 El código de rubro y familia alimenta la generación automática del SKU del producto.</div>
+            <label class="check-row" onclick="toggleCheck(this)"><input type="checkbox"> <span class="check-label">Jerarquía creada: 2 rubros con sus familias</span></label>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-icon">🏷️</div>
+          <div class="step-content">
+            <div class="step-title">Definir atributos para la familia</div>
+            <div class="step-desc">Para "Periféricos": atributo "Tipo" (LIST: Mouse, Teclado, Monitor) y "Garantía en meses" (NUMBER). Verificar que son obligatorios en esa familia.</div>
+            <span class="step-path">Inventario → Atributos → Grupos y Asignación a Familia</span>
+            <label class="check-row" onclick="toggleCheck(this)"><input type="checkbox"> <span class="check-label">Atributos definidos y asociados a la familia</span></label>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-icon">📦</div>
+          <div class="step-content">
+            <div class="step-title">Dar de alta productos con SKU automático</div>
+            <div class="step-desc">Crear "Mouse USB Logitech" (Informática / Periféricos) y "Resma A4 80g" (Librería / Papelería). Observar la generación automática del código SKU.</div>
+            <span class="step-path">Inventario → Productos → Nuevo Producto</span>
+            <div class="step-tip">💡 El SKU se genera como CódigoRubro + CódigoFamilia + Correlativo. No se puede editar manualmente.</div>
+            <label class="check-row" onclick="toggleCheck(this)"><input type="checkbox"> <span class="check-label">Productos creados con SKU generado automáticamente</span></label>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FASE 3 -->
+  <div class="phase p3" data-phase="3">
+    <div class="phase-header" onclick="togglePhase(this)">
+      <div class="phase-num">3</div>
+      <div class="phase-title">
+        <div class="name">Operaciones de stock</div>
+        <div class="sub">Entradas, consumos y operaciones múltiples (remitos)</div>
+      </div>
+      <div class="phase-badge">~12 min</div>
+      <div class="phase-arrow">▶</div>
+    </div>
+    <div class="phase-body">
+      <div class="progress-bar-wrap"><div class="progress-bar-fill" id="pb-3" style="width:0%"></div></div>
+      <div class="steps">
+        <div class="step">
+          <div class="step-icon">📥</div>
+          <div class="step-content">
+            <div class="step-title">Registrar ingreso de mercadería</div>
+            <div class="step-desc">La Sede Central recibe 50 resmas A4 y 20 mouse. Registrar la entrada de stock para cada producto en esa sede.</div>
+            <span class="step-path">Inventario → Stock Local → Incremento</span>
+            <label class="check-row" onclick="toggleCheck(this)"><input type="checkbox"> <span class="check-label">Stock actualizado: 50 resmas + 20 mouse en Sede Central</span></label>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-icon">📤</div>
+          <div class="step-content">
+            <div class="step-title">Registrar un consumo</div>
+            <div class="step-desc">La secretaría retiró 5 resmas para uso en oficinas. Registrar la salida por consumo.</div>
+            <span class="step-path">Inventario → Stock Local → Consumo</span>
+            <div class="step-tip">💡 Stock resultante debe quedar en 45 resmas. Verificar en el listado.</div>
+            <label class="check-row" onclick="toggleCheck(this)"><input type="checkbox"> <span class="check-label">Stock de resmas decrementado a 45 unidades</span></label>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-icon">📋</div>
+          <div class="step-content">
+            <div class="step-title">Crear un remito (operación múltiple)</div>
+            <div class="step-desc">Simular el despacho mensual a laboratorios: en un solo formulario, registrar salida de 10 resmas y 5 mouse en el mismo momento.</div>
+            <span class="step-path">Inventario → Operaciones Múltiples → Nueva Operación</span>
+            <label class="check-row" onclick="toggleCheck(this)"><input type="checkbox"> <span class="check-label">Remito creado con dos ítems y stock descontado</span></label>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FASE 4 -->
+  <div class="phase p4" data-phase="4">
+    <div class="phase-header" onclick="togglePhase(this)">
+      <div class="phase-num">4</div>
+      <div class="phase-title">
+        <div class="name">Transferencias entre sedes</div>
+        <div class="sub">Flujo completo: solicitud → tránsito → recepción</div>
+      </div>
+      <div class="phase-badge">~15 min</div>
+      <div class="phase-arrow">▶</div>
+    </div>
+    <div class="phase-body">
+      <div class="progress-bar-wrap"><div class="progress-bar-fill" id="pb-4" style="width:0%"></div></div>
+      <div class="steps">
+        <div class="step">
+          <div class="step-icon">🚚</div>
+          <div class="step-content">
+            <div class="step-title">Solicitar transferencia (Reposición)</div>
+            <div class="step-desc">Facultad A solicita 15 resmas a Sede Central por motivo "REPOSICIÓN". Desde la cuenta de Sede Central, ver la transferencia entrante.</div>
+            <span class="step-path">Operaciones → Transferencias → Gestionar → Nueva Transferencia</span>
+            <div class="step-tip">💡 El stock de origen NO se descuenta hasta que el destino confirma la recepción.</div>
+            <label class="check-row" onclick="toggleCheck(this)"><input type="checkbox"> <span class="check-label">Transferencia creada en estado SOLICITADA</span></label>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-icon">✅</div>
+          <div class="step-content">
+            <div class="step-title">Aceptar la transferencia (origen)</div>
+            <div class="step-desc">La Sede Central acepta la solicitud. El estado pasa a EN_TRÁNSITO. Verificar que el stock de origen aún no cambió.</div>
+            <span class="step-path">Operaciones → Transferencias → Entrantes → Aceptar</span>
+            <label class="check-row" onclick="toggleCheck(this)"><input type="checkbox"> <span class="check-label">Estado cambiado a EN_TRÁNSITO</span></label>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-icon">📫</div>
+          <div class="step-content">
+            <div class="step-title">Confirmar recepción (destino)</div>
+            <div class="step-desc">Facultad A confirma que recibió las 15 resmas. Verificar: stock de Sede Central −15 y stock de Facultad A +15.</div>
+            <span class="step-path">Operaciones → Transferencias → Salientes → Confirmar Recepción</span>
+            <div class="step-tip">💡 Aquí sí se ejecuta el movimiento contable en ambas sedes simultáneamente.</div>
+            <label class="check-row" onclick="toggleCheck(this)"><input type="checkbox"> <span class="check-label">Stock actualizado en ambas sedes correctamente</span></label>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FASE 5 -->
+  <div class="phase p5" data-phase="5">
+    <div class="phase-header" onclick="togglePhase(this)">
+      <div class="phase-num">5</div>
+      <div class="phase-title">
+        <div class="name">Solicitudes de compra</div>
+        <div class="sub">Detección de faltante y circuito de aprobación</div>
+      </div>
+      <div class="phase-badge">~8 min</div>
+      <div class="phase-arrow">▶</div>
+    </div>
+    <div class="phase-body">
+      <div class="progress-bar-wrap"><div class="progress-bar-fill" id="pb-5" style="width:0%"></div></div>
+      <div class="steps">
+        <div class="step">
+          <div class="step-icon">🛒</div>
+          <div class="step-content">
+            <div class="step-title">Generar solicitud de compra</div>
+            <div class="step-desc">El stock de mouse cayó a 3 unidades. La encargada crea una solicitud de compra de 50 mouse USB indicando proveedor y justificación.</div>
+            <span class="step-path">Operaciones → Solicitudes de Compra → Nueva Solicitud</span>
+            <label class="check-row" onclick="toggleCheck(this)"><input type="checkbox"> <span class="check-label">Solicitud creada en estado PENDIENTE</span></label>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-icon">🔄</div>
+          <div class="step-content">
+            <div class="step-title">Gestionar el estado de la solicitud</div>
+            <div class="step-desc">El administrador cambia el estado: PENDIENTE → APROBADA → CONCRETADA. Observar el historial de estados.</div>
+            <span class="step-path">Operaciones → Solicitudes → Ver detalle → Cambiar Estado</span>
+            <div class="step-tip">💡 También se puede marcar como NO_CONCRETADA si la compra no se realizó.</div>
+            <label class="check-row" onclick="toggleCheck(this)"><input type="checkbox"> <span class="check-label">Flujo de aprobación completado hasta CONCRETADA</span></label>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FASE 6 -->
+  <div class="phase p6" data-phase="6">
+    <div class="phase-header" onclick="togglePhase(this)">
+      <div class="phase-num">6</div>
+      <div class="phase-title">
+        <div class="name">Informes y auditoría</div>
+        <div class="sub">Visibilidad del sistema: alertas, rotación y trazabilidad</div>
+      </div>
+      <div class="phase-badge">~10 min</div>
+      <div class="phase-arrow">▶</div>
+    </div>
+    <div class="phase-body">
+      <div class="progress-bar-wrap"><div class="progress-bar-fill" id="pb-6" style="width:0%"></div></div>
+      <div class="steps">
+        <div class="step">
+          <div class="step-icon">🚨</div>
+          <div class="step-content">
+            <div class="step-title">Verificar alertas de stock bajo</div>
+            <div class="step-desc">Con el stock de mouse en niveles bajos, ir a Informes → Alertas Stock. El sistema debe identificar el producto como en riesgo de desabastecimiento.</div>
+            <span class="step-path">Informes → Alertas Stock</span>
+            <div class="step-tip">💡 El algoritmo usa el historial de consumo de las últimas semanas para proyectar el riesgo.</div>
+            <label class="check-row" onclick="toggleCheck(this)"><input type="checkbox"> <span class="check-label">Mouse USB aparece en alertas de stock</span></label>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-icon">📊</div>
+          <div class="step-content">
+            <div class="step-title">Consultar rotación de productos</div>
+            <div class="step-desc">Ver el informe de Rotación de Productos. Verificar que las resmas A4 aparecen como el producto con mayor movimiento.</div>
+            <span class="step-path">Informes → Rotación de Productos</span>
+            <label class="check-row" onclick="toggleCheck(this)"><input type="checkbox"> <span class="check-label">Ranking de productos por rotación visible y correcto</span></label>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-icon">🔍</div>
+          <div class="step-content">
+            <div class="step-title">Revisar historial y auditoría</div>
+            <div class="step-desc">Ir al historial de movimientos y filtrar por "Resma A4". Deben aparecer: entrada inicial, consumos, consumo del remito y la transferencia a Facultad A. Luego revisar el log de auditoría del sistema.</div>
+            <span class="step-path">Inventario → Historial de Movimientos &middot; Administración → Auditoría</span>
+            <div class="step-tip">💡 El historial demuestra trazabilidad completa: quién, qué, cuándo y desde qué sede.</div>
+            <label class="check-row" onclick="toggleCheck(this)"><input type="checkbox"> <span class="check-label">Todos los movimientos del producto trazados correctamente</span></label>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  function togglePhase(header) {
+    const phase = header.closest('.phase');
+    phase.classList.toggle('open');
+  }
+
+  function toggleCheck(label) {
+    const cb = label.querySelector('input[type=checkbox]');
+    setTimeout(() => {
+      label.classList.toggle('done', cb.checked);
+      updateProgress();
+    }, 10);
+  }
+
+  function updateProgress() {
+    const phases = document.querySelectorAll('.phase');
+    let total = 0, checked = 0;
+    phases.forEach(phase => {
+      const phaseNum = phase.dataset.phase;
+      const cbs = phase.querySelectorAll('input[type=checkbox]');
+      const pChecked = Array.from(cbs).filter(c => c.checked).length;
+      total += cbs.length;
+      checked += pChecked;
+      const pct = cbs.length > 0 ? Math.round((pChecked / cbs.length) * 100) : 0;
+      const pb = document.getElementById('pb-' + phaseNum);
+      if (pb) pb.style.width = pct + '%';
+    });
+    document.getElementById('gp-count').textContent = checked + ' / ' + total + ' pasos';
+    const gpPct = total > 0 ? Math.round((checked / total) * 100) : 0;
+    document.getElementById('gp-bar').style.width = gpPct + '%';
+  }
+
+  updateProgress();
+</script>
+
+</body>
+</html>
